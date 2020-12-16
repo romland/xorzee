@@ -1,0 +1,20 @@
+{
+  "name": "bettermotion",
+  "version": "1.0.0",
+  "description": "Lightning fast motion detection and live video streaming for Raspberry Pi",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "MIT",
+  "repository": "",
+  "dependencies": {
+    "@clusterws/cws": "^3.0.0",
+    "express": "^4.15.2",
+    "http-server": "^0.12.3",
+    "nconf": "^0.8.4",
+    "stream-split": "^1.1.0",
+    "systemd": "^0.2.6"
+  }
+}
