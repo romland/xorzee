@@ -12,19 +12,28 @@ function startStream(playerId, wsUri, useWorker, webgl, reconnectMs)
 		window.player = new Player({
 			useWorker: useWorker,
 			webgl: webgl,
-			size: { width: 848, height: 480 }
+			size: {
+				width: 1920,
+				height: 1080
+			}
 		});
 
 		var playerElement = document.getElementById(playerId);
 		playerElement.appendChild(window.player.canvas);
 
 		window.player.canvas.addEventListener('dblclick', function() {
-			if(window.player.canvas.requestFullScreen) window.player.canvas.requestFullScreen();
-			else if(window.player.canvas.webkitRequestFullScreen) window.player.canvas.webkitRequestFullScreen();
-			else if(window.player.canvas.mozRequestFullScreen) window.player.canvas.mozRequestFullScreen();
+			if(window.player.canvas.requestFullScreen)
+				window.player.canvas.requestFullScreen();
+
+			else if(window.player.canvas.webkitRequestFullScreen)
+				window.player.canvas.webkitRequestFullScreen();
+
+			else if(window.player.canvas.mozRequestFullScreen)
+				window.player.canvas.mozRequestFullScreen();
 		})
 
-		window.debugger = new debug(playerId) //show statistics, you can remove me if you dont need stats
+ 		// show statistics
+		window.debugger = new debug(playerId);
 	}
 
 	document.addEventListener('webkitfullscreenchange', exitHandler, false);
@@ -33,7 +42,7 @@ function startStream(playerId, wsUri, useWorker, webgl, reconnectMs)
 	document.addEventListener('MSFullscreenChange', exitHandler, false);
 
 	function exitHandler() {
-        	if(document.fullScreenElement || document.webkitCurrentFullScreenElement || document.mozFullScreenElement) {
+       	if(document.fullScreenElement || document.webkitCurrentFullScreenElement || document.mozFullScreenElement) {
 			window.player.canvas.style.width = '100vw'
 			window.player.canvas.style.marginBottom = '0'
 			window.player.canvas.style.border = '0'
@@ -45,7 +54,9 @@ function startStream(playerId, wsUri, useWorker, webgl, reconnectMs)
 	}
 
 	var separator = new Uint8Array([0, 0, 0, 1])
-	function addSeparator(buffer) {
+
+	function addSeparator(buffer)
+	{
 		var tmp = new Uint8Array(4+buffer.byteLength)
 		tmp.set(separator, 0)
 		tmp.set(new Uint8Array(buffer), 4)
@@ -61,6 +72,7 @@ function startStream(playerId, wsUri, useWorker, webgl, reconnectMs)
 			if(window.debugger) window.debugger.nal(msg.data.byteLength)
 		}
 	}
+
 	ws.onclose = function (e) {
 		console.log('websocket disconnected')
 		if (reconnectMs > 0) {
@@ -70,11 +82,13 @@ function startStream(playerId, wsUri, useWorker, webgl, reconnectMs)
 }
 
 // debugger stuff
-function avgFPS(length) {
+function avgFPS(length)
+{
 	this.index = 0
 	this.sum = 0
 	this.length = length
 	this.buffer = Array.apply(null, Array(length)).map(Number.prototype.valueOf,0);
+
 	this.tick = function(tick) {
 		this.sum -= this.buffer[this.index]
 		this.sum += tick
@@ -82,13 +96,17 @@ function avgFPS(length) {
 		if (++this.index == this.length) this.index = 0
 		return Math.floor(this.sum/this.length)
 	}
+
 	this.avg = function() {
 		return Math.floor(this.sum/this.length)
 	}
+
 	return this
 }
 
-function debug(playerId) {
+
+function debug(playerId)
+{
 	this.started = +new Date()
 	this.fps = new avgFPS(50)
 	this.last = +new Date()
@@ -99,15 +117,18 @@ function debug(playerId) {
 	this.playerWidth = 0
 	this.playerHeight = 0
 	this.statsElement = document.createElement('div')
+
 	document.getElementById(playerId).appendChild(this.statsElement)
 	window.player.onPictureDecoded = function(buffer, width, height, infos) {
 		window.debugger.frame(width, height)
 	}
+
 	this.nal = function(bytes) {
 		this.nals++
 		this.total += bytes
 		this.secondTotal += bytes
 	}
+
 	this.frame = function(w, h) {
 		this.playerWidth = w
 		this.playerHeight = h
@@ -116,6 +137,7 @@ function debug(playerId) {
 		this.fps.tick(delta)
 		this.last = now
 	}
+
 	setInterval(function() {
 		var mib = (window.debugger.total/1048576).toFixed(2)
 		var date = new Date(null)

@@ -20,6 +20,7 @@ const NALSeparator = new Buffer([0, 0, 0, 1]);
 const express = require('express');
 const systemd = require('systemd');
 const app = express();
+const path = require('path');
 
 const cp = require('child_process');
 
@@ -29,12 +30,50 @@ const SAVE_STREAM = false;
 	var headers = [];
 
 	conf.argv().defaults({
-		tcpport		: 8000,
-		udpport		: 8000,
-		wsport		: 8081,
-		queryport	: false,
+		tcpport		: 8000,		// for camera
+		udpport		: 8000,		// for camera
+
+		wsport		: 8081,		// for client (stream)
+		queryport	: 8080,		// for client (content)
 		limit		: 150
 	});
+
+
+//	express.static
+
+
+	var cameraStarted = false;
+
+	function startCamera()
+	{
+		if(cameraStarted) {
+			return;
+		}
+
+		cameraStarted = true;
+
+		// raspivid -ih -stm -hf -vf -n -v -w 1920 -t 0 -fps 24 -ih -b 1700000 -pf baseline -o - | nc localhost 8000
+		var camProc = cp.spawn('/bin/sh', [
+			'-c',
+			'/usr/bin/raspivid -ih -stm -hf -vf -n -v -w 1920 -t 0 -fps 24 -ih -b 1700000 -pf baseline -o -' +
+			' | /bin/nc localhost ' + conf.get("tcpport")
+		]);
+
+		camProc.stdout.setEncoding('utf8');
+		camProc.stdout.on('data', function(data) {
+		    console.log('CAM stdout: ' + data);
+		});
+
+		camProc.stderr.setEncoding('utf8');
+		camProc.stderr.on('data', function(data) {
+		    console.log('CAM stderr: ' + data);
+		});
+
+		camProc.on('close', function(code) {
+		    console.log('CAM closing code: ' + code);
+		});
+
+	}
 
 
 	if(SAVE_STREAM) {
@@ -76,6 +115,8 @@ const SAVE_STREAM = false;
 
 
 	if (conf.get('queryport')) {
+		app.use(express.static( path.join(__dirname, '../client') ));
+
 		app.get('/', (req, res) => {
 			var count = 0;
 
@@ -89,25 +130,27 @@ const SAVE_STREAM = false;
 			res.send(count.toString());
 		});
 
-		app.listen(conf.get('queryport'));
+		app.listen(conf.get('queryport'), () => {
+			console.log("Listening for HTTP requests on port", conf.get('queryport'));
+		});
 	}
 
 
-	function broadcast(data) {
+	function broadcast(data)
+	{
 		wsServer.clients.forEach((ws) => {
 			if (ws.readyState === 1) {
 				ws.send(data, { binary: true });
 			}
 		});
-
 	}
 
 
 	if (conf.get('tcpport')) {
 		const tcpServer = net.createServer((socket) => {
-			console.log('streamer connected')
+			console.log('streamer connected');
 			socket.on('end', () => {
-				console.log('streamer disconnected')
+				console.log('streamer disconnected');
 			})
 
 			headers = [];
@@ -115,8 +158,6 @@ const SAVE_STREAM = false;
 			const NALSplitter = new Split(NALSeparator);
 
 			NALSplitter.on('data', (data) => {
-//				saveFrame(data);
-
 				if (wsServer && wsServer.clients.length > 0) {
 					if (headers.length < 3) {
 						headers.push(data)
@@ -139,13 +180,15 @@ const SAVE_STREAM = false;
 		tcpServer.listen(conf.get('tcpport'));
 
 		if (conf.get('tcpport') == 'systemd') {
-			console.log('TCP server listening on systemd socket')
+			console.log('TCP server listening on systemd socket');
 		} else {
 			var address = tcpServer.address();
 			if (address) {
 				console.log(`TCP server listening on ${address.address}:${address.port}`);
 			}
 		}
+
+		startCamera();
 	}
 
 	if (conf.get('udpport')) {
@@ -173,6 +216,8 @@ const SAVE_STREAM = false;
 		});
 
 		udpServer.bind(conf.get('udpport'));
+
+		startCamera();
 	}
 
 	if (conf.get('wsport')) {

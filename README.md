@@ -1,8 +1,5 @@
 # Better Motion
 
-npm i @clusterws/cws (replaced uws with this as I run 32 bit arm 72)
-
-----
 Stop Vidensi recorder (or camera is booked!)
 
 First start:
@@ -18,18 +15,15 @@ Then connect camera to streamer:
         raspivid -ih -stm -hf -vf -n -v -w 1920 -t 0 -fps 24 -ih -b 1700000 -pf baseline -o - | nc localhost 8000
 
 
-Then start a http-server to host entire directory (quick and dirty)
-
-        node node_modules/http-server/bin/http-server .
 
 
-To put into ffmpeg cheaply (to be able to save)
-
-        raspivid -hf -vf -n -v -w 1920 -t 0 -fps 25 -ih -b 1700000 -pf baseline -o - | ffmpeg -v debug -y -analyzeduration 9M -probesize 9M -i pipe:0 -codec copy out.h264
-
-
-Further, what is needed:
+TODO, what is needed:
 ------------------------
+- would love to be able to send commands to a running ffmpeg instance:
+	set resolution
+	set filename
+	start
+	pause
 - be able to trigger recording of video
         Currently thinking triggering a forward of buffer to ffmpeg via child process,
         see:
@@ -48,6 +42,19 @@ Later
 Based on work by Dregu (github.com/dregu)
 
 # Old stuff
+npm i @clusterws/cws (replaced uws with this as I run 32 bit arm 72)
+
+Then start a http-server to host entire directory (quick and dirty)
+
+        node node_modules/http-server/bin/http-server .
+
+
+To put into ffmpeg cheaply (to be able to save)
+
+        raspivid -hf -vf -n -v -w 1920 -t 0 -fps 25 -ih -b 1700000 -pf baseline -o - | ffmpeg -v debug -y -analyzeduration 9M -probesize 9M -i pipe:0 -codec copy out.h264
+
+
+# Older stuff
 
 =====================================================================
 
