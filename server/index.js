@@ -22,6 +22,13 @@ const systemd = require('systemd');
 const app = express();
 const path = require('path');
 
+const { BufferListStream } = require('bl');	// XXX: It's a bit silly to include this one, but it saved me a little time.
+
+const mvrproc = require("./lib/mvrprocessor.js");
+const MvrProcessor = mvrproc.default;
+const MvrFilterFlags = mvrproc.MvrFilterFlags;
+
+
 const cp = require('child_process');
 
 const SAVE_STREAM = false;
@@ -32,14 +39,18 @@ const SAVE_STREAM = false;
 	conf.argv().defaults({
 		tcpport		: 8000,		// for camera
 		udpport		: 8000,		// for camera
+		motionport	: 8001,		// for motion
 
 		wsport		: 8081,		// for client (stream)
 		queryport	: 8080,		// for client (content)
-		limit		: 150
+		limit		: 150,
+
+		framerate	: 24,
+		width		: 1920,
+		height		: 1080,
 	});
 
-
-//	express.static
+	var mvrProcessor = new MvrProcessor(conf.get("framerate"), conf.get("width"), conf.get("height"));
 
 
 	var cameraStarted = false;
@@ -55,7 +66,16 @@ const SAVE_STREAM = false;
 		// raspivid -ih -stm -hf -vf -n -v -w 1920 -t 0 -fps 24 -ih -b 1700000 -pf baseline -o - | nc localhost 8000
 		var camProc = cp.spawn('/bin/sh', [
 			'-c',
-			'/usr/bin/raspivid -ih -stm -hf -vf -n -v -w 1920 -t 0 -fps 24 -ih -b 1700000 -pf baseline -o -' +
+			`/usr/bin/raspivid ` +
+//			`-g 1` +		// A low value here will make ffmpeg pick up the video quicker -- drawbacks other than bandwidth?
+			`-ih -stm -hf -vf -n -v ` +
+			`-w ${conf.get("width")} ` +
+			`-t 0 ` +
+			`-fps ${conf.get("framerate")} ` +
+			`-b 1700000 ` +
+			`-pf baseline ` +
+			`-x tcp://127.0.0.1:${conf.get("motionport")} ` +
+			`-o -` +
 			' | /bin/nc localhost ' + conf.get("tcpport")
 		]);
 
@@ -70,10 +90,14 @@ const SAVE_STREAM = false;
 		});
 
 		camProc.on('close', function(code) {
-		    console.log('CAM closing code: ' + code);
+		    console.log('===> CAM closing code: ' + code);
 		});
 
 	}
+
+
+	// sreenshot:
+	// ffmpeg -y -hide_banner -i out.h264 -ss 0 -frames:v 1 out.jpg
 
 
 	if(SAVE_STREAM) {
@@ -87,9 +111,10 @@ const SAVE_STREAM = false;
 			'-y',
 			'-analyzeduration', '9M',
 			'-probesize', '9M',
+			'-framerate', conf.get("framerate"),
 			'-i', '-',
 			'-codec', 'copy',
-			'out.h264'
+			'../client/out.h264'
 		]);
 
 		proc.stdout.setEncoding('utf8');
@@ -103,14 +128,20 @@ const SAVE_STREAM = false;
 		});
 
 		proc.on('close', function(code) {
-		    console.log('FFMPEG closing code: ' + code);
+		    console.log('===> FFMPEG closing code: ' + code);
 		});
 
-		process.on('SIGTERM', () => {
+		process.on('SIGINT', () => {
 			// end saving of ffmpeg stream
 			console.log("ending recording...");
 			proc.stdin.end();
+			process.exit();
 		});
+
+		process.on('SIGTERM', () => {
+			proc.stdin.end();
+		});
+
 	}
 
 
@@ -145,6 +176,70 @@ const SAVE_STREAM = false;
 		});
 	}
 
+	if (conf.get('motionport')) {
+		let bl = new BufferListStream();
+
+		const tcpServer = net.createServer((socket) => {
+			console.log('motion streamer connected');
+
+			socket.on('end', () => {
+				console.log('motion streamer disconnected');
+			})
+
+			const NALSplitter = new Split(NALSeparator);
+
+			let vectorLines = Math.floor( conf.get("height") / 16) + 1
+			let vectorsPerLine = Math.floor( conf.get("width") / 16) + 1
+			let frameLength = vectorsPerLine * vectorLines * 4;
+			let bl = new BufferListStream();
+			let frameData = null;
+
+
+			NALSplitter.on('data', (data) => {
+
+
+				bl.append(data);
+
+				while(true) {
+					if(bl.length < frameLength) {
+						break;
+					}
+
+					//frameData = bl.shallowSlice(0, frameLength);      // argh, this does not expose fill() -- oh well, a memory copy then :(
+					frameData = bl.slice(0, frameLength);
+
+					// Modifies frameData in place
+					mvrProcessor.processFrame(frameData, frameLength);
+
+					bl.consume(frameLength);
+
+					// show only when consumed...
+//					console.log("motion data:", frameLength);
+					mvrProcessor.outputFrameStats(frameData);
+				}
+
+			}).on('error', (e) => {
+				console.log('splitter error ' + e);
+				process.exit(0);
+			})
+
+			socket.pipe(NALSplitter);
+		});
+
+		tcpServer.listen(conf.get('motionport'));
+
+		if (conf.get('motionport') == 'systemd') {
+			console.log('motion TCP server listening on systemd socket');
+		} else {
+			var address = tcpServer.address();
+			if (address) {
+				console.log(`motion TCP server listening on ${address.address}:${address.port}`);
+			}
+		}
+
+	} else {
+		console.log("Motion listener disabled");
+	}
 
 	if (conf.get('tcpport')) {
 		const tcpServer = net.createServer((socket) => {
@@ -188,7 +283,6 @@ const SAVE_STREAM = false;
 			}
 		}
 
-		startCamera();
 	}
 
 	if (conf.get('udpport')) {
@@ -217,7 +311,6 @@ const SAVE_STREAM = false;
 
 		udpServer.bind(conf.get('udpport'));
 
-		startCamera();
 	}
 
 	if (conf.get('wsport')) {
@@ -246,3 +339,4 @@ const SAVE_STREAM = false;
 		});
 	}
 
+	startCamera();

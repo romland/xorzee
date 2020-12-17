@@ -57,19 +57,22 @@ function startStream(playerId, wsUri, useWorker, webgl, reconnectMs)
 
 	function addSeparator(buffer)
 	{
-		var tmp = new Uint8Array(4+buffer.byteLength)
-		tmp.set(separator, 0)
-		tmp.set(new Uint8Array(buffer), 4)
-		return tmp.buffer
+		var tmp = new Uint8Array(4+buffer.byteLength);
+		tmp.set(separator, 0);
+		tmp.set(new Uint8Array(buffer), 4);
+		return tmp.buffer;
 	}
 
-	var ws = new WebSocket(wsUri)
-	ws.binaryType = 'arraybuffer'
+	var ws = new WebSocket(wsUri);
+	ws.binaryType = 'arraybuffer';
 	ws.onopen = function (e) {
-		console.log('websocket connected')
+		console.log('websocket connected');
 		ws.onmessage = function (msg) {
-			window.player.decode(new Uint8Array(addSeparator(msg.data)))
-			if(window.debugger) window.debugger.nal(msg.data.byteLength)
+			window.player.decode(new Uint8Array(addSeparator(msg.data)));
+
+			if(window.debugger) {
+				window.debugger.nal(msg.data.byteLength);
+			}
 		}
 	}
 
