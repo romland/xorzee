@@ -29,7 +29,7 @@ const mvrproc = require("./lib/mvrprocessor.js");
 const MvrProcessor = mvrproc.default;
 const MvrFilterFlags = mvrproc.MvrFilterFlags;
 
-
+const START_SKIP_MOTION_FRAMES = 17;
 const SAVE_STREAM = false;
 
 	var wsServer;
@@ -49,8 +49,9 @@ const SAVE_STREAM = false;
 
 		limit		: 150,		// max number clients allowed
 
-		framerate	: 24,
-//		framerate	: 4,
+//		framerate	: 24,
+//		framerate	: 16,
+		framerate	: 2,
 		width		: 1920,
 		height		: 1080,
 		bitrate		: 1700000,
@@ -184,11 +185,11 @@ const SAVE_STREAM = false;
 		});
 	}
 
-	function broadcastOverlay(data, len)
+	function broadcastOverlay(data, len, binary = true)
 	{
 		motionWsServer.clients.forEach((ws) => {
 			if (ws.readyState === 1) {
-				ws.send(data, { binary: true });
+				ws.send(data, { binary: binary });
 			}
 		});
 	}
@@ -209,10 +210,18 @@ const SAVE_STREAM = false;
 			let frameLength = vectorsPerLine * vectorLines * 4;
 			let bl = new BufferListStream();
 			let frameData = null;
+			let frameCount = 0;
+			let clusters;
+			let str;
 
 
 //			NALSplitter.on('data', (data) => {
 			socket.on('data', (data) => {
+
+				if(START_SKIP_MOTION_FRAMES > frameCount++) {
+					console.log("Skipping motion frame", frameCount, "/", START_SKIP_MOTION_FRAMES, "...");
+					return;
+				}
 
 				bl.append(data);
 
@@ -236,13 +245,18 @@ const SAVE_STREAM = false;
 					frameData = bl.slice(0, frameLength);
 
 					// Modifies frameData in place -- this seems to slow everything down...
-//					console.time("processFrame");
-					mvrProcessor.processFrame(frameData, frameLength);
-//					console.timeEnd("processFrame");
+					console.time("processFrame");
+					clusters = mvrProcessor.processFrame(frameData, MvrFilterFlags.MAGNITUDE_LT_300 | MvrFilterFlags.DX_DY_LT_2 | MvrFilterFlags.FRAME_MAGNITUDE_400_INCREASE);
+					console.timeEnd("processFrame");
 
 					bl.consume(frameLength);
 
-					broadcastOverlay(frameData, frameLength);
+					// broadcast raw data to client.
+					broadcastOverlay(frameData, frameLength, true);
+
+					// broadcast relevant data (such as bounding boxes) to client
+					str = JSON.stringify(clusters);
+					broadcastOverlay(str, str.length, false);
 
 //					console.log("motion data:", frameLength);
 //					mvrProcessor.outputFrameStats(frameData);
@@ -389,7 +403,7 @@ const SAVE_STREAM = false;
 
 			for (let i in headers) {
 //				ws.send(headers[i]);
-				ws.send("Welcome, TODO");
+				ws.send(JSON.stringify( { msg : "Welcome" }), -1, false);
 			}
 
 			ws.on('close', (ws, id) => {

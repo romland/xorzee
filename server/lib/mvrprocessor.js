@@ -6,6 +6,8 @@
  * 20-may-2020, Joakim Romland
  */
 
+const jdbscan = require("./jdbscan");
+
 
 const MvrFilterFlags = {
 	MAGNITUDE_LT_300 : 1,
@@ -45,6 +47,9 @@ class MvrProcessor
 			mag : null
 		};
 
+
+		this.frameDataHeight = Math.floor( resolutionHeight / 16) + 1;
+		this.frameDataWidth = Math.floor( resolutionWidth / 16) + 1;
 		this.resolutionWidth = resolutionWidth;
 		this.resolutionHeight = resolutionHeight;
 		this.fps = fps;
@@ -155,6 +160,40 @@ class MvrProcessor
 	}
 
 
+	isMover(buffer, index)
+	{
+		return Math.max( Math.abs(buffer.readIntLE(index + 0, 1)), Math.abs(buffer.readIntLE(index + 1, 1)) ) > 2;
+	}
+
+	isLoner(frameData, index)
+	{
+		let w4 = this.frameDataWidth * 4;
+		let x = Math.floor(index % w4);
+		let y = Math.floor(index / w4);
+//console.log(index, index - w4, x, y);
+
+		// Above
+		if(y > 0 && this.isMover(frameData, index - w4))
+			return false;
+
+		// Below
+		if(y < (this.frameDataHeight-1) && this.isMover(frameData, index + w4))
+			return false;
+
+		// Left
+		if(x > 0 && this.isMover(frameData, index - (1 * 4)))
+			return false;
+
+		// Right
+		if(x < this.frameDataWidth && this.isMover(frameData, index + (1 * 4)))
+			return false;
+
+		// TODO: check diagonals
+
+		return true;
+	}
+
+
 	/**
 	 * This is the important one.
 	 * This is the one that modifies source data.
@@ -168,6 +207,8 @@ class MvrProcessor
 		let totMag = 0;
 		let previousFrameMagTotal = 0;
 		let frameLength = this.getFrameSize();
+		let loners = [];
+		let candidates = [];
 
 		// Default filter flags
 		if(!filterFlags) {
@@ -176,6 +217,17 @@ class MvrProcessor
 
 		while(i < frameLength) {
 			this.getMotionVectorAt(frameData, i, this.mv);
+
+			if(true && this.mv.mag >= 2 && this.isLoner(frameData, i)) {
+				loners.push(i);
+			} else if(this.mv.mag > 10) {
+				candidates.push(
+					{
+						x : Math.floor( (i/4) % this.frameDataWidth),
+						y : Math.floor( (i/4) / this.frameDataWidth)
+					}
+				);
+			}
 
 			if((filterFlags & MvrFilterFlags.DX_DY_LT_2) === MvrFilterFlags.DX_DY_LT_2) {
 				// 0x01
@@ -199,6 +251,9 @@ class MvrProcessor
 			i += 4;
 		} // each vector
 
+
+		let nullFrame = false;
+
 		if((filterFlags & MvrFilterFlags.FRAME_MAGNITUDE_400_INCREASE) === MvrFilterFlags.FRAME_MAGNITUDE_400_INCREASE) {
 			// 400% increase in motion compared to last frame -- get this from encoder sometimes 
 			// (is it camera? something else? what do these vectors look like?)
@@ -213,6 +268,7 @@ class MvrProcessor
 
 				// Zero out frames that are motion-flashes [flash-rem in compression results]
 				frameData.fill(0);	// WARNING: Changes the dataset!
+				nullFrame = true;
 			}
 			// -- flash check
 		}
@@ -224,11 +280,76 @@ class MvrProcessor
 			if(totMag < 300) {
 				this.stats.ignoredFrames++;
 				frameData.fill(0);	// WARNING: Changes the dataset!
+				nullFrame = true;
 			}
 		}
 
+
+		let clusters = [];
+		if(!nullFrame) {
+
+			for(let i = 0; i < loners.length; i++) {
+				// TODO: Decrease totMag equivalent to the vectors we remove
+				frameData.writeInt32LE(0, loners[i]); // WARNING: Changes the dataset!
+			}
+
+			// =============== clustering
+			let dbscanner = jdbscan()
+				.eps(1)
+				.minPts(8)
+				.distance((p1, p2) => {
+					return Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
+				})
+				.data(candidates);
+			let results = dbscanner();
+
+			let id, cluster;
+			for(let i = 0; i < results.length; i++) {
+				id = results[i];
+
+				if(results[i] === 0) {
+					// cluster 0 is noise?
+					continue;
+				}
+
+				if(!clusters[id]) {
+					clusters[id] = { points : [], /* clockwise from top */ box : [ 1000, 0, 0, 1000 ] };
+				}
+				cluster = clusters[id];
+
+				cluster.points.push(candidates[i]);
+
+				// Bounding box
+				if(candidates[i].y < cluster.box[0]) cluster.box[0] = candidates[i].y;
+				if(candidates[i].x > cluster.box[1]) cluster.box[1] = candidates[i].x;
+				if(candidates[i].y > cluster.box[2]) cluster.box[2] = candidates[i].y;
+				if(candidates[i].x < cluster.box[3]) cluster.box[3] = candidates[i].x;
+			}
+
+			if(clusters.length > 0) {
+				clusters.splice(0, 1);
+			}
+
+			//console.log("loners", loners.length, "candidate points", candidates.length, "clusters", clusters.length, clusters);
+
+/*
+			console.log("loners", loners.length, "candidate points", candidates.length, "clusters", clusters.length);
+
+			for(let i = 0; i < clusters.length; i++) {
+				console.log("\t", clusters[i].box);
+			}
+*/
+
+			// ================ /clustering
+		} else {
+			console.log("nullframe");
+		}
+
+
 		previousFrameMagTotal = totMag;
 		this.stats.frameCount++;
+
+		return clusters;
 	} // processFrame
 
 }
