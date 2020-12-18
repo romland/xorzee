@@ -129,7 +129,7 @@ canvasHeight = frameDataHeight * 8;
 						(0xff);
 				} else {
 					// Will only set alpha to 0 for this pixel (good enough!)
-					this.offScreenBuf[y * this.canvasWidth + x] = 0x80;
+					this.offScreenBuf[y * this.canvasWidth + x] = 0x00;
 				}
 			}
 		}
