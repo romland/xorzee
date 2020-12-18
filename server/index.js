@@ -12,6 +12,8 @@ Go to http://raspi-ip:8080/
 */
 
 
+const path = require('path');
+const cp = require('child_process');
 const net = require('net');
 const dgram = require('dgram');
 const WebSocket = require('@clusterws/cws');
@@ -20,7 +22,6 @@ const NALSeparator = new Buffer([0, 0, 0, 1]);
 const express = require('express');
 const systemd = require('systemd');
 const app = express();
-const path = require('path');
 
 const { BufferListStream } = require('bl');	// XXX: It's a bit silly to include this one, but it saved me a little time.
 
@@ -29,25 +30,30 @@ const MvrProcessor = mvrproc.default;
 const MvrFilterFlags = mvrproc.MvrFilterFlags;
 
 
-const cp = require('child_process');
-
 const SAVE_STREAM = false;
 
-	var wsServer, conf = require('nconf');
+	var wsServer;
+	var motionWsServer;
+
+	var conf = require('nconf');
 	var headers = [];
 
 	conf.argv().defaults({
 		tcpport		: 8000,		// for camera
 		udpport		: 8000,		// for camera
-		motionport	: 8001,		// for motion
+		motionport	: 8001,		// for camera (motion data)
 
-		wsport		: 8081,		// for client (stream)
 		queryport	: 8080,		// for client (content)
-		limit		: 150,
+		wsport		: 8081,		// for client (stream)
+		motionwsport: 8082,		// for client (motion stream)
+
+		limit		: 150,		// max number clients allowed
 
 		framerate	: 24,
+//		framerate	: 4,
 		width		: 1920,
 		height		: 1080,
+		bitrate		: 1700000,
 	});
 
 	var mvrProcessor = new MvrProcessor(conf.get("framerate"), conf.get("width"), conf.get("height"));
@@ -67,12 +73,14 @@ const SAVE_STREAM = false;
 		var camProc = cp.spawn('/bin/sh', [
 			'-c',
 			`/usr/bin/raspivid ` +
+			// it seems decoder gets some issues with this... cannot reproduce 100% of the time, tho.
+			// A low g value will make every frame appear like it's a motion-flash (and is thus ignored).
 //			`-g 1` +		// A low value here will make ffmpeg pick up the video quicker -- drawbacks other than bandwidth?
 			`-ih -stm -hf -vf -n -v ` +
 			`-w ${conf.get("width")} ` +
 			`-t 0 ` +
 			`-fps ${conf.get("framerate")} ` +
-			`-b 1700000 ` +
+			`-b ${conf.get("bitrate")} ` +
 			`-pf baseline ` +
 			`-x tcp://127.0.0.1:${conf.get("motionport")} ` +
 			`-o -` +
@@ -176,27 +184,35 @@ const SAVE_STREAM = false;
 		});
 	}
 
+	function broadcastOverlay(data, len)
+	{
+		motionWsServer.clients.forEach((ws) => {
+			if (ws.readyState === 1) {
+				ws.send(data, { binary: true });
+			}
+		});
+	}
+
 	if (conf.get('motionport')) {
-		let bl = new BufferListStream();
 
 		const tcpServer = net.createServer((socket) => {
 			console.log('motion streamer connected');
 
 			socket.on('end', () => {
 				console.log('motion streamer disconnected');
-			})
+			});
 
-			const NALSplitter = new Split(NALSeparator);
+//			const NALSplitter = new Split(NALSeparator);
 
-			let vectorLines = Math.floor( conf.get("height") / 16) + 1
-			let vectorsPerLine = Math.floor( conf.get("width") / 16) + 1
+			let vectorLines = Math.floor( conf.get("height") / 16) + 1;
+			let vectorsPerLine = Math.floor( conf.get("width") / 16) + 1;
 			let frameLength = vectorsPerLine * vectorLines * 4;
 			let bl = new BufferListStream();
 			let frameData = null;
 
 
-			NALSplitter.on('data', (data) => {
-
+//			NALSplitter.on('data', (data) => {
+			socket.on('data', (data) => {
 
 				bl.append(data);
 
@@ -204,26 +220,32 @@ const SAVE_STREAM = false;
 					if(bl.length < frameLength) {
 						break;
 					}
+//					console.clear();
 
 					//frameData = bl.shallowSlice(0, frameLength);      // argh, this does not expose fill() -- oh well, a memory copy then :(
 					frameData = bl.slice(0, frameLength);
 
-					// Modifies frameData in place
+					// Modifies frameData in place -- this seems to slow everything down...
+//					console.time("processFrame");
 					mvrProcessor.processFrame(frameData, frameLength);
+//					console.timeEnd("processFrame");
 
 					bl.consume(frameLength);
 
-					// show only when consumed...
+					broadcastOverlay(frameData, frameLength);
+
 //					console.log("motion data:", frameLength);
-					mvrProcessor.outputFrameStats(frameData);
+//					mvrProcessor.outputFrameStats(frameData);
+
+
 				}
 
 			}).on('error', (e) => {
-				console.log('splitter error ' + e);
+				console.log('motion splitter error ' + e);
 				process.exit(0);
 			})
 
-			socket.pipe(NALSplitter);
+//			socket.pipe(NALSplitter);
 		});
 
 		tcpServer.listen(conf.get('motionport'));
@@ -255,7 +277,7 @@ const SAVE_STREAM = false;
 			NALSplitter.on('data', (data) => {
 				if (wsServer && wsServer.clients.length > 0) {
 					if (headers.length < 3) {
-						headers.push(data)
+						headers.push(data);
 					}
 
 					broadcast(data);
@@ -263,7 +285,7 @@ const SAVE_STREAM = false;
 			}).on('error', (e) => {
 				console.log('splitter error ' + e);
 				process.exit(0);
-			})
+			});
 
 			socket.pipe(NALSplitter);
 
@@ -291,8 +313,9 @@ const SAVE_STREAM = false;
 		udpServer.on('listening', () => {
 			var address = udpServer.address();
 			console.log(
-				`UDP server listening on ${address.address}:${address.port}`)
-			});
+				`UDP server listening on ${address.address}:${address.port}`
+			);
+		});
 
 		const NALSplitter = new Split(NALSeparator);
 
@@ -338,5 +361,32 @@ const SAVE_STREAM = false;
 			})
 		});
 	}
+
+	if (conf.get('motionwsport')) {
+		motionWsServer = new WebSocket.WebSocketServer({ port: conf.get('motionwsport') });
+		console.log(
+			`motion WS server listening on`, conf.get('motionwsport')
+		);
+
+		motionWsServer.on('connection', (ws) => {
+			if (motionWsServer.clients.length >= conf.get('limit')) {
+				console.log('(motion) client rejected, limit reached');
+				ws.close();
+				return;
+			}
+
+			console.log('motion client connected, watching ' + motionWsServer.clients.length)
+
+			for (let i in headers) {
+//				ws.send(headers[i]);
+				ws.send("Welcome, TODO");
+			}
+
+			ws.on('close', (ws, id) => {
+				console.log('motion client disconnected, watching ' + motionWsServer.clients.length);
+			})
+		});
+	}
+
 
 	startCamera();
