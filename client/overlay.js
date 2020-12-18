@@ -119,10 +119,11 @@ canvasHeight = frameDataHeight * 8;
 			for(x = 0; x < this.canvasWidth; x++) {
 				mv = this.vectorsFrame.at(Math.floor(x*this.cvRatio), Math.floor(y*this.cvRatio));
 				// Support for both 'setup player' (no controls, larger dots) and 'development player' (controls, smaller dots)
-				if((mv.mag > 0 && Math.floor(x*this.cvRatio) == (x*this.cvRatio) && Math.floor(y*this.cvRatio) == (y*this.cvRatio))) {
+				//if((mv.mag > 0 && Math.floor(x*this.cvRatio) == (x*this.cvRatio) && Math.floor(y*this.cvRatio) == (y*this.cvRatio))) {
+				if(mv.mag > 0) {
 					// Top-to-bottom: alpha, blue, green, red
 					this.offScreenBuf[y * this.canvasWidth + x] =
-						((20 + (mv.mag * 3)) << 24) |
+						((40 + (mv.mag * 3)) << 24) |
 						(0xff << 16) |
 						(0xff << 8)  |
 						(0xff);
@@ -136,62 +137,11 @@ canvasHeight = frameDataHeight * 8;
 		this.imageData.data.set(this.offScreenBuf8);
 		this.context.putImageData(this.imageData, 0, 0);
 //		clearContext();
-	}
-
-
-	OLDrender(arrBuff)
-	{
-		let data = new Uint8Array(arrBuff);
-
-		let x, y;
-		let mv = {};
-
-console.log(this.canvasWidth*this.cvRatio, this.frameDataWidth);
-
-		// Render the vectors, colored by magnitude, we collected in the first pass.
-		for(y = 0; y < this.canvasHeight; y++) {
-			for(x = 0; x < this.canvasWidth; x++) {
-
-//				this.at(Math.floor(x*this.cvRatio), Math.floor(y*this.cvRatio), mv);
-//				vectorsFrame.at(Math.floor(x*cvRatio), Math.floor(y*cvRatio));
-				this.at(
-					data, 
-//					Math.floor(y*this.cvRatio) * this.frameDataWidth + Math.floor(x*this.cvRatio)
-					Math.floor(y*this.cvRatio) * Math.floor(this.canvasWidth*this.cvRatio) + Math.floor(x*this.cvRatio)
-//					y * this.canvasWidth + x
-					, mv
-				);
-//console.log(mv.mag);
-//console.log( Math.floor(x*this.cvRatio), Math.floor(y*this.cvRatio) );
-				// Support for both 'setup player' (no controls, larger dots) and 'development player' (controls, smaller dots)
-				if(mv.mag > 0 || (mv.mag > 0 && Math.floor(x*this.cvRatio) == (x*this.cvRatio) && Math.floor(y*this.cvRatio) == (y*this.cvRatio))) {
-					// Top-to-bottom: alpha, blue, green, red
-					this.offScreenBuf[y * this.canvasWidth + x] =
-						((20 + (mv.mag * 3)) << 24) |
-						(0xff << 16) |
-						(0xff << 8)  |
-						(0xff);
-				} else {
-					// Will only set alpha to 0 for this pixel (good enough!)
-					this.offScreenBuf[y * this.canvasWidth + x] = 0x0;
-				}
-
-			}
-		}
-		
-//		console.log("vectors", this.cvRatio, (x*y), (this.canvasWidth * this.canvasHeight), (1920*1080));
-
-
-		this.imageData.data.set(this.offScreenBuf8);
-		this.context.putImageData(this.imageData, 0, 0);
-
-this.context.strokeStyle = "#FF00FF";
-this.context.beginPath();
-this.context.arc(100, 75, 50, 0, 2 * Math.PI + (Date.now() % 2));
-this.context.stroke();
-
-
-//		clearContext();
-
+/*
+		this.context.strokeStyle = "#FF00FF";
+		this.context.beginPath();
+		this.context.arc(100, 75, 50, 0, 2 * Math.PI + (Date.now() % 2));
+		this.context.stroke();
+*/
 	}
 }

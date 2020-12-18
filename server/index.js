@@ -220,6 +220,16 @@ const SAVE_STREAM = false;
 					if(bl.length < frameLength) {
 						break;
 					}
+
+					// Protect against eating too much damn memory if we are too slow.
+					if(bl.length > frameLength * 5) {
+						console.warn("Discarding motion frames, we are probably too slow.");
+						bl.consume(frameLength);
+						bl.consume(frameLength);
+						bl.consume(frameLength);
+						bl.consume(frameLength);
+					}
+
 //					console.clear();
 
 					//frameData = bl.shallowSlice(0, frameLength);      // argh, this does not expose fill() -- oh well, a memory copy then :(
