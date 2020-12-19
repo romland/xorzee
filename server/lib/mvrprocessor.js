@@ -380,7 +380,7 @@ class MvrProcessor
 			for(let i = 0; i < clusters.length; i++) {
 //				console.log("\t", clusters[i].box);
 				if(this.isWithin(clusters[i], clusters, i)) {
-					console.log("remove");
+//					console.log("remove");
 					clusters[i].within = true;
 /*
 				} else {
@@ -394,7 +394,7 @@ class MvrProcessor
 
 
 		} else {
-			console.log("nullframe");
+//			console.log("nullframe");
 		}
 
 
@@ -417,7 +417,6 @@ class MvrProcessor
 				&& rect.box[3] >= rectSet[i].box[3]		// > left
 				&& rect.box[1] <= rectSet[i].box[1])	// < right
 			{
-				console.log("fit against box", i);
 				return true;
 			}
 		}

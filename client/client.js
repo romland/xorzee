@@ -1,9 +1,8 @@
 const vPort = 8081;
 const oPort = 8082;
 
-const width = 1920;
-const height = 1080;
-const fps = 24;
+const initialCanvasWidth = 1920;
+const initialCanvasHeight = 1080;
 
 
 startStream(
@@ -26,8 +25,8 @@ function startStream(playerId, wsUri, videoPort, overlayPort, useWorker, webgl, 
 			useWorker: useWorker,
 			webgl: webgl,
 			size: {
-				width: width,
-				height: height
+				width: initialCanvasWidth,
+				height: initialCanvasHeight
 			}
 		});
 
@@ -58,7 +57,6 @@ function startStream(playerId, wsUri, videoPort, overlayPort, useWorker, webgl, 
 		overlay = new Overlay();
 	}
 
-	overlay.init(width, height, fps);
 
 	function exitHandler() {
        	if(document.fullScreenElement || document.webkitCurrentFullScreenElement || document.mozFullScreenElement) {

@@ -15,29 +15,80 @@ class Overlay
 	constructor()
 	{
 		console.log("overlay constructor called");
+
+		new ResizeObserver((elt) => {
+			console.log("streamCanvas change", elt);
+			if(this.streamSettings) {
+				this.init(this.streamSettings.width, this.streamSettings.height, elt);
+			} else {
+				console.log("streamCanvas changed without us having settings");
+//				this.copyCanvas(elt);
+			}
+		}).observe(document.querySelector("#container > canvas:first-of-type"));
+
 	}
 
-	init(width, height, fps)
+/*
+streamCanvas change 
+(1) […]
+​
+0: ResizeObserverEntry
+​​
+borderBoxSize: ResizeObserverSize { inlineSize: 642, blockSize: 482 }
+​​
+contentBoxSize: ResizeObserverSize { inlineSize: 640, blockSize: 480 }
+​​
+contentRect: DOMRect { x: 0, y: 0, width: 640, … }
+​​
+target: <canvas width="640" height="480" style="background-color: rgb(13…inline-bgcolor:#0b0b15;" data-darkreader-inline-bgcolor="">​​
+<prototype>: ResizeObserverEntryPrototype { target: Getter, contentRect: Getter, borderBoxSize: Getter, … }
+​
+length: 1
+*/
+
+	copyCanvas(resizedElt = null)
 	{
-		if(!this.overlayCanvas) {
-			let streamCanvas = document.querySelector("#container > canvas:first-of-type");
-			let streamRect = streamCanvas.getBoundingClientRect();
-
-			let container = document.getElementById("container");
-			let overlayCanvas = document.createElement("canvas");
-			let overlayId = `overlay${Date.now()}`;
-			overlayCanvas.id = overlayId;
-			overlayCanvas.style.position = "absolute";
-			overlayCanvas.style.zIndex = 10;
-			overlayCanvas.style.left = streamRect.left + "px";
-			overlayCanvas.style.top = streamRect.top + "px";
-			overlayCanvas.style.width = streamRect.width + "px";
-			overlayCanvas.style.height = streamRect.height + "px";
-
-			container.appendChild(overlayCanvas);
-
-			this.overlayCanvas = overlayCanvas;
+		if(this.overlayCanvas) {
+			this.overlayCanvas.parentNode.removeChild(this.overlayCanvas);
 		}
+
+		let streamCanvas = document.querySelector("#container > canvas:first-of-type");
+		let streamRect;
+		if(resizedElt) {
+/*			streamRect = {
+				left : resizedElt[0].target.
+				top : 
+				width : 
+				height : 
+			};
+*/
+console.log("basing on resized elt");
+			streamRect = resizedElt[0].target.getBoundingClientRect();
+		} else {
+console.log("basing on current elt");
+			streamRect = streamCanvas.getBoundingClientRect();
+		}
+console.log("rect", streamRect);
+		let container = document.getElementById("container");
+		let overlayCanvas = document.createElement("canvas");
+		let overlayId = `overlay${Date.now()}`;
+		overlayCanvas.id = overlayId;
+		overlayCanvas.style.position = "absolute";
+		overlayCanvas.style.zIndex = 10;
+		overlayCanvas.style.left = streamRect.left + "px";
+		overlayCanvas.style.top = streamRect.top + "px";
+		overlayCanvas.style.width = streamRect.width + "px";
+		overlayCanvas.style.height = streamRect.height + "px";
+
+		container.appendChild(overlayCanvas);
+
+		this.overlayCanvas = overlayCanvas;
+	}
+
+	// This is actual stream-size (not canvas per se)
+	init(width, height, resizedElt = null)
+	{
+		this.copyCanvas(resizedElt);
 
 		let frameDataHeight = Math.floor( height / 16) + 1;
 		let frameDataWidth = Math.floor( width / 16) + 1;
@@ -52,8 +103,10 @@ class Overlay
 		// For now, just do 1:1 ratio (low-res).
 
 		// Modify this for lesser/better rendering over overlay
-		canvasWidth = frameDataWidth * 8;
-		canvasHeight = frameDataHeight * 8;
+//		canvasWidth = frameDataWidth * 8;
+//		canvasHeight = frameDataHeight * 8;
+		canvasWidth = width / 2;
+		canvasHeight = height / 2;
 
 		// At some point we could allow both x and y ratio. Later.
 		cvRatio = frameDataWidth / canvasWidth;
@@ -81,19 +134,31 @@ class Overlay
 
 		this.vectorsFrame = new VectorsFrame(); 
 		this.vectorsFrame.init(this.frameDataWidth, this.frameDataHeight);
+
+		this.initialized = true;
 	}
 
 	render(data, dataType)
 	{
 		if(dataType === "string" && data.length > 0) {
-			if(!RENDER_RAW) {
-				this.clearContext();
+			let parsed = JSON.parse(data);
+			if(parsed.settings) {
+				console.log(parsed);
+				this.streamSettings = parsed.settings;
+				this.init(this.streamSettings.width, this.streamSettings.height);
+				return;
 			}
 
-			this.renderShapes(JSON.parse(data));
+			if(this.initialized) {
+				if(!RENDER_RAW) {
+					this.clearContext();
+				}
+
+				this.renderShapes(parsed);
+			}
 
 		} else if(dataType === "object") {
-			if(RENDER_RAW) {
+			if(RENDER_RAW && this.initialized) {
 				this.renderVectors(new Uint8Array(data));
 			}
 		} else {
@@ -109,30 +174,35 @@ class Overlay
 
 	renderShapes(data)
 	{
+		if(!data.clusters || data.clusters.length === 0) {
+			return;
+		}
+
 		let reverseCvRatio = (1/this.cvRatio);
 
+//		this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-		this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+		let c;
+		for(let i = 0; i < data.clusters.length; i++) {
+			c = data.clusters[i];
 
-		for(let i = 0; i < data.length; i++) {
-			if(data[i].within) {
+			if(c.within) {
 				this.context.strokeStyle = "#000000ff";
 			} else {
 				this.context.strokeStyle = "#FFFF00ff";
 			}
 			this.context.beginPath();
 
-			data[i].box[0] = (data[i].box[0] - 0) * reverseCvRatio;	// top
-			data[i].box[1] = (data[i].box[1] - 0) * reverseCvRatio;	// right
-			data[i].box[2] = (data[i].box[2] - 0) * reverseCvRatio;	// bottom
-			data[i].box[3] = (data[i].box[3] - 0) * reverseCvRatio;	// left
+			c.box[0] = (c.box[0] - 0) * reverseCvRatio;	// top
+			c.box[1] = (c.box[1] - 0) * reverseCvRatio;	// right
+			c.box[2] = (c.box[2] - 0) * reverseCvRatio;	// bottom
+			c.box[3] = (c.box[3] - 0) * reverseCvRatio;	// left
 
-			// x, y, w, h
 			this.context.rect(
-				data[i].box[3],
-				data[i].box[0],
-				data[i].box[1] - data[i].box[3],
-				data[i].box[2] - data[i].box[0]
+				c.box[3],				// left / x
+				c.box[0],				// top / y
+				c.box[1] - c.box[3],	// width
+				c.box[2] - c.box[0]		// height
 			);
 			this.context.stroke();
 		}

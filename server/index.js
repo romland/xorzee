@@ -49,11 +49,13 @@ const SAVE_STREAM = false;
 
 		limit		: 150,		// max number clients allowed
 
-		framerate	: 24,
 //		framerate	: 15,
 //		framerate	: 4,
-		width		: 1920,
-		height		: 1080,
+
+		framerate	: 24,
+//		width		: 1920,	height		: 1080,
+//		width: 1280, height: 722,
+		width: 640, height: 482,		// Warning, the height CAN NOT be divisible by 16! (bit of a bug!)
 		bitrate		: 1700000,
 	});
 
@@ -79,6 +81,7 @@ const SAVE_STREAM = false;
 //			`-g 1` +		// A low value here will make ffmpeg pick up the video quicker -- drawbacks other than bandwidth?
 			`-ih -stm -hf -vf -n -v ` +
 			`-w ${conf.get("width")} ` +
+			`-h ${conf.get("height")} ` +
 			`-t 0 ` +
 			`-fps ${conf.get("framerate")} ` +
 			`-b ${conf.get("bitrate")} ` +
@@ -257,7 +260,7 @@ const SAVE_STREAM = false;
 					broadcastOverlay(frameData, frameLength, true);
 
 					// broadcast relevant data (such as bounding boxes) to client
-					str = JSON.stringify(clusters);
+					str = JSON.stringify({ clusters : clusters });
 					broadcastOverlay(str, str.length, false);
 
 //					console.log("motion data:", frameLength);
@@ -405,7 +408,10 @@ const SAVE_STREAM = false;
 
 			for (let i in headers) {
 //				ws.send(headers[i]);
-//				ws.send(JSON.stringify( { msg : "Welcome" }), -1, false);
+				ws.send(JSON.stringify( {
+					msg : "Welcome",
+					settings : conf.get()
+				}), -1, false);
 			}
 
 			ws.on('close', (ws, id) => {
