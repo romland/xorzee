@@ -115,7 +115,7 @@ function startStream(playerId, wsUri, videoPort, overlayPort, useWorker, webgl, 
 //			console.log("overlay message", msg.data);
 
 //			window.player.decode(new Uint8Array(addSeparator(msg.data)));
-			overlay.render(msg.data);
+			overlay.render(msg.data, typeof msg.data);
 
 //			if(window.debugger) {
 //				window.debugger.nal(msg.data.byteLength);

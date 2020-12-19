@@ -215,16 +215,17 @@ class MvrProcessor
 			filterFlags = MvrFilterFlags.DX_DY_LT_2 | MvrFilterFlags.FRAME_MAGNITUDE_400_INCREASE | MvrFilterFlags.MAGNITUDE_LT_300;
 		}
 
+//		console.time("filterVectors");
 		while(i < frameLength) {
 			this.getMotionVectorAt(frameData, i, this.mv);
 
 			if(true && this.mv.mag >= 2 && this.isLoner(frameData, i)) {
 				loners.push(i);
-			} else if(this.mv.mag > 10) {
+			} else if(this.mv.mag > 2) {
 				candidates.push(
 					{
-						x : Math.floor( (i/4) % this.frameDataWidth),
-						y : Math.floor( (i/4) / this.frameDataWidth)
+						x : ( (i/4) % this.frameDataWidth),
+						y : ( (i/4) / this.frameDataWidth)
 					}
 				);
 			}
@@ -250,10 +251,12 @@ class MvrProcessor
 			totMag += this.mv.mag;
 			i += 4;
 		} // each vector
+//		console.timeEnd("filterVectors");
 
 
 		let nullFrame = false;
 
+//		console.time("filterFrame");
 		if((filterFlags & MvrFilterFlags.FRAME_MAGNITUDE_400_INCREASE) === MvrFilterFlags.FRAME_MAGNITUDE_400_INCREASE) {
 			// 400% increase in motion compared to last frame -- get this from encoder sometimes 
 			// (is it camera? something else? what do these vectors look like?)
@@ -283,6 +286,7 @@ class MvrProcessor
 				nullFrame = true;
 			}
 		}
+//		console.timeEnd("filterFrame");
 
 
 		let clusters = [];
@@ -294,15 +298,48 @@ class MvrProcessor
 			}
 
 			// =============== clustering
+
+			// Thought: If we have a lot of candidates: Shrink the dataset by reducing 'resolution'
+			//		remove every Nth and divide the coordinate of vector by N
+
+			// let's say, if it is above 200 (nee 400) points, get it down to that...
+
+			let reductionFactor;
+			let targetCandidates = 200;
+			let reduced = false;
+
+//			console.log("loners", loners.length, "candidate points", candidates.length, "reduction factor", Math.floor(candidates.length/targetCandidates) );
+
+//			console.time("reducing");
+			if(candidates.length > (targetCandidates * 1.25)) {
+				reductionFactor = Math.floor(candidates.length / targetCandidates);
+				let reducedCandidates = [];
+				for(let i = 0; i < candidates.length; i += reductionFactor) {
+					candidates[i].orgX = candidates[i].x;
+					candidates[i].orgY = candidates[i].y;
+					candidates[i].x = (candidates[i].x / reductionFactor);
+					candidates[i].y = (candidates[i].y / reductionFactor);
+					reducedCandidates.push(candidates[i]);
+				}
+				reduced = true;
+				candidates = reducedCandidates;
+			}
+//			console.timeEnd("reducing");
+
+
+//			console.time("clustering");
 			let dbscanner = jdbscan()
-				.eps(1)
-				.minPts(8)
+				.eps(2)
+				.minPts(4)
 				.distance((p1, p2) => {
-					return Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
+//					return Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
+					return Math.abs(p1.x - p2.x) + Math.abs(p1.y - p2.y)
 				})
 				.data(candidates);
 			let results = dbscanner();
+//			console.timeEnd("clustering");
 
+//			console.time("boundingbox");
 			let id, cluster;
 			for(let i = 0; i < results.length; i++) {
 				id = results[i];
@@ -317,6 +354,11 @@ class MvrProcessor
 				}
 				cluster = clusters[id];
 
+				if(reduced) {
+					candidates[i].x = candidates[i].orgX;
+					candidates[i].y = candidates[i].orgY;
+				}
+
 				cluster.points.push(candidates[i]);
 
 				// Bounding box
@@ -329,18 +371,28 @@ class MvrProcessor
 			if(clusters.length > 0) {
 				clusters.splice(0, 1);
 			}
-
-			//console.log("loners", loners.length, "candidate points", candidates.length, "clusters", clusters.length, clusters);
-
-/*
-			console.log("loners", loners.length, "candidate points", candidates.length, "clusters", clusters.length);
-
-			for(let i = 0; i < clusters.length; i++) {
-				console.log("\t", clusters[i].box);
-			}
-*/
-
+//			console.timeEnd("boundingbox");
 			// ================ /clustering
+
+
+			// ================ remove clusters within others
+//			console.time("insidereduction");
+			for(let i = 0; i < clusters.length; i++) {
+//				console.log("\t", clusters[i].box);
+				if(this.isWithin(clusters[i], clusters, i)) {
+					console.log("remove");
+					clusters[i].within = true;
+/*
+				} else {
+					console.log("NO remove");
+					clusters[i].within = false;
+*/
+				}
+			}
+//			console.timeEnd("insidereduction");
+			// ================ /cluster removal
+
+
 		} else {
 			console.log("nullframe");
 		}
@@ -351,6 +403,27 @@ class MvrProcessor
 
 		return clusters;
 	} // processFrame
+
+
+	// is rect within another rect in set?
+	isWithin(rect, rectSet, ignoreIndex)
+	{
+		for(let i = 0; i < rectSet.length; i++) {
+			if(i === ignoreIndex) {
+				continue;
+			}
+			if(rect.box[0] >= rectSet[i].box[0] 		// > top
+				&& rect.box[2] <= rectSet[i].box[2] 	// < bottom
+				&& rect.box[3] >= rectSet[i].box[3]		// > left
+				&& rect.box[1] <= rectSet[i].box[1])	// < right
+			{
+				console.log("fit against box", i);
+				return true;
+			}
+		}
+
+		return false;
+	}
 
 }
 

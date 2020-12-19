@@ -49,9 +49,9 @@ const SAVE_STREAM = false;
 
 		limit		: 150,		// max number clients allowed
 
-//		framerate	: 24,
-//		framerate	: 16,
-		framerate	: 2,
+		framerate	: 24,
+//		framerate	: 15,
+//		framerate	: 4,
 		width		: 1920,
 		height		: 1080,
 		bitrate		: 1700000,
@@ -211,24 +211,26 @@ const SAVE_STREAM = false;
 			let bl = new BufferListStream();
 			let frameData = null;
 			let frameCount = 0;
-			let clusters;
+			let clusters = null;
 			let str;
 
 
 //			NALSplitter.on('data', (data) => {
 			socket.on('data', (data) => {
-
-				if(START_SKIP_MOTION_FRAMES > frameCount++) {
-					console.log("Skipping motion frame", frameCount, "/", START_SKIP_MOTION_FRAMES, "...");
-					return;
-				}
-
 				bl.append(data);
 
 				while(true) {
 					if(bl.length < frameLength) {
 						break;
 					}
+
+					if(START_SKIP_MOTION_FRAMES > frameCount++) {
+						console.log("Skipping motion frame", frameCount, "/", START_SKIP_MOTION_FRAMES, "...");
+						bl.consume(frameLength);
+						return;
+					}
+
+//					console.log("===");
 
 					// Protect against eating too much damn memory if we are too slow.
 					if(bl.length > frameLength * 5) {
@@ -245,9 +247,9 @@ const SAVE_STREAM = false;
 					frameData = bl.slice(0, frameLength);
 
 					// Modifies frameData in place -- this seems to slow everything down...
-					console.time("processFrame");
+//					console.time("processFrame");
 					clusters = mvrProcessor.processFrame(frameData, MvrFilterFlags.MAGNITUDE_LT_300 | MvrFilterFlags.DX_DY_LT_2 | MvrFilterFlags.FRAME_MAGNITUDE_400_INCREASE);
-					console.timeEnd("processFrame");
+//					console.timeEnd("processFrame");
 
 					bl.consume(frameLength);
 
@@ -403,7 +405,7 @@ const SAVE_STREAM = false;
 
 			for (let i in headers) {
 //				ws.send(headers[i]);
-				ws.send(JSON.stringify( { msg : "Welcome" }), -1, false);
+//				ws.send(JSON.stringify( { msg : "Welcome" }), -1, false);
 			}
 
 			ws.on('close', (ws, id) => {

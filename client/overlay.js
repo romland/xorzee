@@ -1,15 +1,12 @@
 "use strict";
-// here
-// consider: https://code.jquery.com/jquery-3.5.1.slim.min.js
 
-// overlay_setup(width, height, fps);
-// overlay_render(msg.data);
+// TODO
+// want to save last 'clips' as a thumbnail (server tho) ...
 
 
-// want to save last 'actions' as a thumbnail ...
+const RENDER_RAW = false;
 
 
-//let stream = container.getElementsByTagName("canvas")[0];
 class Overlay
 {
 	/*
@@ -52,16 +49,11 @@ class Overlay
 		canvas = this.overlayCanvas;
 		context = canvas.getContext("2d");
 
-		// For now, just do 1:1 ratio.
+		// For now, just do 1:1 ratio (low-res).
 
-//canvasWidth = frameDataWidth * 16;
-//canvasHeight = frameDataHeight * 16;
-
-canvasWidth = frameDataWidth * 8;
-canvasHeight = frameDataHeight * 8;
-
-//canvasWidth = frameDataWidth * 2;
-//canvasHeight = frameDataHeight * 2;
+		// Modify this for lesser/better rendering over overlay
+		canvasWidth = frameDataWidth * 8;
+		canvasHeight = frameDataHeight * 8;
 
 		// At some point we could allow both x and y ratio. Later.
 		cvRatio = frameDataWidth / canvasWidth;
@@ -91,23 +83,64 @@ canvasHeight = frameDataHeight * 8;
 		this.vectorsFrame.init(this.frameDataWidth, this.frameDataHeight);
 	}
 
-/*
-    at(buffer, index, outMv)
-    {
-		outMv.dx  = buffer[index + 0] & 0x80 ? buffer[index + 0] ^ -0x100 : buffer[index + 0];
-		outMv.dy  = buffer[index + 1] & 0x80 ? buffer[index + 1] ^ -0x100 : buffer[index + 1];
-		outMv.sad = (buffer[index + 3]<<8) + buffer[index + 2];
-
-		outMv.dir = Math.atan2(outMv.dy, -outMv.dx) * 180 / Math.PI + 180;
-		outMv.mag = Math.sqrt(outMv.dx * outMv.dx + outMv.dy * outMv.dy);
-
-//		return outMv;
-    }
-*/
-
-	render(data)
+	render(data, dataType)
 	{
-		let frame = new Uint8Array(data);
+		if(dataType === "string" && data.length > 0) {
+			if(!RENDER_RAW) {
+				this.clearContext();
+			}
+
+			this.renderShapes(JSON.parse(data));
+
+		} else if(dataType === "object") {
+			if(RENDER_RAW) {
+				this.renderVectors(new Uint8Array(data));
+			}
+		} else {
+			console.log("unknown datatype", dataType);
+		}
+
+	}
+
+	clearContext()
+	{
+		this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+	}
+
+	renderShapes(data)
+	{
+		let reverseCvRatio = (1/this.cvRatio);
+
+
+		this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+		for(let i = 0; i < data.length; i++) {
+			if(data[i].within) {
+				this.context.strokeStyle = "#000000ff";
+			} else {
+				this.context.strokeStyle = "#FFFF00ff";
+			}
+			this.context.beginPath();
+
+			data[i].box[0] = (data[i].box[0] - 0) * reverseCvRatio;	// top
+			data[i].box[1] = (data[i].box[1] - 0) * reverseCvRatio;	// right
+			data[i].box[2] = (data[i].box[2] - 0) * reverseCvRatio;	// bottom
+			data[i].box[3] = (data[i].box[3] - 0) * reverseCvRatio;	// left
+
+			// x, y, w, h
+			this.context.rect(
+				data[i].box[3],
+				data[i].box[0],
+				data[i].box[1] - data[i].box[3],
+				data[i].box[2] - data[i].box[0]
+			);
+			this.context.stroke();
+		}
+	}
+
+	// Raw motion data
+	renderVectors(frame)
+	{
 		var x, y;
 		let mv = {};
 
@@ -136,12 +169,5 @@ canvasHeight = frameDataHeight * 8;
 
 		this.imageData.data.set(this.offScreenBuf8);
 		this.context.putImageData(this.imageData, 0, 0);
-//		clearContext();
-/*
-		this.context.strokeStyle = "#FF00FF";
-		this.context.beginPath();
-		this.context.arc(100, 75, 50, 0, 2 * Math.PI + (Date.now() % 2));
-		this.context.stroke();
-*/
 	}
 }
