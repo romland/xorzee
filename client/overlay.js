@@ -16,6 +16,12 @@ class Overlay
 	{
 		console.log("overlay constructor called");
 
+		window.onresize = () => {
+			if(this.streamSettings) {
+				this.init(this.streamSettings.width, this.streamSettings.height);
+			}
+		};
+
 		new ResizeObserver((elt) => {
 			console.log("streamCanvas change", elt);
 			if(this.streamSettings) {
@@ -28,24 +34,6 @@ class Overlay
 
 	}
 
-/*
-streamCanvas change 
-(1) […]
-​
-0: ResizeObserverEntry
-​​
-borderBoxSize: ResizeObserverSize { inlineSize: 642, blockSize: 482 }
-​​
-contentBoxSize: ResizeObserverSize { inlineSize: 640, blockSize: 480 }
-​​
-contentRect: DOMRect { x: 0, y: 0, width: 640, … }
-​​
-target: <canvas width="640" height="480" style="background-color: rgb(13…inline-bgcolor:#0b0b15;" data-darkreader-inline-bgcolor="">​​
-<prototype>: ResizeObserverEntryPrototype { target: Getter, contentRect: Getter, borderBoxSize: Getter, … }
-​
-length: 1
-*/
-
 	copyCanvas(resizedElt = null)
 	{
 		if(this.overlayCanvas) {
@@ -55,20 +43,14 @@ length: 1
 		let streamCanvas = document.querySelector("#container > canvas:first-of-type");
 		let streamRect;
 		if(resizedElt) {
-/*			streamRect = {
-				left : resizedElt[0].target.
-				top : 
-				width : 
-				height : 
-			};
-*/
-console.log("basing on resized elt");
 			streamRect = resizedElt[0].target.getBoundingClientRect();
 		} else {
-console.log("basing on current elt");
 			streamRect = streamCanvas.getBoundingClientRect();
 		}
-console.log("rect", streamRect);
+
+		let totBorderSize = 2;
+
+
 		let container = document.getElementById("container");
 		let overlayCanvas = document.createElement("canvas");
 		let overlayId = `overlay${Date.now()}`;
@@ -77,8 +59,8 @@ console.log("rect", streamRect);
 		overlayCanvas.style.zIndex = 10;
 		overlayCanvas.style.left = streamRect.left + "px";
 		overlayCanvas.style.top = streamRect.top + "px";
-		overlayCanvas.style.width = streamRect.width + "px";
-		overlayCanvas.style.height = streamRect.height + "px";
+		overlayCanvas.style.width = streamRect.width - totBorderSize + "px";
+		overlayCanvas.style.height = streamRect.height - totBorderSize + "px";
 
 		container.appendChild(overlayCanvas);
 

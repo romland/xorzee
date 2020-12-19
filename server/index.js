@@ -53,9 +53,9 @@ const SAVE_STREAM = false;
 //		framerate	: 4,
 
 		framerate	: 24,
-//		width		: 1920,	height		: 1080,
+		width		: 1920,	height		: 1080,
 //		width: 1280, height: 722,
-		width: 640, height: 482,		// Warning, the height CAN NOT be divisible by 16! (bit of a bug!)
+//		width: 640, height: 482,		// Warning, the height CAN NOT be divisible by 16! (bit of a bug!)
 		bitrate		: 1700000,
 	});
 

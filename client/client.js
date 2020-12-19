@@ -15,11 +15,12 @@ startStream(
 	2000
 );
 
-var overlay;
 
 
 function startStream(playerId, wsUri, videoPort, overlayPort, useWorker, webgl, reconnectMs)
 {
+	var overlay;
+
 	if (!window.player) {
 		window.player = new Player({
 			useWorker: useWorker,
@@ -108,21 +109,15 @@ function startStream(playerId, wsUri, videoPort, overlayPort, useWorker, webgl, 
 	overlayWs.binaryType = 'arraybuffer';
 	overlayWs.onopen = function (e) {
 		console.log('overlay websocket connected');
+
 		overlayWs.onmessage = function (msg) {
-			// msg.data = ArrayBuffer
-//			console.log("overlay message", msg.data);
-
-//			window.player.decode(new Uint8Array(addSeparator(msg.data)));
 			overlay.render(msg.data, typeof msg.data);
-
-//			if(window.debugger) {
-//				window.debugger.nal(msg.data.byteLength);
-//			}
 		}
 	}
 
 	overlayWs.onclose = function (e) {
 		console.log('overlay websocket disconnected');
+
 		if (reconnectMs > 0) {
 			setTimeout(function() { startStream(playerId, wsUri, videoPort, overlayPort, useWorker, webgl, reconnectMs) }, reconnectMs);
 		}
@@ -187,12 +182,16 @@ function debug(playerId)
 		this.last = now;
 	}
 
-	setInterval(function() {
+	setInterval(function()
+	{
 		var mib = (window.debugger.total/1048576).toFixed(2);
 		var date = new Date(null);
 		date.setSeconds((+new Date()-window.debugger.started)/1000);
 		var dur = date.toISOString().substr(11, 8);
-		window.debugger.statsElement.innerHTML = window.debugger.playerWidth+'x'+window.debugger.playerHeight+', '+Math.floor(1/window.debugger.fps.avg()*1000)+' fps, '+(window.debugger.secondTotal/1024).toFixed(2)+' KiB/s, total '+mib+' MiB, '+window.debugger.nals+' NAL units, '+window.debugger.frames+' frames in '+dur;
+		window.debugger.statsElement.innerHTML = window.debugger.playerWidth+'x'+window.debugger.playerHeight
+			+', '+Math.floor(1/window.debugger.fps.avg()*1000)+' fps, '
+			+(window.debugger.secondTotal/1024).toFixed(2)+' KiB/s, total '+mib+' MiB, '
+			+window.debugger.nals+' NAL units, '+window.debugger.frames+' frames in '+dur;
 		window.debugger.secondTotal = 0;
 	}, 1000);
 }
