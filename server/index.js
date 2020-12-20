@@ -423,13 +423,37 @@ const START_SKIP_MOTION_FRAMES = 17;
 	// sreenshot:
 	// ffmpeg -y -hide_banner -i out.h264 -ss 0 -frames:v 1 out.jpg
 	// ffmpeg -y -hide_banner -i out.h264 -frames:v 1 -f image2 out.png
+	function previewShot(fileName)
+	{
+		console.log(`taking screenshot of video as ${fileName}.jpg`);
+		let tmpFfmpeg = cp.spawn('/usr/bin/ffmpeg', [
+			'-y', '-hide_banner', '-i', '../client/clips/' + fileName + '.h264', '-frames:v', '1', '-f', 'image2', `../client/clips/${fileName}.jpg`
+		]);
+	}
+
+/*
+	Googling:
+		h264 parser
+		ffmpeg reduce probe size
+		AVC parser nodejs
+		h264bitstream
+
+	Links:
+		https://stackoverflow.com/questions/11330764/ffmpeg-cant-decode-h264-stream-frame-data
+
+	On buffering:
+		https://github.com/cislrpi/binary-ring-buffer
+
+
+*/
+
 
 	function startRecording()
 	{
 		// https://gist.github.com/steven2358/ba153c642fe2bb1e47485962df07c730
 		// Extract a frame each second: ffmpeg -i input.mp4 -vf fps=1 thumb%04d.jpg -hide_banner
 
-		let fileName = Date.now() + '.h264';
+		let fileName = Date.now();
 		// ffmpeg -v debug -y -analyzeduration 9M -probesize 9M -i pipe:0 -codec copy out.h264
 		console.log(`Starting recording to clips/${fileName}...`);
 		ffmpegProc = cp.spawn('/usr/bin/ffmpeg', [
@@ -443,7 +467,7 @@ const START_SKIP_MOTION_FRAMES = 17;
 			'-framerate', conf.get("framerate"),
 			'-i', '-',
 			'-codec', 'copy',
-			`../client/clips/${fileName}`
+			`../client/clips/${fileName}.h264`
 		]);
 
 		ffmpegProc.stdout.setEncoding('utf8');
@@ -458,6 +482,7 @@ const START_SKIP_MOTION_FRAMES = 17;
 
 		ffmpegProc.on('close', function(code) {
 		    console.log('===> FFMPEG closing code: ' + code);
+			previewShot(fileName);
 		});
 
 		process.on('SIGINT', () => {
