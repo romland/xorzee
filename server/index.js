@@ -1,15 +1,21 @@
 "use strict";
 /*
-Run:
+Run (in server):
 
-1. node index.js --udpport 8000 --wsport 8081
-2. raspivid -ih -stm -hf -vf -n -v -w 1920 -t 0 -fps 24 -ih -b 1700000 -pf baseline -o - | nc localhost 8000
-3. node node_modules/http-server/bin/http-server .
+node index.js
 
 Go to http://raspi-ip:8080/
 
+TODO:
+	- Want to be able to record clips at any given point,
+	  but ffmpeg takes too long to pick up the stream...
+		- Thouhgt: Perhaps always buffer a bunch of frames? Costly on memory tho :(
+	- screenshot: should be solved if we can generate h264's
+
 
 */
+
+// https://superuser.com/questions/1392046/how-to-not-include-the-pause-duration-in-the-ffmpeg-recording-timeline
 
 
 const path = require('path');
@@ -110,15 +116,16 @@ const SAVE_STREAM = false;
 
 	// sreenshot:
 	// ffmpeg -y -hide_banner -i out.h264 -ss 0 -frames:v 1 out.jpg
+	// ffmpeg -y -hide_banner -i out.h264 -frames:v 1 -f image2 out.png
 
-
+	var ffmpegProc;
 	if(SAVE_STREAM) {
 		// https://gist.github.com/steven2358/ba153c642fe2bb1e47485962df07c730
 		// Extract a frame each second: ffmpeg -i input.mp4 -vf fps=1 thumb%04d.jpg -hide_banner
 
 		// ffmpeg -v debug -y -analyzeduration 9M -probesize 9M -i pipe:0 -codec copy out.h264
-
-		var proc = cp.spawn('/usr/bin/ffmpeg', [
+		console.log("Starting recording...");
+		ffmpegProc = cp.spawn('/usr/bin/ffmpeg', [
 			'-hide_banner',
 			'-y',
 			'-analyzeduration', '9M',
@@ -129,32 +136,51 @@ const SAVE_STREAM = false;
 			'../client/out.h264'
 		]);
 
-		proc.stdout.setEncoding('utf8');
-		proc.stdout.on('data', function(data) {
+		ffmpegProc.stdout.setEncoding('utf8');
+		ffmpegProc.stdout.on('data', function(data) {
 		    console.log('FFMPEG stdout: ' + data);
 		});
 
-		proc.stderr.setEncoding('utf8');
-		proc.stderr.on('data', function(data) {
+		ffmpegProc.stderr.setEncoding('utf8');
+		ffmpegProc.stderr.on('data', function(data) {
 		    console.log('FFMPEG stderr: ' + data);
 		});
 
-		proc.on('close', function(code) {
+		ffmpegProc.on('close', function(code) {
 		    console.log('===> FFMPEG closing code: ' + code);
 		});
 
 		process.on('SIGINT', () => {
 			// end saving of ffmpeg stream
 			console.log("ending recording...");
-			proc.stdin.end();
+			ffmpegProc.stdin.end();
 			process.exit();
 		});
 
 		process.on('SIGTERM', () => {
-			proc.stdin.end();
+			ffmpegProc.stdin.end();
 		});
 
 	}
+
+/*
+	// test of pause/continue
+	setTimeout(() => {
+		if(ffmpegProc) {
+			console.log("Pausing recording...");
+			ffmpegProc.kill('SIGSTOP');
+//			ffmpegProc.stdin.write('q');
+		}
+
+	}, 15000);
+
+	setTimeout(() => {
+		if(ffmpegProc) {
+			console.log("Continuing recording...");
+			ffmpegProc.kill('SIGCONT');
+		}
+	}, 25000);
+*/
 
 
 	if (conf.get('queryport')) {
@@ -319,7 +345,7 @@ const SAVE_STREAM = false;
 			socket.pipe(NALSplitter);
 
 			if(SAVE_STREAM) {
-				socket.pipe(proc.stdin);
+				socket.pipe(ffmpegProc.stdin);
 			}
 		});
 

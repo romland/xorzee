@@ -54,6 +54,8 @@ class MvrProcessor
 		this.resolutionHeight = resolutionHeight;
 		this.fps = fps;
 		this.startTime = Date.now();
+
+		this.history = [];
 	}
 
 
@@ -378,15 +380,11 @@ class MvrProcessor
 			// ================ remove clusters within others
 //			console.time("insidereduction");
 			for(let i = 0; i < clusters.length; i++) {
-//				console.log("\t", clusters[i].box);
 				if(this.isWithin(clusters[i], clusters, i)) {
-//					console.log("remove");
 					clusters[i].within = true;
-/*
 				} else {
-					console.log("NO remove");
-					clusters[i].within = false;
-*/
+					// Cluster is not discarded
+					this.trackTemporal(clusters[i]);
 				}
 			}
 //			console.timeEnd("insidereduction");
@@ -401,8 +399,75 @@ class MvrProcessor
 		previousFrameMagTotal = totMag;
 		this.stats.frameCount++;
 
+		if(this.history.length > 0) {
+			this.temporalExpiration();
+		}
+
 		return clusters;
 	} // processFrame
+
+
+	trackTemporal(cluster)
+	{
+		// TODO: Move out of this scope
+		const now = Date.now();
+
+		let overlapping = this.overlapsAny(cluster, this.history);
+		if(overlapping !== false) {
+			// update cluster in history
+			cluster.age = now - overlapping.birth;
+			overlapping.active = now;
+
+			// Do I want to update the history box? Let's see...
+			overlapping.box = [...cluster.box];
+		} else {
+			// add new cluster to history
+			this.history.push({
+				active : now,
+				birth : now,
+				box : [...cluster.box]
+			});
+		}
+	}
+
+	// Expire ones that have had no activity for expireAfter ms
+	temporalExpiration()
+	{
+		// TODO: Move out of this scope
+		const expireAfter = 2000;
+		const now = Date.now();
+
+		for(let i = this.history.length - 1; i >= 0; i--) {
+			if((now - this.history[i].active) > expireAfter) {
+				this.history.splice(i, 1);
+			}
+		}
+
+//		console.log("history len", this.history.length);
+	}
+
+	overlapsAny(c, cAll)
+	{
+		for(let i = 0; i < cAll.length; i++) {
+			if(this.overlaps(c, cAll[i])) {
+				return cAll[i];
+			}
+		}
+
+		return false;
+	}
+
+	overlaps(c1, c2)
+	{
+		if (c1.box[1] < c2.box[3]) return false;
+		if (c2.box[1] < c1.box[3]) return false;
+
+		if (c1.box[2] < c2.box[0]) return false;
+		if (c2.box[2] < c1.box[0]) return false;
+
+		return true;
+	}
+
 
 
 	// is rect within another rect in set?
