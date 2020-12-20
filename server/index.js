@@ -29,6 +29,8 @@ const express = require('express');
 const systemd = require('systemd');
 const app = express();
 
+const BinaryRingBuffer = require('@cisl/binary-ring-buffer');
+
 const { BufferListStream } = require('bl');	// XXX: It's a bit silly to include this one, but it saved me a little time.
 
 const mvrproc = require("./lib/mvrprocessor.js");
@@ -36,7 +38,7 @@ const MvrProcessor = mvrproc.default;
 const MvrFilterFlags = mvrproc.MvrFilterFlags;
 
 const START_SKIP_MOTION_FRAMES = 17;
-const SAVE_STREAM = false;
+//const SAVE_STREAM = false;
 
 	var wsServer;
 	var motionWsServer;
@@ -67,7 +69,8 @@ const SAVE_STREAM = false;
 
 	var mvrProcessor = new MvrProcessor(conf.get("framerate"), conf.get("width"), conf.get("height"));
 
-
+	var ffmpegProc;
+	var recording = false;
 	var cameraStarted = false;
 
 	function startCamera()
@@ -85,16 +88,20 @@ const SAVE_STREAM = false;
 			// it seems decoder gets some issues with this... cannot reproduce 100% of the time, tho.
 			// A low g value will make every frame appear like it's a motion-flash (and is thus ignored).
 //			`-g 1` +		// A low value here will make ffmpeg pick up the video quicker -- drawbacks other than bandwidth?
-			`-ih -stm -hf -vf -n -v ` +
-			`-w ${conf.get("width")} ` +
-			`-h ${conf.get("height")} ` +
-			`-t 0 ` +
-			`-fps ${conf.get("framerate")} ` +
-			`-b ${conf.get("bitrate")} ` +
-			`-pf baseline ` +
-			`-x tcp://127.0.0.1:${conf.get("motionport")} ` +
-			`-o -` +
-			' | /bin/nc localhost ' + conf.get("tcpport")
+			`--inline ` +
+			`--spstimings ` +
+			`--hflip ` +
+			`--vflip ` +
+			`--nopreview ` + 
+			`--verbose ` +
+			`--width ${conf.get("width")} ` +
+			`--height ${conf.get("height")} ` +
+			`--timeout 0 ` +
+			`--framerate ${conf.get("framerate")} ` +
+			`--bitrate ${conf.get("bitrate")} ` +
+			`--profile baseline ` +
+			`--vectors tcp://127.0.0.1:${conf.get("motionport")} ` +
+			`--output - | /bin/nc localhost ${conf.get("tcpport")}`
 		]);
 
 		camProc.stdout.setEncoding('utf8');
@@ -113,74 +120,6 @@ const SAVE_STREAM = false;
 
 	}
 
-
-	// sreenshot:
-	// ffmpeg -y -hide_banner -i out.h264 -ss 0 -frames:v 1 out.jpg
-	// ffmpeg -y -hide_banner -i out.h264 -frames:v 1 -f image2 out.png
-
-	var ffmpegProc;
-	if(SAVE_STREAM) {
-		// https://gist.github.com/steven2358/ba153c642fe2bb1e47485962df07c730
-		// Extract a frame each second: ffmpeg -i input.mp4 -vf fps=1 thumb%04d.jpg -hide_banner
-
-		// ffmpeg -v debug -y -analyzeduration 9M -probesize 9M -i pipe:0 -codec copy out.h264
-		console.log("Starting recording...");
-		ffmpegProc = cp.spawn('/usr/bin/ffmpeg', [
-			'-hide_banner',
-			'-y',
-			'-analyzeduration', '9M',
-			'-probesize', '9M',
-			'-framerate', conf.get("framerate"),
-			'-i', '-',
-			'-codec', 'copy',
-			'../client/out.h264'
-		]);
-
-		ffmpegProc.stdout.setEncoding('utf8');
-		ffmpegProc.stdout.on('data', function(data) {
-		    console.log('FFMPEG stdout: ' + data);
-		});
-
-		ffmpegProc.stderr.setEncoding('utf8');
-		ffmpegProc.stderr.on('data', function(data) {
-		    console.log('FFMPEG stderr: ' + data);
-		});
-
-		ffmpegProc.on('close', function(code) {
-		    console.log('===> FFMPEG closing code: ' + code);
-		});
-
-		process.on('SIGINT', () => {
-			// end saving of ffmpeg stream
-			console.log("ending recording...");
-			ffmpegProc.stdin.end();
-			process.exit();
-		});
-
-		process.on('SIGTERM', () => {
-			ffmpegProc.stdin.end();
-		});
-
-	}
-
-/*
-	// test of pause/continue
-	setTimeout(() => {
-		if(ffmpegProc) {
-			console.log("Pausing recording...");
-			ffmpegProc.kill('SIGSTOP');
-//			ffmpegProc.stdin.write('q');
-		}
-
-	}, 15000);
-
-	setTimeout(() => {
-		if(ffmpegProc) {
-			console.log("Continuing recording...");
-			ffmpegProc.kill('SIGCONT');
-		}
-	}, 25000);
-*/
 
 
 	if (conf.get('queryport')) {
@@ -331,12 +270,21 @@ const SAVE_STREAM = false;
 
 			NALSplitter.on('data', (data) => {
 				if (wsServer && wsServer.clients.length > 0) {
+
+					// XXX: Why does this work? Should we not get these headers when the camera starts up?
 					if (headers.length < 3) {
 						headers.push(data);
 					}
 
 					broadcast(data);
 				}
+
+				if(recording) {
+//					console.log(data);
+					ffmpegProc.stdin.write(NALSeparator);
+					ffmpegProc.stdin.write(data);
+				}
+
 			}).on('error', (e) => {
 				console.log('splitter error ' + e);
 				process.exit(0);
@@ -344,7 +292,14 @@ const SAVE_STREAM = false;
 
 			socket.pipe(NALSplitter);
 
+/*
 			if(SAVE_STREAM) {
+				socket.pipe(ffmpegProc.stdin);
+			}
+*/
+// This does not get executed heh
+			if(recording) {
+				console.log("Starting piping -- will NOT happen -- remove me!");
 				socket.pipe(ffmpegProc.stdin);
 			}
 		});
@@ -440,11 +395,130 @@ const SAVE_STREAM = false;
 				}), -1, false);
 			}
 
+			ws.on('message', (msg) => {
+				let parsed = JSON.parse(msg);
+				console.log("incoming control msg", parsed);
+				switch(parsed.verb) {
+					case "start" :
+						startRecording();
+						break;
+					case "stop" :
+						stopRecording();
+						break;
+					default :
+						console.log("Unknown verb", parsed.verb);
+						break;
+				}
+			});
+
 			ws.on('close', (ws, id) => {
 				console.log('motion client disconnected, watching ' + motionWsServer.clients.length);
 			})
 		});
+
 	}
 
 
+
+	// sreenshot:
+	// ffmpeg -y -hide_banner -i out.h264 -ss 0 -frames:v 1 out.jpg
+	// ffmpeg -y -hide_banner -i out.h264 -frames:v 1 -f image2 out.png
+
+	function startRecording()
+	{
+		// https://gist.github.com/steven2358/ba153c642fe2bb1e47485962df07c730
+		// Extract a frame each second: ffmpeg -i input.mp4 -vf fps=1 thumb%04d.jpg -hide_banner
+
+		let fileName = Date.now() + '.h264';
+		// ffmpeg -v debug -y -analyzeduration 9M -probesize 9M -i pipe:0 -codec copy out.h264
+		console.log(`Starting recording to clips/${fileName}...`);
+		ffmpegProc = cp.spawn('/usr/bin/ffmpeg', [
+			'-hide_banner',
+			'-y',
+//			'-analyzeduration', '9M',
+//			'-probesize', '9M',
+			'-analyzeduration', '0.6M',
+			'-probesize', '0.6M',
+//			'-video_size', conf.get("width") + "x" + conf.get("height"),
+			'-framerate', conf.get("framerate"),
+			'-i', '-',
+			'-codec', 'copy',
+			`../client/clips/${fileName}`
+		]);
+
+		ffmpegProc.stdout.setEncoding('utf8');
+		ffmpegProc.stdout.on('data', function(data) {
+		    console.log('FFMPEG stdout: ' + data);
+		});
+
+		ffmpegProc.stderr.setEncoding('utf8');
+		ffmpegProc.stderr.on('data', function(data) {
+		    console.log('FFMPEG stderr: ' + data);
+		});
+
+		ffmpegProc.on('close', function(code) {
+		    console.log('===> FFMPEG closing code: ' + code);
+		});
+
+		process.on('SIGINT', () => {
+			// end saving of ffmpeg stream
+			console.log("ending recording...");
+			ffmpegProc.stdin.end();
+			process.exit();
+		});
+
+		process.on('SIGTERM', () => {
+			ffmpegProc.stdin.end();
+		});
+
+
+
+		for (let i in headers) {
+			console.log(headers[i]);
+			ffmpegProc.stdin.write(NALSeparator);
+			ffmpegProc.stdin.write(headers[i]);
+//			ws.send(headers[i]);
+		}
+
+		recording = true;
+	}
+
+	function stopRecording()
+	{
+		console.log("Stopping recording...");
+		recording = false;
+		ffmpegProc.stdin.end();
+	}
+
+/*
+	if(SAVE_STREAM) {
+		startRecording();
+	}
+*/
+
+/*
+	// test of pause/continue
+	setTimeout(() => {
+		if(ffmpegProc) {
+			console.log("Pausing recording...");
+			ffmpegProc.kill('SIGSTOP');
+//			ffmpegProc.stdin.write('q');
+		}
+
+	}, 15000);
+
+	setTimeout(() => {
+		if(ffmpegProc) {
+			console.log("Continuing recording...");
+			ffmpegProc.kill('SIGCONT');
+		}
+	}, 25000);
+*/
+
+
 	startCamera();
+/*
+	setTimeout( () => {
+		startRecording();
+	}, 2000);
+*/

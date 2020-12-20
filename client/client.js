@@ -15,7 +15,8 @@ startStream(
 	2000
 );
 
-
+var overlayWs;
+var ws;
 
 function startStream(playerId, wsUri, videoPort, overlayPort, useWorker, webgl, reconnectMs)
 {
@@ -81,7 +82,7 @@ function startStream(playerId, wsUri, videoPort, overlayPort, useWorker, webgl, 
 		return tmp.buffer;
 	}
 
-	var ws = new WebSocket(wsUri + videoPort);
+	ws = new WebSocket(wsUri + videoPort);
 	ws.binaryType = 'arraybuffer';
 	ws.onopen = function (e) {
 		console.log('websocket connected');
@@ -99,13 +100,14 @@ function startStream(playerId, wsUri, videoPort, overlayPort, useWorker, webgl, 
 
 	ws.onclose = function (e) {
 		console.log('websocket disconnected');
+		ws = null;
 		if (reconnectMs > 0) {
 			setTimeout(function() { startStream(playerId, wsUri, videoPort, overlayPort, useWorker, webgl, reconnectMs) }, reconnectMs);
 		}
 	}
 
 
-	var overlayWs = new WebSocket(wsUri + overlayPort);
+	overlayWs = new WebSocket(wsUri + overlayPort);
 	overlayWs.binaryType = 'arraybuffer';
 	overlayWs.onopen = function (e) {
 		console.log('overlay websocket connected');
@@ -117,13 +119,34 @@ function startStream(playerId, wsUri, videoPort, overlayPort, useWorker, webgl, 
 
 	overlayWs.onclose = function (e) {
 		console.log('overlay websocket disconnected');
-
+/*
 		if (reconnectMs > 0) {
 			setTimeout(function() { startStream(playerId, wsUri, videoPort, overlayPort, useWorker, webgl, reconnectMs) }, reconnectMs);
 		}
+*/
 	}
 
 } // startStream
+
+function btnRecordStart()
+{
+	overlayWs.send(JSON.stringify(
+		{
+			scope : "record",
+			verb : "start",
+		}
+	));
+}
+function btnRecordStop()
+{
+	overlayWs.send(JSON.stringify(
+		{
+			scope : "record",
+			verb : "stop",
+		}
+	));
+}
+
 
 // debugger stuff
 function avgFPS(length)
