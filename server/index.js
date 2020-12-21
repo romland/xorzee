@@ -12,6 +12,52 @@ TODO:
 		- Thouhgt: Perhaps always buffer a bunch of frames? Costly on memory tho :(
 	- screenshot: should be solved if we can generate h264's
 	- option to only stream when there is movement
+	- perhaps abuse Bonjour protocol to advertise activity on a camera to all other cameras?
+
+	- want discoverability of devices on the network (zeroconf/bonjour)
+		- https://www.npmjs.com/package/bonjour (7M)
+		- https://www.npmjs.com/package/zeroconf (7 heh)
+		- avahi-daemon installed by default
+			however, do not get a browser installed by default, so use a nodejs module for that?
+			sudo apt-get install avahi-utils
+
+		- best would be to interface with vahai without further installation... how?
+			NOT:
+			- https://github.com/idjem/avahi-browse  (depends on avahi-browse / avahi-utils)
+			- npm i node-avahi-browse (also depend on avahi-browse)
+
+		- instead of installing avahi-utils:
+			sudo apt-get install libavahi-compat-libdnssd-dev
+				(see https://www.npmjs.com/package/homebridge/v/0.4.40 )
+
+		- I suppose going for the D-BUS API ( https://www.avahi.org/doxygen/html/ ) is the best option.
+		  Write my own or is there an existing implementatioN?
+			- Waddaya know: https://www.npmjs.com/package/dbus-native
+			- oh and: https://github.com/machinekoder/node-avahi-dbus
+			...
+			- which seems to be synchronous? Perhaps go to the new/improved:
+				https://github.com/dbusjs/node-dbus-next/issues/55
+				(this is more work, though!)
+
+
+
+
+$ sudo vi mintymint.service
+<?xml version="1.0" standalone='no'?><!--*-nxml-*-->
+<!DOCTYPE service-group SYSTEM "avahi-service.dtd">
+
+<service-group>
+
+  <name replace-wildcards="yes">%h</name>
+
+  <service>
+    <type>_mintymint._tcp</type>
+    <port>8080</port>
+  </service>
+
+</service-group>
+
+
 */
 
 // https://superuser.com/questions/1392046/how-to-not-include-the-pause-duration-in-the-ffmpeg-recording-timeline
@@ -36,6 +82,8 @@ const mvrproc = require("./lib/mvrprocessor.js");
 const MvrProcessor = mvrproc.default;
 const MvrFilterFlags = mvrproc.MvrFilterFlags;
 
+const CameraDiscovery = require("./lib/CameraDiscovery.js").default;
+
 const START_SKIP_MOTION_FRAMES = 17;
 //const SAVE_STREAM = false;
 
@@ -47,6 +95,7 @@ const START_SKIP_MOTION_FRAMES = 17;
 	var headers = [];
 
 	conf.argv().defaults({
+		name		: "Office cam",
 		tcpport		: 8000,		// for camera
 		udpport		: 8000,		// for camera
 		motionport	: 8001,		// for camera (motion data)
@@ -393,7 +442,7 @@ const START_SKIP_MOTION_FRAMES = 17;
 			for (let i in headers) {
 //				ws.send(headers[i]);
 				ws.send(JSON.stringify( {
-					msg : "Welcome",
+					message : "Welcome",
 					settings : conf.get()
 				}), -1, false);
 			}
@@ -571,6 +620,17 @@ const START_SKIP_MOTION_FRAMES = 17;
 		ffmpegProc.stdin.end();
 	}
 
+	function findDevices()
+	{
+		console.log("===> Setting up device finder...");
+		//bonjour.find({ type: 'http' }, function (service) {
+		let browser = bonjour.find({ }, function (service) {
+			console.log('===> Found a service:', service)
+		});
+		browser.start();
+	}
+
+//	findDevices();
 	startCamera();
 /*
 	setTimeout( () => {
@@ -580,4 +640,14 @@ const START_SKIP_MOTION_FRAMES = 17;
 		stopRecording();
 	}, 10000);
 */
+
+let cd = new CameraDiscovery(
+	(ob) => {
+		console.log(ob);    // add
+	},
+	(ob) => {
+		console.log(ob);    // remove
+	}
+);
+
 

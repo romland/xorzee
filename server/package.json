@@ -12,6 +12,7 @@
   "dependencies": {
     "@cisl/binary-ring-buffer": "^1.2.2",
     "@clusterws/cws": "^3.0.0",
+    "avahi-dbus": "^0.1.0",
     "bl": "^4.0.3",
     "express": "^4.15.2",
     "http-server": "^0.12.3",
