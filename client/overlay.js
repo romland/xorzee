@@ -129,6 +129,8 @@ class Overlay
 				this.streamSettings = parsed.settings;
 				this.init(this.streamSettings.width, this.streamSettings.height);
 				return;
+			} else if(parsed.event) {
+				console.log("event", parsed);
 			}
 
 			if(this.initialized) {

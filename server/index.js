@@ -11,8 +11,7 @@ TODO:
 	  but ffmpeg takes too long to pick up the stream...
 		- Thouhgt: Perhaps always buffer a bunch of frames? Costly on memory tho :(
 	- screenshot: should be solved if we can generate h264's
-
-
+	- option to only stream when there is movement
 */
 
 // https://superuser.com/questions/1392046/how-to-not-include-the-pause-duration-in-the-ffmpeg-recording-timeline
@@ -234,8 +233,7 @@ const START_SKIP_MOTION_FRAMES = 17;
 					broadcastOverlay(frameData, frameLength, true);
 
 					// broadcast relevant data (such as bounding boxes) to client
-					str = JSON.stringify({ clusters : clusters });
-					broadcastOverlay(str, str.length, false);
+					broadcastMessage( { clusters : clusters } );
 
 //					console.log("motion data:", frameLength);
 //					mvrProcessor.outputFrameStats(frameData);
@@ -424,6 +422,12 @@ const START_SKIP_MOTION_FRAMES = 17;
 	}
 
 
+	function broadcastMessage(ob)
+	{
+		let str = JSON.stringify(ob);
+		broadcastOverlay(str, str.length, false);
+	}
+
 
 	// sreenshot:
 	// ffmpeg -y -hide_banner -i out.h264 -ss 0 -frames:v 1 out.jpg
@@ -434,6 +438,16 @@ const START_SKIP_MOTION_FRAMES = 17;
 		let tmpFfmpeg = cp.spawn('/usr/bin/ffmpeg', [
 			'-y', '-hide_banner', '-i', '../client/clips/' + fileName + '.h264', '-frames:v', '1', '-f', 'image2', `../client/clips/${fileName}.jpg`
 		]);
+
+		tmpFfmpeg.on('close', function(code) {
+		    console.log('===> FFMPEG (screenshot) closing code: ' + code);
+			broadcastMessage(
+				{
+					"event" : "screenshot",
+					"filename" : fileName + ".jpg",
+				}
+			);
+		});
 	}
 
 /*
@@ -488,6 +502,13 @@ const START_SKIP_MOTION_FRAMES = 17;
 			`../client/clips/${fileName}.h264`
 		]);
 
+		broadcastMessage(
+			{
+				"event" : "startRecording",
+				"filename" : fileName + ".h264",
+			}
+		);
+
 		ffmpegProc.stdout.setEncoding('utf8');
 		ffmpegProc.stdout.on('data', function(data) {
 		    console.log('FFMPEG stdout: ' + data);
@@ -500,6 +521,12 @@ const START_SKIP_MOTION_FRAMES = 17;
 
 		ffmpegProc.on('close', function(code) {
 		    console.log('===> FFMPEG closing code: ' + code);
+			broadcastMessage(
+				{
+					"event" : "stopRecording",
+					"filename" : fileName + ".h264",
+				}
+			);
 			previewShot(fileName);
 		});
 
