@@ -37,5 +37,7 @@ jspm_packages
 .node_repl_history
 
 .*.swp
-*.h264
+*/clips/*.h264
+*/clips/*.jpg
+*/clips/*.png
 

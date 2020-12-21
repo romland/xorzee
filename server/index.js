@@ -40,6 +40,7 @@ const MvrFilterFlags = mvrproc.MvrFilterFlags;
 const START_SKIP_MOTION_FRAMES = 17;
 //const SAVE_STREAM = false;
 
+
 	var wsServer;
 	var motionWsServer;
 
@@ -65,6 +66,8 @@ const START_SKIP_MOTION_FRAMES = 17;
 //		width: 1280, height: 722,
 //		width: 640, height: 482,		// Warning, the height CAN NOT be divisible by 16! (bit of a bug!)
 		bitrate		: 1700000,
+		mayrecord	: true,				// If true, will allocate a buffer of the past (10 MiB)
+		rbuffersize	: (3 * 1024 * 1024)
 	});
 
 	var mvrProcessor = new MvrProcessor(conf.get("framerate"), conf.get("width"), conf.get("height"));
@@ -72,6 +75,12 @@ const START_SKIP_MOTION_FRAMES = 17;
 	var ffmpegProc;
 	var recording = false;
 	var cameraStarted = false;
+	var recordBuffer;
+
+	if(conf.get("mayrecord")) {
+		recordBuffer = new BinaryRingBuffer(conf.get("rbuffersize"));
+	}
+
 
 	function startCamera()
 	{
@@ -279,6 +288,12 @@ const START_SKIP_MOTION_FRAMES = 17;
 					broadcast(data);
 				}
 
+				if(conf.get("mayrecord")) {
+					recordBuffer.write(NALSeparator);
+					recordBuffer.write(data);
+				}
+
+				// For funky behaviour -- disable this to ONLY record the past (what's in buffer)
 				if(recording) {
 //					console.log(data);
 					ffmpegProc.stdin.write(NALSeparator);
@@ -292,16 +307,6 @@ const START_SKIP_MOTION_FRAMES = 17;
 
 			socket.pipe(NALSplitter);
 
-/*
-			if(SAVE_STREAM) {
-				socket.pipe(ffmpegProc.stdin);
-			}
-*/
-// This does not get executed heh
-			if(recording) {
-				console.log("Starting piping -- will NOT happen -- remove me!");
-				socket.pipe(ffmpegProc.stdin);
-			}
 		});
 
 		tcpServer.listen(conf.get('tcpport'));
@@ -459,12 +464,25 @@ const START_SKIP_MOTION_FRAMES = 17;
 		ffmpegProc = cp.spawn('/usr/bin/ffmpeg', [
 			'-hide_banner',
 			'-y',
+
+			// This feels a bit long...
 //			'-analyzeduration', '9M',
 //			'-probesize', '9M',
-			'-analyzeduration', '0.6M',
-			'-probesize', '0.6M',
+
+			// This works ... kinda.
+//			'-analyzeduration', '0.6M',
+//			'-probesize', '0.6M',
+
+			// https://ffmpeg.org/ffmpeg-formats.html
+			'-analyzeduration', '2M',		// It defaults to 5,000,000 microseconds = 5 seconds. 
+			'-probesize', '5M',
+
 //			'-video_size', conf.get("width") + "x" + conf.get("height"),
 			'-framerate', conf.get("framerate"),
+//			'-pix_fmt', 'yuv420p',
+//			'-s', '1920x1080',
+			'-f', 'h264',
+//			'-s', 'hd1080',		// Before -i, apparently only abbreviation allowed? https://ffmpeg.org/ffmpeg-utils.html
 			'-i', '-',
 			'-codec', 'copy',
 			`../client/clips/${fileName}.h264`
@@ -497,13 +515,24 @@ const START_SKIP_MOTION_FRAMES = 17;
 		});
 
 
-
+		// XXX:
+		// This has the chance of sending duplicate data as we will
+		// have it in the recordBuffer for a while too. How bad is 
+		// that? The whole passing arbitrary data to ffmpeg is not 
+		// working great anyway -- so wth, seeing it as prototype
+		// for now.
 		for (let i in headers) {
 			console.log(headers[i]);
 			ffmpegProc.stdin.write(NALSeparator);
 			ffmpegProc.stdin.write(headers[i]);
 //			ws.send(headers[i]);
 		}
+
+		// Pass buffer of recorded data of the past in first...
+		let buff = recordBuffer.read(conf.get("rbuffersize"));
+		console.log(`Passing ${buff.length} bytes to ffmpeg...`);
+		ffmpegProc.stdin.write(buff);
+		console.log("Done passing buffer...");
 
 		recording = true;
 	}
@@ -515,35 +544,13 @@ const START_SKIP_MOTION_FRAMES = 17;
 		ffmpegProc.stdin.end();
 	}
 
-/*
-	if(SAVE_STREAM) {
-		startRecording();
-	}
-*/
-
-/*
-	// test of pause/continue
-	setTimeout(() => {
-		if(ffmpegProc) {
-			console.log("Pausing recording...");
-			ffmpegProc.kill('SIGSTOP');
-//			ffmpegProc.stdin.write('q');
-		}
-
-	}, 15000);
-
-	setTimeout(() => {
-		if(ffmpegProc) {
-			console.log("Continuing recording...");
-			ffmpegProc.kill('SIGCONT');
-		}
-	}, 25000);
-*/
-
-
 	startCamera();
 /*
 	setTimeout( () => {
 		startRecording();
-	}, 2000);
+	}, 5000);
+	setTimeout( () => {
+		stopRecording();
+	}, 10000);
 */
+
