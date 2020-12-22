@@ -36,6 +36,8 @@ A high quality streamer and motion detector that can run on one core of a Raspbe
 
 
 --------
+A firewall needs to (by default) open 8080-8082 (TCP)
+
 
 Stop Vidensi recorder (or camera is booked!)
 
