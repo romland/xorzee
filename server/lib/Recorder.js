@@ -1,4 +1,6 @@
 "use strict";
+const fs = require("fs");
+const path = require("path");
 const pino = require('pino');
 const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 const BinaryRingBuffer = require('@cisl/binary-ring-buffer');
@@ -14,17 +16,85 @@ class Recorder
 		this.recording = false;
 		this.ffmpegProc = null;
 		this.recordingToId = null;
+		this.recordingMeta = null;
 
 		this.notifyCb = notifyCb;
 		this.lastNofication = null;
 		this.recordLen = 0;
+
+		this.latestRecordings = this.getLatestRecordings(conf.get("recordhistory"));
 	}
+
+
+	/**
+	 * Get N latest recordings on disk.
+	 *
+	 * Note: Costly. Preferably this is only called on startup. Subsequent
+	 *       recordings are added without reading them from disk/
+	 */
+	getLatestRecordings(num = 20)
+	{
+
+		let allFiles = this._getSortedDir(this.conf.get("recordpath"), ".json");
+		let lastFiles = allFiles.slice(Math.max(allFiles.length - num, 0))
+
+		let ret = [];
+		for(let i = 0; i < lastFiles.length; i++) {
+			ret.push(
+				JSON.parse(
+					fs.readFileSync(this.conf.get("recordpath") + "/" + lastFiles[i], "utf8")
+				)
+			);
+		}
+
+		return ret;
+	}
+
+
+	_getSortedDir(dir, ext)
+	{
+		let files = fs.readdirSync(dir);
+
+		files = files.filter((file) => {
+			return path.extname(file).toLowerCase() === ext;
+		})
+		.map( (fileName) => {
+			return {
+				name: fileName,
+				time: fs.statSync(dir + '/' + fileName).mtime.getTime()
+			};
+		})
+		.sort( (a, b) => {
+			return a.time - b.time;
+		})
+		.map( (v) => {
+			return v.name;
+		});
+
+		return files;
+	}
+
 
 
 	buffer(data)
 	{
 		this.recordBuffer.write(NALSeparator);
 		this.recordBuffer.write(data);
+	}
+
+
+	/**
+	 * Update the latestRecordings array
+	 * (note: Others may sit with pointers to it, treat it well)
+	 */
+	_addRecording(meta)
+	{
+		if(this.latestRecordings.length > this.conf.get("recordhistory")) {
+			// remove first
+			this.latestRecordings.shift();
+		}
+
+		this.latestRecordings.push(meta);
 	}
 
 
@@ -35,10 +105,22 @@ class Recorder
 
 		if(this.ffmpegProc) {
 			this.ffmpegProc.stdin.end();
+
+			this.recordingMeta["stopped"] = Date.now();
+			this.recordingMeta["size"] = this.recordLen;
+			fs.writeFileSync(
+				this.conf.get("recordpath") + "/" + this.recordingToId + ".json",
+				JSON.stringify(this.recordingMeta)
+			);
+			logger.debug("Wrote recording meta %o", this.recordingMeta);
+
+			this._addRecording(this.recordingMeta);
+
 			// Screenshotter might want it.
 			return this.recordingToId;
 		}
 
+		this.recordingMeta = null;
 		this.lastNotification = null;
 		this.recordLen = 0;
 		return null;
@@ -73,6 +155,11 @@ class Recorder
 
 	start(headers)
 	{
+		if(this.recording) {
+			logger.error("Already recording...");
+			return null;
+		}
+
 		if(!headers) {
 			throw new Error("Start require headers");
 		}
@@ -135,6 +222,13 @@ class Recorder
         this.recording = true;
 
 		this.lastNotification = Date.now();
+
+		this.recordingMeta = {
+			camera : this.conf.get("name"),
+			started : this.lastNotification,
+			screenshot : this.recordingToId + ".jpg",
+			video : this.recordingToId + ".h264"
+		};
 
 		return this.recordingToId;
 	}

@@ -16,6 +16,7 @@ A high quality streamer and motion detector that can run on one core of a Raspbe
 - Should automatically find other cameras on the network
 - Should be zero-configuration (that is, install software, connect to network and go)
 - Should be highly configurable
+- It should be as close to power-on-and-aim-camera-and-go as possible
 - Should have a modern web-client that can handle multiple cameras
 - Clients should be able to connect to any camera on the network and then also see all other available cameras
 
@@ -24,6 +25,11 @@ A high quality streamer and motion detector that can run on one core of a Raspbe
 --------
 - Port MvrProcessor to a native node module (C/C++)
 
+
+## Features (ideas)
+- Be able to see recent/latest detected motion sequences in client
+- I'd like object-identification _without extra hardware_ (we will only identify _moving_ objects -- e.g. human/cat/dog)
+  (google: does yolo use motion vectors) A: is no, but seems like other thought of the same (no surprise)
 
 
 [1] If it can run on the one core of Raspberry Pi Zero, it will run on any other Raspberry Pi.

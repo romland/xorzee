@@ -30,36 +30,38 @@ const VideoScreenshotter = require("./lib/VideoScreenshotter").default;
 	 */
 	conf.argv().defaults({
 		// === General ===
-		name		: "Camera at default location",
+		name			: "Camera at default location",
 
 		// === Internal ports ===
-		tcpport		: 8000,					// (internal) for camera
-		motionport	: 8001,					// (internal) for camera (motion data)
+		tcpport			: 8000,					// (internal) for camera
+		motionport		: 8001,					// (internal) for camera (motion data)
 
 		// === Webserver ===
-		queryport	: 8080,					// (public) for client (web content)
-		publicpath	: path.resolve("../client/"),
+		queryport		: 8080,					// (public) for client (web content)
+		publicpath		: path.resolve("../client/"),
 
 		// === Public ports and limitations ===
-		limit		: 150,					// max number clients allowed
-		wsport		: 8081,					// (public) for client (stream)
-		motionwsport: 8082,					// (public) for client (motion stream)
+		limit			: 150,					// max number clients allowed
+		wsport			: 8081,					// (public) for client (stream)
+		motionwsport	: 8082,					// (public) for client (motion stream)
 
 		// === Video settings ===
-		bitrate		: 1700000,				// Bitrate of video stream
-		framerate	: 24,
-		width		: 1920,
-		height		: 1080,
+		bitrate			: 1700000,				// Bitrate of video stream
+		framerate		: 24,
+		width			: 1920,
+		height			: 1080,
 //		width: 1280, height: 722,
-//		width: 640, height: 482,			// Warning, the height CAN NOT be divisible by 16! (bit of a bug!)
+//		width: 640, height: 482,				// Warning, the height CAN NOT be divisible by 16! (bit of a bug!)
 
 		// === Recording settings ===
-		mayrecord	: true,					// If true, will allocate a buffer of the past
-		rbuffersize	: (3 * 1024 * 1024),	// How much to video (in bytes) to buffer for pre-recording
-		recordpath	: path.resolve("../client/clips/"),
+		mayrecord		: true,					// If true, will allocate a buffer of the past
+		rbuffersize		: (3 * 1024 * 1024),	// How much to video (in bytes) to buffer for pre-recording
+		recordpath		: path.resolve("../client/clips/"),
+		recordpathwww	: "/clips/",
+		recordhistory	: 20,					// Number of latest clips to report to clients
 
 		// === Discovery settings ===
-		discovery	: true,					// Whether to discover neighbouring cameras
+		discovery		: true,					// Whether to discover neighbouring cameras
 	});
 
 
@@ -102,7 +104,8 @@ const VideoScreenshotter = require("./lib/VideoScreenshotter").default;
 				{
 	                message : "Welcome",
 	                settings : conf.get(),
-	                neighbours : neighbours
+	                neighbours : neighbours,
+					lastRecordings : videoListener.getRecorder().getLatestRecordings()
 				},
 				handleControlCommand
 			);

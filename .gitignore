@@ -40,4 +40,5 @@ jspm_packages
 */clips/*.h264
 */clips/*.jpg
 */clips/*.png
+*/clips/*.json
 
