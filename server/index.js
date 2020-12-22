@@ -13,9 +13,6 @@ const MotionListener = require("./lib/MotionListener").default;
 const CameraDiscovery = require("./lib/CameraDiscovery").default;
 const VideoScreenshotter = require("./lib/VideoScreenshotter").default;
 
-	var neighbours;
-
-	// --- new class instances ---
 	var camera;
 	var webServer;
 	var videoSender;
@@ -25,7 +22,12 @@ const VideoScreenshotter = require("./lib/VideoScreenshotter").default;
 	var videoListener;
 	var videoScreenshotter;
 
+	var neighbours;
 
+
+	/**
+	 * Command line arguments / options
+	 */
 	conf.argv().defaults({
 		// === General ===
 		name		: "Camera at default location",
@@ -61,6 +63,91 @@ const VideoScreenshotter = require("./lib/VideoScreenshotter").default;
 	});
 
 
+	/**
+	 * Entry point
+	 */
+	function main()
+	{
+		console.log("=== New run ===", Date(), "MintyMint logging level", logger.level);
+
+		initProcess();
+
+		// Misc
+		if(conf.get("discovery")) {
+			cameraDiscoverer = setupCameraDiscoverer();
+		}
+
+		videoScreenshotter = new VideoScreenshotter(conf);
+
+		if (conf.get('queryport')) {
+			webServer = new WebServer(conf);
+			webServer.start();
+		}
+
+		// Video
+		if (conf.get('wsport')) {
+			videoSender = new VideoSender(conf);
+			videoSender.start();
+		}
+
+		if (conf.get('tcpport')) {
+			videoListener = new VideoListener(conf, videoSender, recordProgressNotification);
+			videoListener.start();
+		}
+	
+		// Motion
+		if (conf.get('motionwsport')) {
+			motionSender = new MotionSender(conf);
+			motionSender.start(
+				{
+	                message : "Welcome",
+	                settings : conf.get(),
+	                neighbours : neighbours
+				},
+				handleControlCommand
+			);
+		}
+
+		if (conf.get('motionport')) {
+			motionListener = new MotionListener(conf, motionSender);
+			motionListener.start();
+		}
+
+		// Camera
+		camera = new Camera(conf);
+		camera.start();
+	}
+
+
+	/**
+	 * Setup shutdown etc.
+	 */
+	function initProcess()
+	{
+		process.on('SIGINT', () => {
+			logger.debug("Got SIGINT");
+
+			if(videoListener.getRecorder()) {
+				videoListener.getRecorder().shutdown();
+			}
+
+			process.exit();
+		});
+
+		process.on('SIGTERM', () => {
+			logger.debug("Got SIGTERM");
+
+			if(videoListener.getRecorder()) {
+				videoListener.getRecorder().shutdown();
+			}
+		});
+
+	}
+
+
+	/**
+	 * Command dispatcher for commands coming from clients.
+	 */
 	function handleControlCommand(msg)
 	{
 		let parsed = JSON.parse(msg);
@@ -103,7 +190,23 @@ const VideoScreenshotter = require("./lib/VideoScreenshotter").default;
 		}
 	}
 
+	/**
+	 * Pass on recording progress to clients.
+	 * Called through callback by Recorder.
+	 */
+	function recordProgressNotification(recordId, recordLen)
+	{
+		motionSender.broadcastMessage({
+			"event" : "recordProgress",
+			"data" : {
+				"filename" : recordId,
+				"length" : recordLen
+			}
+		});
+	}
 
+
+	// TODO: Refactor away
 	function setupCameraDiscoverer()
 	{
 		neighbours = [];
@@ -139,82 +242,5 @@ const VideoScreenshotter = require("./lib/VideoScreenshotter").default;
 	}
 
 
-	function initProcess()
-	{
-		process.on('SIGINT', () => {
-			logger.debug("Got SIGINT");
-
-			if(videoListener.getRecorder()) {
-				videoListener.getRecorder().shutdown();
-			}
-
-			process.exit();
-		});
-
-		process.on('SIGTERM', () => {
-			logger.debug("Got SIGTERM");
-
-			if(videoListener.getRecorder()) {
-				videoListener.getRecorder().shutdown();
-			}
-		});
-
-	}
-
-	console.log("=== New run ===", Date(), "MintyMint logging level", logger.level);
-
-	initProcess();
-
-	// Misc
-	if(conf.get("discovery")) {
-		cameraDiscoverer = setupCameraDiscoverer();
-	}
-
-	videoScreenshotter = new VideoScreenshotter(conf);
-
-	if (conf.get('queryport')) {
-		webServer = new WebServer(conf);
-		webServer.start();
-	}
-
-	// Video
-	if (conf.get('wsport')) {
-		videoSender = new VideoSender(conf);
-		videoSender.start();
-	}
-
-	if (conf.get('tcpport')) {
-		videoListener = new VideoListener(conf, videoSender, (recordId, recordLen) => {
-			motionSender.broadcastMessage({
-				"event" : "recordProgress",
-				"data" : {
-					"filename" : recordId,
-					"length" : recordLen
-				}
-			});
-		});
-		videoListener.start();
-	}
-	
-	// Motion
-	if (conf.get('motionwsport')) {
-		motionSender = new MotionSender(conf);
-		motionSender.start(
-			{
-                message : "Welcome",
-                settings : conf.get(),
-                neighbours : neighbours
-			},
-			handleControlCommand
-		);
-	}
-
-	if (conf.get('motionport')) {
-		motionListener = new MotionListener(conf, motionSender);
-		motionListener.start();
-	}
-
-	// Camera
-	camera = new Camera(conf);
-	camera.start();
+main();
 
