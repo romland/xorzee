@@ -1,21 +1,17 @@
 "use strict";
 
-const pino = require('pino');
-const cp = require('child_process');
 const conf = require('nconf');
 const path = require("path");
-
-// new Classes
-const CameraDiscovery = require("./lib/CameraDiscovery").default;
+const pino = require('pino');
+const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 const Camera = require("./lib/Camera").default;
 const WebServer = require("./lib/WebServer").default;
 const VideoSender = require("./lib/VideoSender").default;
 const VideoListener = require("./lib/VideoListener").default;
 const MotionSender = require("./lib/MotionSender").default;
 const MotionListener = require("./lib/MotionListener").default;
+const CameraDiscovery = require("./lib/CameraDiscovery").default;
 const VideoScreenshotter = require("./lib/VideoScreenshotter").default;
-
-	const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 
 	var neighbours;
 
@@ -28,7 +24,6 @@ const VideoScreenshotter = require("./lib/VideoScreenshotter").default;
 	var motionListener;
 	var videoListener;
 	var videoScreenshotter;
-
 
 
 	conf.argv().defaults({
@@ -103,7 +98,7 @@ const VideoScreenshotter = require("./lib/VideoScreenshotter").default;
 				break;
 
 			default :
-				logger.error("Unknown verb %s", parsed.verb);
+				logger.error("Unknown command %s", parsed.verb);
 				break;
 		}
 	}
@@ -144,7 +139,7 @@ const VideoScreenshotter = require("./lib/VideoScreenshotter").default;
 	}
 
 
-	function setupApp()
+	function initProcess()
 	{
 		process.on('SIGINT', () => {
 			logger.debug("Got SIGINT");
@@ -168,7 +163,7 @@ const VideoScreenshotter = require("./lib/VideoScreenshotter").default;
 
 	console.log("=== New run ===", Date(), "MintyMint logging level", logger.level);
 
-	setupApp();
+	initProcess();
 
 	// Misc
 	if(conf.get("discovery")) {
@@ -189,7 +184,15 @@ const VideoScreenshotter = require("./lib/VideoScreenshotter").default;
 	}
 
 	if (conf.get('tcpport')) {
-		videoListener = new VideoListener(conf, videoSender);
+		videoListener = new VideoListener(conf, videoSender, (recordId, recordLen) => {
+			motionSender.broadcastMessage({
+				"event" : "recordProgress",
+				"data" : {
+					"filename" : recordId,
+					"length" : recordLen
+				}
+			});
+		});
 		videoListener.start();
 	}
 	

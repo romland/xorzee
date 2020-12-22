@@ -14,12 +14,12 @@ const Recorder = require("./Recorder").default;
 
 class VideoListener
 {
-	constructor(conf, videoSender)
+	constructor(conf, videoSender, recorderNotifyCb = null)
 	{
 		this.headers = [];
 		this.conf = conf;
 		this.videoSender = videoSender;
-		this.recorder = this.setupRecorder();
+		this.recorder = this.setupRecorder(recorderNotifyCb);
 
 // how to deal with headers, need them for recorder...
 
@@ -31,10 +31,10 @@ class VideoListener
 	}
 
 
-	setupRecorder()
+	setupRecorder(recorderNotifyCb)
 	{
 		if(this.conf.get("mayrecord")) {
-			return new Recorder(this.conf);
+			return new Recorder(this.conf, recorderNotifyCb);
 		}
 
 		return null;

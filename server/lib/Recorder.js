@@ -7,14 +7,19 @@ const NALSeparator = Buffer.from([0, 0, 0, 1]);
 
 class Recorder
 {
-	constructor(conf)
+	constructor(conf, notifyCb = null)
 	{
 		this.conf = conf;
 		this.recordBuffer = new BinaryRingBuffer(conf.get("rbuffersize"));
 		this.recording = false;
 		this.ffmpegProc = null;
 		this.recordingToId = null;
+
+		this.notifyCb = notifyCb;
+		this.lastNofication = null;
+		this.recordLen = 0;
 	}
+
 
 	buffer(data)
 	{
@@ -22,14 +27,21 @@ class Recorder
 		this.recordBuffer.write(data);
 	}
 
+
 	stop()
 	{
 		logger.info("Stopping recording...");
 		this.recording = false;
-		this.ffmpegProc.stdin.end();
 
-		// Screenshotter might want it.
-		return this.recordingToId;
+		if(this.ffmpegProc) {
+			this.ffmpegProc.stdin.end();
+			// Screenshotter might want it.
+			return this.recordingToId;
+		}
+
+		this.lastNotification = null;
+		this.recordLen = 0;
+		return null;
 	}
 
 
@@ -37,6 +49,12 @@ class Recorder
 	{
 		this.ffmpegProc.stdin.write(NALSeparator);
 		this.ffmpegProc.stdin.write(data);
+		this.recordLen += NALSeparator.length + data.length;
+
+		if((this.lastNotification + 10000) < Date.now()) {
+			this.notifyCb(this.recordingToId, this.recordLen);
+			this.lastNotification = Date.now();
+		}
 	}
 
 
@@ -45,12 +63,11 @@ class Recorder
 		return this.recording;
 	}
 
+
 	shutdown()
 	{
-		if(this.ffmpegProc) {
-			logger.debug("Shutdown - stopping any recording...");
-			this.ffmpegProc.stdin.end();
-		}
+		logger.debug("Shutdown - stopping any recording...");
+		this.stop();
 	}
 
 
@@ -103,6 +120,7 @@ class Recorder
 			logger.debug("Send header to recorder %o", headers[i]);
 			this.ffmpegProc.stdin.write(NALSeparator);
 			this.ffmpegProc.stdin.write(headers[i]);
+			this.recordLen += NALSeparator.length + headers[i].length;
         }
 
         // Pass buffer of recorded data of the past in first...
@@ -110,10 +128,13 @@ class Recorder
         logger.debug(`Passing %d bytes to ffmpeg...`, buff.length);
 
         this.ffmpegProc.stdin.write(buff);
+		this.recordLen += buff.length;
 
         logger.debug("Done passing buffer...");
 
         this.recording = true;
+
+		this.lastNotification = Date.now();
 
 		return this.recordingToId;
 	}
