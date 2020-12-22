@@ -1,5 +1,36 @@
 # Better Motion
 
+## The goal
+--------
+A high quality streamer and motion detector that can run on one core of a Raspberry Pi Zero [1].
+
+## Elaboration
+-----------
+- High quality stream meaning: 1920x1080 @ 30 FPS.
+- Should have configurable sensitivity of motion detection
+- Should be able to set areas of interest for motion detection
+- Should be able to trigger external scripts on detected motion
+- Should be able to save motion-sequences (video) to disk
+- Should be able to make thumbnails of of motion sequences
+- Should have a client which can deal with multiple cameras
+- Should automatically find other cameras on the network
+- Should be zero-configuration (that is, install software, connect to network and go)
+- Should be highly configurable
+- Should have a modern web-client that can handle multiple cameras
+- Clients should be able to connect to any camera on the network and then also see all other available cameras
+
+
+## Bonus
+--------
+- Port MvrProcessor to a native node module (C/C++)
+
+
+
+[1] If it can run on the one core of Raspberry Pi Zero, it will run on any other Raspberry Pi.
+
+
+--------
+
 Stop Vidensi recorder (or camera is booked!)
 
 First start:
