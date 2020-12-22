@@ -1,31 +1,27 @@
 "use strict";
 
 const pino = require('pino');
-const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
-
 const path = require('path');
 const cp = require('child_process');
 const net = require('net');
 const dgram = require('dgram');
 const WebSocket = require('@clusterws/cws');
 const Split = require('stream-split');
-const NALSeparator = new Buffer([0, 0, 0, 1]);
 const express = require('express');
 const systemd = require('systemd');
 const app = express();
 const conf = require('nconf');
-
 const BinaryRingBuffer = require('@cisl/binary-ring-buffer');
-
 const { BufferListStream } = require('bl');	// XXX: It's a bit silly to include this one, but it saved me a little time.
-
-const mvrproc = require("./lib/mvrprocessor.js");
+const mvrproc = require("./lib/MvrProcessor");
 const MvrProcessor = mvrproc.default;
 const MvrFilterFlags = mvrproc.MvrFilterFlags;
+const CameraDiscovery = require("./lib/CameraDiscovery").default;
 
-const CameraDiscovery = require("./lib/CameraDiscovery.js").default;
 
-const START_SKIP_MOTION_FRAMES = 17;
+	const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
+	const START_SKIP_MOTION_FRAMES = 17;
+	const NALSeparator = Buffer.from([0, 0, 0, 1]);
 
 	var neighbours;
 	var wsServer;
@@ -39,28 +35,26 @@ const START_SKIP_MOTION_FRAMES = 17;
 
 
 	conf.argv().defaults({
-		name		: "Office cam",
-		tcpport		: 8000,		// for camera
-		motionport	: 8001,		// for camera (motion data)
-
-		queryport	: 8080,		// for client (content)
-		wsport		: 8081,		// for client (stream)
-		motionwsport: 8082,		// for client (motion stream)
+		name		: "Camera at default location",
+		tcpport		: 8000,		// (internal) for camera
+		motionport	: 8001,		// (internal) for camera (motion data)
 
 		limit		: 150,		// max number clients allowed
+		queryport	: 8080,		// (public) for client (web content)
+		wsport		: 8081,		// (public) for client (stream)
+		motionwsport: 8082,		// (public) for client (motion stream)
 
-		discovery	: true,
-
-//		framerate	: 15,
-//		framerate	: 4,
-
+		bitrate		: 1700000,			// Bitrate of video stream
 		framerate	: 24,
-		width		: 1920,	height		: 1080,
+		width		: 1920,
+		height		: 1080,
 //		width: 1280, height: 722,
 //		width: 640, height: 482,		// Warning, the height CAN NOT be divisible by 16! (bit of a bug!)
-		bitrate		: 1700000,
-		mayrecord	: true,				// If true, will allocate a buffer of the past (10 MiB)
-		rbuffersize	: (3 * 1024 * 1024)
+
+		mayrecord	: true,				// If true, will allocate a buffer of the past
+		rbuffersize	: (3 * 1024 * 1024)	// How much to video (in bytes) to buffer for pre-recording
+
+		discovery	: true,		// Whether to discover neighbouring cameras
 	});
 
 
@@ -238,9 +232,9 @@ const START_SKIP_MOTION_FRAMES = 17;
 	function setupVideoListener()
 	{
 		const tcpServer = net.createServer((socket) => {
-			console.info('Video streamer created');
+			logger.info('Video streamer created');
 			socket.on('end', () => {
-				console.info('Video streamer disconnected');
+				logger.info('Video streamer disconnected');
 			})
 
 			headers = [];
