@@ -1,5 +1,9 @@
 "use strict";
 
+const { networkInterfaces } = require('os');
+const pino = require('pino');
+const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
+
 const dbus = require('dbus-native');
 
 // https://github.com/machinekoder/node-avahi-dbus
@@ -14,11 +18,14 @@ class CameraDiscovery
 		this.browser
 		this.daemon
 	*/
-	constructor(onAdd, onRemove)
+	constructor(conf, onAdd, onRemove)
 	{
 		ME = this;
+		ME.conf = conf;
 		ME.onAdd = onAdd;
 		ME.onRemove = onRemove;
+
+		ME.myIps = this.getMyIpAddresses();
 
 		let bus =  dbus.systemBus();
 		ME.daemon = new avahi.Daemon(bus);
@@ -33,6 +40,20 @@ class CameraDiscovery
 		);
 	}
 
+    getMyIpAddresses()
+    {
+        const nets = networkInterfaces();
+        const results = [];
+
+        for (const name of Object.keys(nets)) {
+            for (const net of nets[name]) {
+                results.push(net.address);
+            }
+        }
+
+        return results;
+    }
+
 	itemAdded(iface, protocol, name, type, domain, flags)
 	{
 		ME.daemon.ResolveService(
@@ -44,6 +65,12 @@ class CameraDiscovery
 			avahi.PROTO_UNSPEC,
 			0,
 			(err, iface, protocol, name, type, domain, host, aprotocol, address, port, txt, flags) => {
+
+				if(ME.myIps.includes(address)) {
+					logger.debug("Neighbour found is actually myself; ignoring %s", address);
+					return;
+				}
+
 				ME.onAdd(
 					{
 						event : "add",
@@ -69,6 +96,8 @@ class CameraDiscovery
 
 	itemRemoved(iface, protocol, name, type, domain, flags)
 	{
+		// TODO: Ignore myself
+
 		ME.onRemove(
 			{
 				event : "remove",
@@ -90,14 +119,3 @@ class CameraDiscovery
 	}
 }
 exports.default = CameraDiscovery;
-
-/*
-new CameraDiscovery(
-	(ob) => {
-		console.log(ob);	// add
-	},
-	(ob) => {
-		console.log(ob);	// remove
-	}
-);
-*/
