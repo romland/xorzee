@@ -1,7 +1,4 @@
 # Better Motion (current name is: MintyMint)
-
-
-## The goal
 A fast, high quality streamer and motion detector. It must run on the one core of a Raspberry Pi Zero [1].
 
 [1] If it can run on that, it will run on any other Raspberry Pi.
@@ -29,6 +26,7 @@ A fast, high quality streamer and motion detector. It must run on the one core o
 
 
 ## Future features (ideas)
+- Write the client using Svelte (very plain atm)
 - Be able to see recent/latest detected motion sequences in client
 - I'd like object-identification _without extra hardware_ (we will only identify _moving_ objects -- e.g. human/cat/dog)
   (google: does yolo use motion vectors) A: is no, but seems like other thought of the same (no surprise)
