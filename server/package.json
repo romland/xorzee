@@ -17,7 +17,11 @@
     "express": "^4.15.2",
     "http-server": "^0.12.3",
     "nconf": "^0.8.4",
+    "pino": "^6.8.0",
     "stream-split": "^1.1.0",
     "systemd": "^0.2.6"
+  },
+  "devDependencies": {
+    "pino-pretty": "^4.3.0"
   }
 }

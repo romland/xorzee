@@ -1,78 +1,7 @@
 "use strict";
-/*
-Installation so far:
-	apt-get install ffmpeg
-	sudo cp mintymint.service /etc/avahi/services/
-	git pull
-	npm install
-	
-=======
 
-Run (in server):
-
-node index.js
-
-Go to http://raspi-ip:8080/
-
-======
-
-TODO, thoughts:
-	- Want to be able to record clips at any given point,
-	  but ffmpeg takes too long to pick up the stream...
-		- Thouhgt: Perhaps always buffer a bunch of frames? Costly on memory tho :(
-	- screenshot: should be solved if we can generate h264's
-	- option to only stream when there is movement
-	- perhaps abuse Bonjour protocol to advertise activity on a camera to all other cameras?
-	- can I tell my TV that it can stream this (using Bonjour)? (likely need to throw it in a container tho :/)
-
-	- want discoverability of devices on the network (zeroconf/bonjour)
-		- https://www.npmjs.com/package/bonjour (7M)
-		- https://www.npmjs.com/package/zeroconf (7 heh)
-		- avahi-daemon installed by default
-			however, do not get a browser installed by default, so use a nodejs module for that?
-			sudo apt-get install avahi-utils
-
-		- best would be to interface with vahai without further installation... how?
-			NOT:
-			- https://github.com/idjem/avahi-browse  (depends on avahi-browse / avahi-utils)
-			- npm i node-avahi-browse (also depend on avahi-browse)
-
-		- instead of installing avahi-utils:
-			sudo apt-get install libavahi-compat-libdnssd-dev
-				(see https://www.npmjs.com/package/homebridge/v/0.4.40 )
-
-		- I suppose going for the D-BUS API ( https://www.avahi.org/doxygen/html/ ) is the best option.
-		  Write my own or is there an existing implementatioN?
-			- Waddaya know: https://www.npmjs.com/package/dbus-native
-			- oh and: https://github.com/machinekoder/node-avahi-dbus
-			...
-			- which seems to be synchronous? Perhaps go to the new/improved:
-				https://github.com/dbusjs/node-dbus-next/issues/55
-				(this is more work, though!)
-
-
-
-
-$ sudo vi mintymint.service
-<?xml version="1.0" standalone='no'?><!--*-nxml-*-->
-<!DOCTYPE service-group SYSTEM "avahi-service.dtd">
-
-<service-group>
-
-  <name replace-wildcards="yes">%h</name>
-
-  <service>
-    <type>_mintymint._tcp</type>
-    <port>8080</port>
-  </service>
-
-</service-group>
-
-
-*/
-
-// https://superuser.com/questions/1392046/how-to-not-include-the-pause-duration-in-the-ffmpeg-recording-timeline
-
+const pino = require('pino');
+const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 
 const path = require('path');
 const cp = require('child_process');
@@ -84,6 +13,7 @@ const NALSeparator = new Buffer([0, 0, 0, 1]);
 const express = require('express');
 const systemd = require('systemd');
 const app = express();
+const conf = require('nconf');
 
 const BinaryRingBuffer = require('@cisl/binary-ring-buffer');
 
@@ -96,21 +26,21 @@ const MvrFilterFlags = mvrproc.MvrFilterFlags;
 const CameraDiscovery = require("./lib/CameraDiscovery.js").default;
 
 const START_SKIP_MOTION_FRAMES = 17;
-//const SAVE_STREAM = false;
 
-const neighbours = [];
-
-
+	var neighbours;
 	var wsServer;
 	var motionWsServer;
-
-	var conf = require('nconf');
 	var headers = [];
+	var mvrProcessor;
+	var ffmpegProc;
+	var recording = false;
+	var recordBuffer;
+	var cameraDiscoverer;
+
 
 	conf.argv().defaults({
 		name		: "Office cam",
 		tcpport		: 8000,		// for camera
-		udpport		: 8000,		// for camera
 		motionport	: 8001,		// for camera (motion data)
 
 		queryport	: 8080,		// for client (content)
@@ -118,6 +48,8 @@ const neighbours = [];
 		motionwsport: 8082,		// for client (motion stream)
 
 		limit		: 150,		// max number clients allowed
+
+		discovery	: true,
 
 //		framerate	: 15,
 //		framerate	: 4,
@@ -131,30 +63,13 @@ const neighbours = [];
 		rbuffersize	: (3 * 1024 * 1024)
 	});
 
-	var mvrProcessor = new MvrProcessor(conf.get("framerate"), conf.get("width"), conf.get("height"));
-
-	var ffmpegProc;
-	var recording = false;
-	var cameraStarted = false;
-	var recordBuffer;
-
-	if(conf.get("mayrecord")) {
-		recordBuffer = new BinaryRingBuffer(conf.get("rbuffersize"));
-	}
-
 
 	function startCamera()
 	{
-		if(cameraStarted) {
-			return;
-		}
-
-		cameraStarted = true;
-
-		// raspivid -ih -stm -hf -vf -n -v -w 1920 -t 0 -fps 24 -ih -b 1700000 -pf baseline -o - | nc localhost 8000
 		var camProc = cp.spawn('/bin/sh', [
 			'-c',
 			`/usr/bin/raspivid ` +
+			(logger.level === "debug" ? `--verbose ` : "") +
 			// it seems decoder gets some issues with this... cannot reproduce 100% of the time, tho.
 			// A low g value will make every frame appear like it's a motion-flash (and is thus ignored).
 //			`-g 1` +		// A low value here will make ffmpeg pick up the video quicker -- drawbacks other than bandwidth?
@@ -163,7 +78,6 @@ const neighbours = [];
 			`--hflip ` +
 			`--vflip ` +
 			`--nopreview ` + 
-			`--verbose ` +
 			`--width ${conf.get("width")} ` +
 			`--height ${conf.get("height")} ` +
 			`--timeout 0 ` +
@@ -176,23 +90,23 @@ const neighbours = [];
 
 		camProc.stdout.setEncoding('utf8');
 		camProc.stdout.on('data', function(data) {
-		    console.log('CAM stdout: ' + data);
+			logger.debug('Cam-stdout: %s', data);
 		});
 
 		camProc.stderr.setEncoding('utf8');
 		camProc.stderr.on('data', function(data) {
-		    console.log('CAM stderr: ' + data);
+		    logger.debug('Cam-stderr: %s', data);
 		});
 
 		camProc.on('close', function(code) {
-		    console.log('===> CAM closing code: ' + code);
+		    logger.debug('Cam-close code: %d', code);
 		});
 
 	}
 
 
-
-	if (conf.get('queryport')) {
+	function setupWebServer()
+	{
 		app.use(express.static( path.join(__dirname, '../client') ));
 
 		app.get('/', (req, res) => {
@@ -209,10 +123,9 @@ const neighbours = [];
 		});
 
 		app.listen(conf.get('queryport'), () => {
-			console.log("Listening for HTTP requests on port", conf.get('queryport'));
+			logger.info("Listening for HTTP requests on port %d", conf.get('queryport'));
 		});
 	}
-
 
 	function broadcast(data)
 	{
@@ -232,16 +145,15 @@ const neighbours = [];
 		});
 	}
 
-	if (conf.get('motionport')) {
 
+	function setupMotionListener()
+	{
 		const tcpServer = net.createServer((socket) => {
-			console.log('motion streamer connected');
+			logger.info('Motion streamer created');
 
 			socket.on('end', () => {
-				console.log('motion streamer disconnected');
+				logger.info('Motion streamer disconnected');
 			});
-
-//			const NALSplitter = new Split(NALSeparator);
 
 			let vectorLines = Math.floor( conf.get("height") / 16) + 1;
 			let vectorsPerLine = Math.floor( conf.get("width") / 16) + 1;
@@ -252,8 +164,6 @@ const neighbours = [];
 			let clusters = null;
 			let str;
 
-
-//			NALSplitter.on('data', (data) => {
 			socket.on('data', (data) => {
 				bl.append(data);
 
@@ -263,30 +173,27 @@ const neighbours = [];
 					}
 
 					if(START_SKIP_MOTION_FRAMES > frameCount++) {
-						console.log("Skipping motion frame", frameCount, "/", START_SKIP_MOTION_FRAMES, "...");
+						logger.debug("Skipping motion frame %d/%d...", frameCount, START_SKIP_MOTION_FRAMES);
 						bl.consume(frameLength);
 						return;
 					}
 
-//					console.log("===");
-
 					// Protect against eating too much damn memory if we are too slow.
-					if(bl.length > frameLength * 5) {
-						console.warn("Discarding motion frames, we are probably too slow.");
-						bl.consume(frameLength);
-						bl.consume(frameLength);
-						bl.consume(frameLength);
-						bl.consume(frameLength);
+					if(bl.length > frameLength * 3) {
+						logger.warn("Discarding motion frames, we are probably too slow.");
+						do {
+							bl.consume(frameLength);
+						} while(bl.length > (frameLength * 3))
 					}
-
-//					console.clear();
 
 					//frameData = bl.shallowSlice(0, frameLength);      // argh, this does not expose fill() -- oh well, a memory copy then :(
 					frameData = bl.slice(0, frameLength);
 
-					// Modifies frameData in place -- this seems to slow everything down...
 //					console.time("processFrame");
-					clusters = mvrProcessor.processFrame(frameData, MvrFilterFlags.MAGNITUDE_LT_300 | MvrFilterFlags.DX_DY_LT_2 | MvrFilterFlags.FRAME_MAGNITUDE_400_INCREASE);
+					clusters = mvrProcessor.processFrame(
+						frameData,
+						MvrFilterFlags.MAGNITUDE_LT_300 | MvrFilterFlags.DX_DY_LT_2 | MvrFilterFlags.FRAME_MAGNITUDE_400_INCREASE
+					);
 //					console.timeEnd("processFrame");
 
 					bl.consume(frameLength);
@@ -301,41 +208,39 @@ const neighbours = [];
 							history : mvrProcessor.getActiveClusters()
 						}
 					);
-
-//					console.log("motion data:", frameLength);
-//					mvrProcessor.outputFrameStats(frameData);
-
-
 				}
 
 			}).on('error', (e) => {
-				console.log('motion splitter error ' + e);
+				logger.error('motion splitter error %s', e);
 				process.exit(0);
 			})
 
-//			socket.pipe(NALSplitter);
 		});
 
 		tcpServer.listen(conf.get('motionport'));
 
 		if (conf.get('motionport') == 'systemd') {
-			console.log('motion TCP server listening on systemd socket');
+			logger.info('Motion TCP server listening on systemd socket');
 		} else {
 			var address = tcpServer.address();
 			if (address) {
-				console.log(`motion TCP server listening on ${address.address}:${address.port}`);
+				logger.info(`Motion TCP server listening on %s:%d`, address.address, address.port);
 			}
 		}
 
-	} else {
-		console.log("Motion listener disabled");
 	}
 
-	if (conf.get('tcpport')) {
+	function setupRecorder()
+	{
+		recordBuffer = new BinaryRingBuffer(conf.get("rbuffersize"));
+	}
+
+	function setupVideoListener()
+	{
 		const tcpServer = net.createServer((socket) => {
-			console.log('streamer connected');
+			console.info('Video streamer created');
 			socket.on('end', () => {
-				console.log('streamer disconnected');
+				console.info('Video streamer disconnected');
 			})
 
 			headers = [];
@@ -360,105 +265,74 @@ const neighbours = [];
 
 				// For funky behaviour -- disable this to ONLY record the past (what's in buffer)
 				if(recording) {
-//					console.log(data);
 					ffmpegProc.stdin.write(NALSeparator);
 					ffmpegProc.stdin.write(data);
 				}
 
 			}).on('error', (e) => {
-				console.log('splitter error ' + e);
+				logger.error('splitter error %s', e);
 				process.exit(0);
 			});
 
 			socket.pipe(NALSplitter);
-
 		});
 
 		tcpServer.listen(conf.get('tcpport'));
 
 		if (conf.get('tcpport') == 'systemd') {
-			console.log('TCP server listening on systemd socket');
+			logger.info('Video TCP server listening on systemd socket');
 		} else {
 			var address = tcpServer.address();
 			if (address) {
-				console.log(`TCP server listening on ${address.address}:${address.port}`);
+				logger.info(`Video TCP server listening on ${address.address}:${address.port}`);
 			}
 		}
-
 	}
 
-	if (conf.get('udpport')) {
-		const udpServer = dgram.createSocket('udp4');
 
-		udpServer.on('listening', () => {
-			var address = udpServer.address();
-			console.log(
-				`UDP server listening on ${address.address}:${address.port}`
-			);
-		});
 
-		const NALSplitter = new Split(NALSeparator);
 
-		NALSplitter.on('data', (data) => {
-			if (wsServer && wsServer.clients.length > 0) {
-				broadcast(data);
-			}
-		}).on('error', (e) => {
-			console.log('splitter error ' + e);
-			process.exit(0);
-		})
-
-		udpServer.on('message', (msg, rinfo) => {
-			NALSplitter.write(msg);
-		});
-
-		udpServer.bind(conf.get('udpport'));
-
-	}
-
-	if (conf.get('wsport')) {
+	function setupVideoSender()
+	{
 		//wsServer = new WSServer({ port: conf.get('wsport') })
 		wsServer = new WebSocket.WebSocketServer({ port: conf.get('wsport') });
-		console.log(
-			`WS server listening on`, conf.get('wsport')
-		);
+		logger.info( "Video sender websocket server listening on %d", conf.get('wsport') );
 
 		wsServer.on('connection', (ws) => {
 			if (wsServer.clients.length >= conf.get('limit')) {
-				console.log('client rejected, limit reached');
+				logger.info('Video client rejected, limit reached');
 				ws.close();
 				return;
 			}
 
-			console.log('client connected, watching ' + wsServer.clients.length)
+			logger.info('Video client connected, watching %d', wsServer.clients.length)
 
 			for (let i in headers) {
 				ws.send(headers[i]);
 			}
 
 			ws.on('close', (ws, id) => {
-				console.log('client disconnected, watching ' + wsServer.clients.length);
+				logger.debug('Video client disconnected, watching %d', wsServer.clients.length);
 			})
 		});
 	}
 
-	if (conf.get('motionwsport')) {
+
+	function setupMotionSender()
+	{
 		motionWsServer = new WebSocket.WebSocketServer({ port: conf.get('motionwsport') });
-		console.log(
-			`motion WS server listening on`, conf.get('motionwsport')
-		);
+		logger.info( "Motion sender websocket server listening on %d", conf.get('motionwsport') );
 
 		motionWsServer.on('connection', (ws) => {
 			if (motionWsServer.clients.length >= conf.get('limit')) {
-				console.log('(motion) client rejected, limit reached');
+				logger.info('Motion client rejected, limit reached');
 				ws.close();
 				return;
 			}
 
-			console.log('motion client connected, watching ' + motionWsServer.clients.length)
+			logger.info('Motion client connected, watching %d', motionWsServer.clients.length)
 
 			for (let i in headers) {
-//				ws.send(headers[i]);
 				ws.send(JSON.stringify( {
 					message : "Welcome",
 					settings : conf.get(),
@@ -467,26 +341,32 @@ const neighbours = [];
 			}
 
 			ws.on('message', (msg) => {
-				let parsed = JSON.parse(msg);
-				console.log("incoming control msg", parsed);
-				switch(parsed.verb) {
-					case "start" :
-						startRecording();
-						break;
-					case "stop" :
-						stopRecording();
-						break;
-					default :
-						console.log("Unknown verb", parsed.verb);
-						break;
-				}
+				handleControlCommand(msg);
 			});
 
 			ws.on('close', (ws, id) => {
-				console.log('motion client disconnected, watching ' + motionWsServer.clients.length);
+				logger.debug('Video client disconnected, watching %d', motionWsServer.clients.length);
 			})
 		});
+	}
 
+
+	function handleControlCommand(msg)
+	{
+		let parsed = JSON.parse(msg);
+
+		logger.debug("Incoming control msg %s", parsed);
+		switch(parsed.verb) {
+			case "start" :
+				startRecording();
+				break;
+			case "stop" :
+				stopRecording();
+				break;
+			default :
+				logger.error("Unknown verb %s", parsed.verb);
+				break;
+		}
 	}
 
 
@@ -497,18 +377,21 @@ const neighbours = [];
 	}
 
 
-	// sreenshot:
-	// ffmpeg -y -hide_banner -i out.h264 -ss 0 -frames:v 1 out.jpg
-	// ffmpeg -y -hide_banner -i out.h264 -frames:v 1 -f image2 out.png
 	function previewShot(fileName)
 	{
-		console.log(`taking screenshot of video as ${fileName}.jpg`);
+		logger.info(`Taking screenshot of video as %s.jpg`, fileName);
+
 		let tmpFfmpeg = cp.spawn('/usr/bin/ffmpeg', [
-			'-y', '-hide_banner', '-i', '../client/clips/' + fileName + '.h264', '-frames:v', '1', '-f', 'image2', `../client/clips/${fileName}.jpg`
+			'-y',
+			'-hide_banner',
+			'-i', '../client/clips/' + fileName + '.h264',
+			'-frames:v', '1',
+			'-f', 'image2',
+			`../client/clips/${fileName}.jpg`
 		]);
 
 		tmpFfmpeg.on('close', function(code) {
-		    console.log('===> FFMPEG (screenshot) closing code: ' + code);
+		    logger.debug('Screenshot done, code: %d', code);
 			broadcastMessage(
 				{
 					"event" : "screenshot",
@@ -518,53 +401,22 @@ const neighbours = [];
 		});
 	}
 
-/*
-	Googling:
-		h264 parser
-		ffmpeg reduce probe size
-		AVC parser nodejs
-		h264bitstream
-
-	Links:
-		https://stackoverflow.com/questions/11330764/ffmpeg-cant-decode-h264-stream-frame-data
-
-	On buffering:
-		https://github.com/cislrpi/binary-ring-buffer
-
-
-*/
-
 
 	function startRecording()
 	{
-		// https://gist.github.com/steven2358/ba153c642fe2bb1e47485962df07c730
-		// Extract a frame each second: ffmpeg -i input.mp4 -vf fps=1 thumb%04d.jpg -hide_banner
-
 		let fileName = Date.now();
-		// ffmpeg -v debug -y -analyzeduration 9M -probesize 9M -i pipe:0 -codec copy out.h264
-		console.log(`Starting recording to clips/${fileName}...`);
+
+		logger.info("Starting recording to clips/%s...", fileName);
+
 		ffmpegProc = cp.spawn('/usr/bin/ffmpeg', [
 			'-hide_banner',
 			'-y',
 
-			// This feels a bit long...
-//			'-analyzeduration', '9M',
-//			'-probesize', '9M',
-
-			// This works ... kinda.
-//			'-analyzeduration', '0.6M',
-//			'-probesize', '0.6M',
-
 			// https://ffmpeg.org/ffmpeg-formats.html
 			'-analyzeduration', '2M',		// It defaults to 5,000,000 microseconds = 5 seconds. 
 			'-probesize', '5M',
-
-//			'-video_size', conf.get("width") + "x" + conf.get("height"),
 			'-framerate', conf.get("framerate"),
-//			'-pix_fmt', 'yuv420p',
-//			'-s', '1920x1080',
 			'-f', 'h264',
-//			'-s', 'hd1080',		// Before -i, apparently only abbreviation allowed? https://ffmpeg.org/ffmpeg-utils.html
 			'-i', '-',
 			'-codec', 'copy',
 			`../client/clips/${fileName}.h264`
@@ -579,34 +431,24 @@ const neighbours = [];
 
 		ffmpegProc.stdout.setEncoding('utf8');
 		ffmpegProc.stdout.on('data', function(data) {
-		    console.log('FFMPEG stdout: ' + data);
+			logger.debug('Recorder stdout %s', data);
 		});
 
 		ffmpegProc.stderr.setEncoding('utf8');
 		ffmpegProc.stderr.on('data', function(data) {
-		    console.log('FFMPEG stderr: ' + data);
+			logger.debug('Recorder stderr %s', data);
 		});
 
 		ffmpegProc.on('close', function(code) {
-		    console.log('===> FFMPEG closing code: ' + code);
+			logger.debug('Recorder closing, code: %d', code);
 			broadcastMessage(
 				{
 					"event" : "stopRecording",
 					"filename" : fileName + ".h264",
 				}
 			);
+
 			previewShot(fileName);
-		});
-
-		process.on('SIGINT', () => {
-			// end saving of ffmpeg stream
-			console.log("ending recording...");
-			ffmpegProc.stdin.end();
-			process.exit();
-		});
-
-		process.on('SIGTERM', () => {
-			ffmpegProc.stdin.end();
 		});
 
 
@@ -617,58 +459,122 @@ const neighbours = [];
 		// working great anyway -- so wth, seeing it as prototype
 		// for now.
 		for (let i in headers) {
-			console.log(headers[i]);
+			logger.debug("Send header to recorder %o", headers[i]);
 			ffmpegProc.stdin.write(NALSeparator);
 			ffmpegProc.stdin.write(headers[i]);
-//			ws.send(headers[i]);
 		}
 
 		// Pass buffer of recorded data of the past in first...
 		let buff = recordBuffer.read(conf.get("rbuffersize"));
-		console.log(`Passing ${buff.length} bytes to ffmpeg...`);
+		logger.debug(`Passing %d bytes to ffmpeg...`, buff.length);
+
 		ffmpegProc.stdin.write(buff);
-		console.log("Done passing buffer...");
+
+		logger.debug("Done passing buffer...");
 
 		recording = true;
 	}
 
 	function stopRecording()
 	{
-		console.log("Stopping recording...");
+		logger.info("Stopping recording...");
 		recording = false;
 		ffmpegProc.stdin.end();
 	}
 
-	startCamera();
-/*
-	setTimeout( () => {
-		startRecording();
-	}, 5000);
-	setTimeout( () => {
-		stopRecording();
-	}, 10000);
-*/
-let cd = new CameraDiscovery(
-	(ob) => {
-		console.log(ob);    // add
-		broadcastMessage(
-			{
-				"event" : "addNeighbour",
-				"data" : ob
-			}
-		);
-		neighbours.push(ob);
-	},
-	(ob) => {
-		console.log(ob);    // remove
-		// TODO: Remove
-		broadcastMessage(
-			{
-				"event" : "removeNeighbour",
-				"data" : ob
-			}
-		);
+	function setupMotionProcessor()
+	{
+		mvrProcessor = new MvrProcessor(conf.get("framerate"), conf.get("width"), conf.get("height"));
 	}
-);
 
+	function setupCameraDiscovery()
+	{
+		neighbours = [];
+
+		// Delay the start of this a bit...
+		setTimeout( () => {
+			cameraDiscoverer = new CameraDiscovery(
+				(ob) => {
+					logger.info("Added neighbour");
+					logger.debug("Neighbour's object: %o", ob);
+					broadcastMessage(
+						{
+							"event" : "addNeighbour",
+							"data" : ob
+						}
+					);
+					neighbours.push(ob);
+				},
+				(ob) => {
+					logger.info("Removed neighbour");
+					logger.debug("Neighbour's object: %o", ob);
+					// TODO: Remove from array
+					broadcastMessage(
+						{
+							"event" : "removeNeighbour",
+							"data" : ob
+						}
+					);
+				}
+			);
+		}, 5000);
+	}
+
+	function setupProcess()
+	{
+		process.on('SIGINT', () => {
+			logger.debug("Got SIGINT");
+
+			if(ffmpegProc) {
+				logger.debug("Stopping any recording...");
+				ffmpegProc.stdin.end();
+			}
+
+			process.exit();
+		});
+
+		process.on('SIGTERM', () => {
+			logger.debug("Got SIGTERM");
+
+			if(ffmpegProc) {
+				ffmpegProc.stdin.end();
+			}
+		});
+
+	}
+
+	console.log("=== New run ===", Date(), "MintyMint logging level", logger.level);
+
+	setupProcess();
+
+	if (conf.get('queryport')) {
+		setupWebServer();
+	}
+
+	if(conf.get("mayrecord")) {
+		setupRecorder();
+	}
+
+	if (conf.get('tcpport')) {
+		setupVideoListener();
+	}
+	
+	if (conf.get('motionport')) {
+		setupMotionProcessor();
+		setupMotionListener();
+	}
+
+	if (conf.get('wsport')) {
+		setupVideoSender();
+	}
+
+	if (conf.get('motionwsport')) {
+		setupMotionSender();
+	}
+
+	startCamera();
+
+	if(conf.get("discovery")) {
+		setupCameraDiscovery();
+	}
 

@@ -1,0 +1,129 @@
+Installation so far:
+    apt-get install ffmpeg
+    sudo cp mintymint.service /etc/avahi/services/
+    git pull
+    npm install
+
+=======
+
+Run (in server):
+
+node index.js
+
+Go to http://raspi-ip:8080/
+
+======
+
+TODO, thoughts:
+    - Want to be able to record clips at any given point,
+      but ffmpeg takes too long to pick up the stream...
+        - Thouhgt: Perhaps always buffer a bunch of frames? Costly on memory tho :(
+    - screenshot: should be solved if we can generate h264's
+    - option to only stream when there is movement
+    - perhaps abuse Bonjour protocol to advertise activity on a camera to all other cameras?
+    - can I tell my TV that it can stream this (using Bonjour)? (likely need to throw it in a container tho :/)
+    - when recording, indicate on client with the old fashioned blinking: "o REC" (in red) in top left corner
+
+
+    - want discoverability of devices on the network (zeroconf/bonjour)
+        - https://www.npmjs.com/package/bonjour (7M)
+        - https://www.npmjs.com/package/zeroconf (7 heh)
+        - avahi-daemon installed by default
+            however, do not get a browser installed by default, so use a nodejs module for that?
+            sudo apt-get install avahi-utils
+
+        - best would be to interface with vahai without further installation... how?
+            NOT:
+            - https://github.com/idjem/avahi-browse  (depends on avahi-browse / avahi-utils)
+            - npm i node-avahi-browse (also depend on avahi-browse)
+
+        - instead of installing avahi-utils:
+            sudo apt-get install libavahi-compat-libdnssd-dev
+                (see https://www.npmjs.com/package/homebridge/v/0.4.40 )
+
+        - I suppose going for the D-BUS API ( https://www.avahi.org/doxygen/html/ ) is the best option.
+          Write my own or is there an existing implementatioN?
+            - Waddaya know: https://www.npmjs.com/package/dbus-native
+            - oh and: https://github.com/machinekoder/node-avahi-dbus
+            ...
+            - which seems to be synchronous? Perhaps go to the new/improved:
+                https://github.com/dbusjs/node-dbus-next/issues/55
+                (this is more work, though!)
+
+--- bonjour service ---
+$ sudo vi mintymint.service
+<?xml version="1.0" standalone='no'?><!--*-nxml-*-->
+<!DOCTYPE service-group SYSTEM "avahi-service.dtd">
+
+<service-group>
+
+  <name replace-wildcards="yes">%h</name>
+
+  <service>
+    <type>_mintymint._tcp</type>
+    <port>8080</port>
+  </service>
+
+</service-group>
+
+---- prettier logging
+in terminal:
+LOG_LEVEL=debug node index.js | ./node_modules/.bin/pino-pretty
+
+-----------
+    // sreenshot:
+    // ffmpeg -y -hide_banner -i out.h264 -ss 0 -frames:v 1 out.jpg
+    // ffmpeg -y -hide_banner -i out.h264 -frames:v 1 -f image2 out.png
+
+-----------
+/*
+    Googling:
+        h264 parser
+        ffmpeg reduce probe size
+        AVC parser nodejs
+        h264bitstream
+
+    Links:
+        https://stackoverflow.com/questions/11330764/ffmpeg-cant-decode-h264-stream-frame-data
+
+    On buffering:
+        https://github.com/cislrpi/binary-ring-buffer
+
+
+*/
+
+--------------
+        // https://gist.github.com/steven2358/ba153c642fe2bb1e47485962df07c730
+        // Extract a frame each second: ffmpeg -i input.mp4 -vf fps=1 thumb%04d.jpg -hide_banner
+--------------
+    if (conf.get('udpport')) {
+        const udpServer = dgram.createSocket('udp4');
+
+        udpServer.on('listening', () => {
+            var address = udpServer.address();
+            console.log(
+                `UDP server listening on ${address.address}:${address.port}`
+            );
+        });
+
+        const NALSplitter = new Split(NALSeparator);
+
+        NALSplitter.on('data', (data) => {
+            if (wsServer && wsServer.clients.length > 0) {
+                broadcast(data);
+            }
+        }).on('error', (e) => {
+            console.log('splitter error ' + e);
+            process.exit(0);
+        })
+
+        udpServer.on('message', (msg, rinfo) => {
+            NALSplitter.write(msg);
+        });
+
+        udpServer.bind(conf.get('udpport'));
+
+    }
+----------
+        // raspivid -ih -stm -hf -vf -n -v -w 1920 -t 0 -fps 24 -ih -b 1700000 -pf baseline -o - | nc localhost 8000
+
