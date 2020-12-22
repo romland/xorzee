@@ -13,14 +13,14 @@ const app = express();
 const conf = require('nconf');
 const BinaryRingBuffer = require('@cisl/binary-ring-buffer');
 const { BufferListStream } = require('bl');	// XXX: It's a bit silly to include this one, but it saved me a little time.
+const { networkInterfaces } = require('os');
 const mvrproc = require("./lib/MvrProcessor");
 const MvrProcessor = mvrproc.default;
 const MvrFilterFlags = mvrproc.MvrFilterFlags;
 const CameraDiscovery = require("./lib/CameraDiscovery").default;
 
-
 	const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
-	const START_SKIP_MOTION_FRAMES = 17;
+	const skipMotionFramesAtStart = 17;
 	const NALSeparator = Buffer.from([0, 0, 0, 1]);
 
 	var neighbours;
@@ -32,29 +32,38 @@ const CameraDiscovery = require("./lib/CameraDiscovery").default;
 	var recording = false;
 	var recordBuffer;
 	var cameraDiscoverer;
+	var myIps;
 
 
 	conf.argv().defaults({
+		// === General ===
 		name		: "Camera at default location",
-		tcpport		: 8000,		// (internal) for camera
-		motionport	: 8001,		// (internal) for camera (motion data)
 
-		limit		: 150,		// max number clients allowed
-		queryport	: 8080,		// (public) for client (web content)
-		wsport		: 8081,		// (public) for client (stream)
-		motionwsport: 8082,		// (public) for client (motion stream)
+		// === Internal ports ===
+		tcpport		: 8000,					// (internal) for camera
+		motionport	: 8001,					// (internal) for camera (motion data)
 
-		bitrate		: 1700000,			// Bitrate of video stream
+		// === Public ports and limitations ===
+		limit		: 150,					// max number clients allowed
+		queryport	: 8080,					// (public) for client (web content)
+		wsport		: 8081,					// (public) for client (stream)
+		motionwsport: 8082,					// (public) for client (motion stream)
+
+		// === Video settings ===
+		bitrate		: 1700000,				// Bitrate of video stream
 		framerate	: 24,
 		width		: 1920,
 		height		: 1080,
 //		width: 1280, height: 722,
-//		width: 640, height: 482,		// Warning, the height CAN NOT be divisible by 16! (bit of a bug!)
+//		width: 640, height: 482,			// Warning, the height CAN NOT be divisible by 16! (bit of a bug!)
 
-		mayrecord	: true,				// If true, will allocate a buffer of the past
-		rbuffersize	: (3 * 1024 * 1024)	// How much to video (in bytes) to buffer for pre-recording
+		// === Recording settings ===
+		mayrecord	: true,					// If true, will allocate a buffer of the past
+		rbuffersize	: (3 * 1024 * 1024),	// How much to video (in bytes) to buffer for pre-recording
+		recordpath	: path.resolve("../client/clips/"),
 
-		discovery	: true,		// Whether to discover neighbouring cameras
+		// === Discovery settings ===
+		discovery	: true,					// Whether to discover neighbouring cameras
 	});
 
 
@@ -166,8 +175,8 @@ const CameraDiscovery = require("./lib/CameraDiscovery").default;
 						break;
 					}
 
-					if(START_SKIP_MOTION_FRAMES > frameCount++) {
-						logger.debug("Skipping motion frame %d/%d...", frameCount, START_SKIP_MOTION_FRAMES);
+					if(skipMotionFramesAtStart > frameCount++) {
+						logger.debug("Skipping motion frame %d/%d...", frameCount, skipMotionFramesAtStart);
 						bl.consume(frameLength);
 						return;
 					}
@@ -243,7 +252,6 @@ const CameraDiscovery = require("./lib/CameraDiscovery").default;
 
 			NALSplitter.on('data', (data) => {
 				if (wsServer && wsServer.clients.length > 0) {
-
 					// XXX: Why does this work? Should we not get these headers when the camera starts up?
 					if (headers.length < 3) {
 						headers.push(data);
@@ -378,10 +386,10 @@ const CameraDiscovery = require("./lib/CameraDiscovery").default;
 		let tmpFfmpeg = cp.spawn('/usr/bin/ffmpeg', [
 			'-y',
 			'-hide_banner',
-			'-i', '../client/clips/' + fileName + '.h264',
+			'-i', conf.get("recordpath") + "/" + fileName + '.h264',
 			'-frames:v', '1',
 			'-f', 'image2',
-			`../client/clips/${fileName}.jpg`
+			`${conf.get("recordpath")}/${fileName}.jpg`
 		]);
 
 		tmpFfmpeg.on('close', function(code) {
@@ -400,7 +408,7 @@ const CameraDiscovery = require("./lib/CameraDiscovery").default;
 	{
 		let fileName = Date.now();
 
-		logger.info("Starting recording to clips/%s...", fileName);
+		logger.info("Starting recording to %s/%s.h264 ...", conf.get("recordpath"), fileName);
 
 		ffmpegProc = cp.spawn('/usr/bin/ffmpeg', [
 			'-hide_banner',
@@ -413,7 +421,7 @@ const CameraDiscovery = require("./lib/CameraDiscovery").default;
 			'-f', 'h264',
 			'-i', '-',
 			'-codec', 'copy',
-			`../client/clips/${fileName}.h264`
+			`${conf.get("recordpath")}/${fileName}.h264`
 		]);
 
 		broadcastMessage(
@@ -489,6 +497,10 @@ const CameraDiscovery = require("./lib/CameraDiscovery").default;
 		setTimeout( () => {
 			cameraDiscoverer = new CameraDiscovery(
 				(ob) => {
+					if(myIps.includes(ob.address)) {
+						logger.debug("Neighbour found is actually myself; ignoring %s", ob.address);
+						return;
+					}
 					logger.info("Added neighbour");
 					logger.debug("Neighbour's object: %o", ob);
 					broadcastMessage(
@@ -514,7 +526,23 @@ const CameraDiscovery = require("./lib/CameraDiscovery").default;
 		}, 5000);
 	}
 
-	function setupProcess()
+
+	function getMyIpAddresses()
+	{
+		const nets = networkInterfaces();
+		const results = [];
+
+		for (const name of Object.keys(nets)) {
+		    for (const net of nets[name]) {
+				results.push(net.address);
+		    }
+		}
+
+		return results;
+	}
+
+
+	function setupApp()
 	{
 		process.on('SIGINT', () => {
 			logger.debug("Got SIGINT");
@@ -535,11 +563,13 @@ const CameraDiscovery = require("./lib/CameraDiscovery").default;
 			}
 		});
 
+
+		myIps = getMyIpAddresses();
 	}
 
 	console.log("=== New run ===", Date(), "MintyMint logging level", logger.level);
 
-	setupProcess();
+	setupApp();
 
 	if (conf.get('queryport')) {
 		setupWebServer();
