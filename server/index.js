@@ -71,6 +71,13 @@ const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 		// to use camelCase or not?
 		recordrequirements : {
 			minimumActiveTime	: 2000			// ms
+			// ability to specify area
+			// ability to specify min AND max density
+		},
+
+		// TODO: Used to trigger external programs (such as sound a bell or send a text)
+		signalrequirements : {
+			// use recordrequirements unless specified
 		},
 	});
 
