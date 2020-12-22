@@ -129,13 +129,17 @@ class Overlay
 				this.streamSettings = parsed.settings;
 				this.init(this.streamSettings.width, this.streamSettings.height);
 				return;
-			} else if(parsed.event) {
+			} else if(!parsed.clusters) {
 				console.log("event", parsed);
 			}
 
-			if(this.initialized) {
+			if(this.initialized && parsed.clusters) {
 				if(!RENDER_RAW) {
 					this.clearContext();
+				}
+
+				if(parsed.history.length > 0) {
+					console.log(parsed.history)
 				}
 
 				this.renderShapes(parsed);

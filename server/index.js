@@ -1,18 +1,29 @@
 "use strict";
 /*
+Installation so far:
+	apt-get install ffmpeg
+	sudo cp mintymint.service /etc/avahi/services/
+	git pull
+	npm install
+	
+=======
+
 Run (in server):
 
 node index.js
 
 Go to http://raspi-ip:8080/
 
-TODO:
+======
+
+TODO, thoughts:
 	- Want to be able to record clips at any given point,
 	  but ffmpeg takes too long to pick up the stream...
 		- Thouhgt: Perhaps always buffer a bunch of frames? Costly on memory tho :(
 	- screenshot: should be solved if we can generate h264's
 	- option to only stream when there is movement
 	- perhaps abuse Bonjour protocol to advertise activity on a camera to all other cameras?
+	- can I tell my TV that it can stream this (using Bonjour)? (likely need to throw it in a container tho :/)
 
 	- want discoverability of devices on the network (zeroconf/bonjour)
 		- https://www.npmjs.com/package/bonjour (7M)
@@ -86,6 +97,8 @@ const CameraDiscovery = require("./lib/CameraDiscovery.js").default;
 
 const START_SKIP_MOTION_FRAMES = 17;
 //const SAVE_STREAM = false;
+
+const neighbours = [];
 
 
 	var wsServer;
@@ -282,7 +295,12 @@ const START_SKIP_MOTION_FRAMES = 17;
 					broadcastOverlay(frameData, frameLength, true);
 
 					// broadcast relevant data (such as bounding boxes) to client
-					broadcastMessage( { clusters : clusters } );
+					broadcastMessage(
+						{
+							clusters : clusters,
+							history : mvrProcessor.getActiveClusters()
+						}
+					);
 
 //					console.log("motion data:", frameLength);
 //					mvrProcessor.outputFrameStats(frameData);
@@ -443,7 +461,8 @@ const START_SKIP_MOTION_FRAMES = 17;
 //				ws.send(headers[i]);
 				ws.send(JSON.stringify( {
 					message : "Welcome",
-					settings : conf.get()
+					settings : conf.get(),
+					neighbours : neighbours
 				}), -1, false);
 			}
 
@@ -620,17 +639,6 @@ const START_SKIP_MOTION_FRAMES = 17;
 		ffmpegProc.stdin.end();
 	}
 
-	function findDevices()
-	{
-		console.log("===> Setting up device finder...");
-		//bonjour.find({ type: 'http' }, function (service) {
-		let browser = bonjour.find({ }, function (service) {
-			console.log('===> Found a service:', service)
-		});
-		browser.start();
-	}
-
-//	findDevices();
 	startCamera();
 /*
 	setTimeout( () => {
@@ -640,13 +648,26 @@ const START_SKIP_MOTION_FRAMES = 17;
 		stopRecording();
 	}, 10000);
 */
-
 let cd = new CameraDiscovery(
 	(ob) => {
 		console.log(ob);    // add
+		broadcastMessage(
+			{
+				"event" : "addNeighbour",
+				"data" : ob
+			}
+		);
+		neighbours.push(ob);
 	},
 	(ob) => {
 		console.log(ob);    // remove
+		// TODO: Remove
+		broadcastMessage(
+			{
+				"event" : "removeNeighbour",
+				"data" : ob
+			}
+		);
 	}
 );
 

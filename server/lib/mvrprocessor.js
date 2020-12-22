@@ -56,6 +56,7 @@ class MvrProcessor
 		this.startTime = Date.now();
 
 		this.history = [];
+		this.historyClusterId = 1;
 	}
 
 
@@ -407,6 +408,12 @@ class MvrProcessor
 	} // processFrame
 
 
+	getActiveClusters()
+	{
+		return this.history;
+	}
+
+
 	trackTemporal(cluster)
 	{
 		// TODO: Move out of this scope
@@ -419,13 +426,18 @@ class MvrProcessor
 			overlapping.active = now;
 
 			// Do I want to update the history box? Let's see...
-			overlapping.box = [...cluster.box];
+			// Do it only if we are more dense (and often bigger) than the one stored...
+			if(cluster.points.length > overlapping.size) {
+				overlapping.box = [...cluster.box];
+			}
 		} else {
 			// add new cluster to history
 			this.history.push({
+				id : this.historyClusterId++,
 				active : now,
 				birth : now,
-				box : [...cluster.box]
+				box : [...cluster.box],
+				size : cluster.length
 			});
 		}
 	}
