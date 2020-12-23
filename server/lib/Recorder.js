@@ -22,7 +22,12 @@ class Recorder
 		this.lastNofication = null;
 		this.recordLen = 0;
 
-		this.latestRecordings = this.getLatestRecordings(conf.get("recordhistory"));
+		this.latestRecordings = this._getLatestRecordings(conf.get("recordhistory"));
+	}
+
+	getLatestRecordings()
+	{
+		return this.latestRecordings;
 	}
 
 
@@ -32,9 +37,8 @@ class Recorder
 	 * Note: Costly. Preferably this is only called on startup. Subsequent
 	 *       recordings are added without reading them from disk/
 	 */
-	getLatestRecordings(num = 20)
+	_getLatestRecordings(num = 20)
 	{
-
 		let allFiles = this._getSortedDir(this.conf.get("recordpath"), ".json");
 		let lastFiles = allFiles.slice(Math.max(allFiles.length - num, 0))
 

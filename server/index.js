@@ -203,6 +203,14 @@ const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 	                    "filename" : fn + ".jpg",
 	                }
 	            );
+
+
+	            motionSender.broadcastMessage(
+	                {
+	                    "event" : "lastRecordings",
+						"data" : videoListener.getRecorder().getLatestRecordings()
+	                }
+	            );
 				break;
 
 			default :

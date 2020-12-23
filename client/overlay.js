@@ -138,10 +138,12 @@ class Overlay
 					this.clearContext();
 				}
 
+// This is what we are interested in primarily on client
+/*
 				if(parsed.history.length > 0) {
 					console.log(parsed.history)
 				}
-
+*/
 				this.renderShapes(parsed);
 			}
 

@@ -9,7 +9,6 @@ A fast, high quality streamer and motion detector. It must run on the one core o
 - Should not have a delay higher than 0.2 seconds
 - Should have configurable sensitivity of motion detection
 - Should be able to set areas of interest for motion detection
-- Should be able to trigger external scripts on detected motion
 - Should be able to save motion-sequences (video) to disk
 - Should be able to make thumbnails of of motion sequences
 - Should have a client which can deal with multiple cameras
@@ -20,6 +19,8 @@ A fast, high quality streamer and motion detector. It must run on the one core o
 - It should be as close to power-on-and-aim-camera-and-go as possible
 - Should have a modern web-client that can handle multiple cameras
 - Clients should be able to connect to any camera on the network and then also see all other available cameras
+- Should be able to only stream video when there is activity
+- Should be able to detect neighbouring cameras live (and pass on to client as they come available)
 
 ## Later
 - Port MvrProcessor to a native node module (C/C++)
@@ -33,6 +34,8 @@ A fast, high quality streamer and motion detector. It must run on the one core o
 - Would be nice to be able to use 'down-time' to containerize the h264 files (too much to ask for perhaps?)
 - be able to put overlay (timestamp?) on saved stream (not sure how costly this would be)
 - Change: Curently using deprecated @clusterws/cws (testing on 32bit arm72 -- no prebuilt uWs there)
+- Would be nice to remap fisheye live (it should be somewhat parallellizable and could go on GPU?)
+- For 'stream only when activity', use motion-stream for that ... or possibly bonjour?
 
 
 ## Misc notes for myself now
