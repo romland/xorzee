@@ -1,7 +1,7 @@
 {
   "name": "bettermotion",
   "version": "1.0.0",
-  "description": "Lightning fast motion detection and live video streaming for Raspberry Pi",
+  "description": "Placeholder",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

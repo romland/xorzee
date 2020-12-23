@@ -9,18 +9,20 @@ const VideoSender = require("./lib/VideoSender").default;
 const VideoListener = require("./lib/VideoListener").default;
 const MotionSender = require("./lib/MotionSender").default;
 const MotionListener = require("./lib/MotionListener").default;
-const CameraDiscovery = require("./lib/CameraDiscovery").default;
+const ServiceDiscoverer = require("./lib/ServiceDiscoverer").default;
 const VideoScreenshotter = require("./lib/VideoScreenshotter").default;
+const ServiceAnnouncer = require("./lib/ServiceAnnouncer").default;
 const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 
 	var camera;
 	var webServer;
 	var videoSender;
 	var motionSender;
-	var cameraDiscoverer;
+	var serviceDiscoverer;
 	var motionListener;
 	var videoListener;
 	var videoScreenshotter;
+	var serviceAnnouncer;
 
 	var neighbours;
 
@@ -52,7 +54,9 @@ const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 		motionwsport	: 8082,								// (public) for client (motion stream)
 
 		// Discovery settings
-		discovery		: true,								// Whether to discover neighbouring cameras
+		discovery		: true,								// Whether to discover neighbouring cameras (TODO: Rename to 'discover')
+		announce		: true,
+		servicename		: "MintyMint",						// You want to have this the same on ALL your devices (unless you want to group them)
 
 		// Video settings
 		bitrate			: 1700000,							// Bitrate of video stream
@@ -93,15 +97,21 @@ const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 		initProcess();
 
 		// Misc
-		if(conf.get("discovery")) {
-			cameraDiscoverer = setupCameraDiscoverer();
-		}
-
 		videoScreenshotter = new VideoScreenshotter(conf);
 
 		if (conf.get('queryport')) {
 			webServer = new WebServer(conf);
 			webServer.start();
+		}
+
+		// Discovery and announcement
+		if(conf.get("discovery")) {
+			serviceDiscoverer = setupServiceDiscoverer();
+		}
+
+		if(conf.get("announce")) {
+			serviceAnnouncer = new ServiceAnnouncer(conf);
+			serviceAnnouncer.start();
 		}
 
 		// Video
@@ -140,6 +150,18 @@ const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 	}
 
 
+	function exit()
+	{
+		if(videoListener.getRecorder()) {
+			videoListener.getRecorder().shutdown();
+		}
+
+		if(serviceAnnouncer) {
+			serviceAnnouncer.stop();
+		}
+	}
+
+
 	/**
 	 * Setup shutdown etc.
 	 */
@@ -147,20 +169,13 @@ const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 	{
 		process.on('SIGINT', () => {
 			logger.debug("Got SIGINT");
-
-			if(videoListener.getRecorder()) {
-				videoListener.getRecorder().shutdown();
-			}
-
+			exit();
 			process.exit();
 		});
 
 		process.on('SIGTERM', () => {
 			logger.debug("Got SIGTERM");
-
-			if(videoListener.getRecorder()) {
-				videoListener.getRecorder().shutdown();
-			}
+			exit();
 		});
 
 	}
@@ -236,7 +251,7 @@ const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 
 
 	// TODO: Refactor away
-	function setupCameraDiscoverer()
+	function setupServiceDiscoverer()
 	{
 		neighbours = [];
 
@@ -267,7 +282,7 @@ const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 			);
 		}
 
-		return new CameraDiscovery( conf, onAdd, onRemove );
+		return new ServiceDiscoverer( conf, onAdd, onRemove );
 	}
 
 

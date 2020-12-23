@@ -22,11 +22,14 @@ A fast, high quality streamer and motion detector. It must run on the one core o
 - Should be able to only stream video when there is activity
 - Should be able to detect neighbouring cameras live (and pass on to client as they come available)
 
-## Later
+## TODO now
+- want to announce presence on bonjour when starting up (so we don't have to copy files on install)
+- start with auto-recording
+- send event over bonjour when auto-record starts?
+
+
+## Future stuff (ideas)
 - Port MvrProcessor to a native node module (C/C++)
-
-
-## Future features (ideas)
 - Write the client using Svelte (very plain atm)
 - Be able to see recent/latest detected motion sequences in client
 - I'd like object-identification _without extra hardware_ (we will only identify _moving_ objects -- e.g. human/cat/dog)
@@ -36,9 +39,21 @@ A fast, high quality streamer and motion detector. It must run on the one core o
 - Change: Curently using deprecated @clusterws/cws (testing on 32bit arm72 -- no prebuilt uWs there)
 - Would be nice to remap fisheye live (it should be somewhat parallellizable and could go on GPU?)
 - For 'stream only when activity', use motion-stream for that ... or possibly bonjour?
+- Stream instead of downloading recorded files...
 
 
 ## Misc notes for myself now
+- For Avahi DBUS API:
+	- You can see them in the avahi-daemon source directory, named *.introspect.
+	  (does not seem to be called .introspect any more, but merely .xml?)
+	  https://github.com/lathiat/avahi/tree/master/avahi-daemon
+	
+	- This seems to not have interfaces implemented:
+	  https://github.com/lathiat/avahi/blob/d1e71b320d96d0f213ecb0885c8313039a09f693/avahi-daemon/org.freedesktop.Avahi.EntryGroup.xml
+	  (I want to get at AddService)
+
+	
+
 - Note to self: Stop Vidensi recorder on my test device (or camera is booked!)
 - Note: Uses broadway: https://github.com/mbebenita/Broadway
 - support UDB for camera (pipe through socat?)
@@ -50,3 +65,6 @@ A fast, high quality streamer and motion detector. It must run on the one core o
 
 ## Misc notes for others
 - A firewall needs to (by default) open 8080-8082 (TCP)
+- install ffmpeg (not in raspbian repositories), binaries available from https://ffmpeg.org/. Choose download / linux / Linux Static Builds. Download the armhf build for newer raspberry pi's. Unarchive and move the created directory somewhere: like to /usr/local. So you will have e.g.: /usr/local/ffmpeg-3.3.2-armhf-32bit-static/.
+- create symlinks for /usr/local/ffmpeg-/bin/ffmpeg, ffmpeg-10bit and ffserver into /usr/local/bin.
+

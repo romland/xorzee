@@ -11,7 +11,7 @@ const avahi = require('avahi-dbus');
 
 var ME;
 
-class CameraDiscovery
+class ServiceDiscoverer
 {
 	/*
 	class scope
@@ -33,7 +33,7 @@ class CameraDiscovery
 		ME.daemon.ServiceBrowserNew(
 			avahi.IF_UNSPEC,
 			avahi.PROTO_UNSPEC,
-			'_mintymint._tcp',
+			'_' + this.conf.get("servicename") + '._tcp',
 			'local',
 			0,
 			ME.messageHandler
@@ -118,4 +118,4 @@ class CameraDiscovery
 		browser.on('ItemRemove', ME.itemRemoved);
 	}
 }
-exports.default = CameraDiscovery;
+exports.default = ServiceDiscoverer;
