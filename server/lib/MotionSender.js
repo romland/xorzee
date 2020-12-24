@@ -33,8 +33,8 @@ class MotionSender
         logger.info( "Motion sender websocket server listening on %d", this.conf.get('motionwsport') );
 
         this.motionWsServer.on('connection', (ws) => {
-            if (this.motionWsServer.clients.length >= this.conf.get('limit')) {
-                logger.info('Motion client rejected, limit reached');
+            if (this.motionWsServer.clients.length >= this.conf.get('wsclientlimit')) {
+                logger.info('Motion client rejected, limit of %d reached', this.conf.get('wsclientlimit'));
                 ws.close();
                 return;
             }

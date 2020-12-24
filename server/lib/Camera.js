@@ -32,7 +32,7 @@ class Camera
             `--bitrate ${this.conf.get("bitrate")} ` +
             `--profile baseline ` +
             `--vectors tcp://127.0.0.1:${this.conf.get("motionport")} ` +
-            `--output - | /bin/nc localhost ${this.conf.get("tcpport")}`
+            `--output - | /bin/nc localhost ${this.conf.get("videoport")}`
         ]);
 
         camProc.stdout.setEncoding('utf8');

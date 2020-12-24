@@ -32,15 +32,15 @@ class ServiceAnnouncer
 				interface: 'org.freedesktop.Avahi.EntryGroup',
 				member: 'AddService',
 				body: [
-					avahi.IF_UNSPEC,        // interface
-					avahi.PROTO_UNSPEC,     // protocol
-					0,                      // flags
-					"Vidensi Jr.",                  // name
-					"_" + this.conf.get("servicename") + "._tcp",      // type
-					"local",               // domain
-					"p19dev05.local",                // host -- not sure what this should be
-					8080,                   // port
-					[],                     // txt
+					avahi.IF_UNSPEC,								// interface
+					avahi.PROTO_UNSPEC,								// protocol
+					0,												// flags
+					"Vidensi Jr.",									// name
+					"_" + this.conf.get("servicename") + "._tcp",	// type
+					"local",										// domain
+					"p19dev05.local",								// host -- not sure what this should be
+					8080,											// port
+					[],												// txt
 				],
 				signature: 'iiussssqaay'
 			}, (err) => gotNewService(err, path) );
@@ -76,10 +76,4 @@ class ServiceAnnouncer
 
 }
 
-/*
-let sa = new ServiceAnnouncer();
-sa.start();
-*/
-
 exports.default = ServiceAnnouncer;
-

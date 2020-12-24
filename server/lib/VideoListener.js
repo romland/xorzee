@@ -82,11 +82,11 @@ class VideoListener
             socket.pipe(NALSplitter);
         });
 
-        tcpServer.listen(this.conf.get('tcpport'));
+        tcpServer.listen(this.conf.get('videoport'));
 
 		this.videoSender.setHeaders(this.headers);
 
-        if (this.conf.get('tcpport') == 'systemd') {
+        if (this.conf.get('videoport') == 'systemd') {
             logger.info('Video TCP server listening on systemd socket');
         } else {
             var address = tcpServer.address();

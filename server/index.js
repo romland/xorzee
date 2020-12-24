@@ -1,90 +1,30 @@
 "use strict";
 
-const conf = require('nconf');
 const path = require("path");
 const pino = require('pino');
+const conf = require('nconf');
 const Camera = require("./lib/Camera").default;
 const WebServer = require("./lib/WebServer").default;
 const VideoSender = require("./lib/VideoSender").default;
 const VideoListener = require("./lib/VideoListener").default;
 const MotionSender = require("./lib/MotionSender").default;
 const MotionListener = require("./lib/MotionListener").default;
+const ServiceAnnouncer = require("./lib/ServiceAnnouncer").default;
 const ServiceDiscoverer = require("./lib/ServiceDiscoverer").default;
 const VideoScreenshotter = require("./lib/VideoScreenshotter").default;
-const ServiceAnnouncer = require("./lib/ServiceAnnouncer").default;
 const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 
 	var camera;
 	var webServer;
 	var videoSender;
-	var motionSender;
-	var serviceDiscoverer;
-	var motionListener;
 	var videoListener;
-	var videoScreenshotter;
+	var motionSender;
+	var motionListener;
 	var serviceAnnouncer;
+	var serviceDiscoverer;
+	var videoScreenshotter;
 
 	var neighbours;
-
-
-	/**
-	 * Let a config file override defaults...
-	 */
-	conf.file( { file: path.resolve("../mintymint.config") });
-
-
-	/**
-	 * Command line arguments / options
-	 */
-	conf.argv().defaults({
-		// General
-		name			: "Camera at default location",		// A name of your choice identifying this camera
-
-		// Internal ports
-		tcpport			: 8000,								// (internal) for camera
-		motionport		: 8001,								// (internal) for camera (motion data)
-
-		// Webserver
-		queryport		: 8080,								// (public) for client (web content)
-		publicpath		: path.resolve("../client/"),
-
-		// Public ports and limitations
-		limit			: 150,								// max number clients allowed
-		wsport			: 8081,								// (public) for client (stream)
-		motionwsport	: 8082,								// (public) for client (motion stream)
-
-		// Discovery settings
-		discovery		: true,								// Whether to discover neighbouring cameras (TODO: Rename to 'discover')
-		announce		: true,
-		servicename		: "MintyMint",						// You want to have this the same on ALL your devices (unless you want to group them)
-
-		// Video settings
-		bitrate			: 1700000,							// Bitrate of video stream
-		framerate		: 24,								// 30 FPS seems to be a bit high for single core
-		width			: 1920,
-		height			: 1080,								// WARNING, the height CAN NOT be divisible by 16! (it's a bug!)
-
-		// Recording settings
-		mayrecord		: true,								// If true, will allocate a buffer of the past
-		rbuffersize		: (3 * 1024 * 1024),				// How much to video (in bytes) to buffer for pre-recording
-		recordpath		: path.resolve("../client/clips/"),	// Where to store recordings
-		recordpathwww	: "/clips/",						// Where a web-client can find clips/etc
-		recordhistory	: 20,								// Number of latest clips to report to clients
-
-		// TODO: 
-		// to use camelCase or not?
-		recordrequirements : {
-			minimumActiveTime	: 2000			// ms
-			// ability to specify area
-			// ability to specify min AND max density
-		},
-
-		// TODO: Used to trigger external programs (such as sound a bell or send a text)
-		signalrequirements : {
-			// use recordrequirements unless specified
-		},
-	});
-
 
 
 	/**
@@ -92,6 +32,8 @@ const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 	 */
 	function main()
 	{
+		configure();
+
 		console.log("=== New run ===", Date(), `MintyMint @ "${conf.get("name")}". Logging level`, logger.level);
 
 		initProcess();
@@ -99,7 +41,7 @@ const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 		// Misc
 		videoScreenshotter = new VideoScreenshotter(conf);
 
-		if (conf.get('queryport')) {
+		if (conf.get('wwwport')) {
 			webServer = new WebServer(conf);
 			webServer.start();
 		}
@@ -115,12 +57,12 @@ const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 		}
 
 		// Video
-		if (conf.get('wsport')) {
+		if (conf.get('videowsport')) {
 			videoSender = new VideoSender(conf);
 			videoSender.start();
 		}
 
-		if (conf.get('tcpport')) {
+		if (conf.get('videoport')) {
 			videoListener = new VideoListener(conf, videoSender, recordProgressNotification);
 			videoListener.start();
 		}
@@ -150,15 +92,68 @@ const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 	}
 
 
-	function exit()
+	/**
+	 * Read in configuration file and if not defined, set sane defaults.
+	 */
+	function configure()
 	{
-		if(videoListener.getRecorder()) {
-			videoListener.getRecorder().shutdown();
-		}
+		/**
+		 * Let a config file override defaults...
+		 */
+		conf.file( { file: path.resolve("../mintymint.config") });
 
-		if(serviceAnnouncer) {
-			serviceAnnouncer.stop();
-		}
+
+		/**
+		 * Command line arguments / options
+		 */
+		conf.argv().defaults({
+			// General
+			name			: "Camera at default location",		// A name of your choice identifying this camera
+
+			// Internal ports
+			videoport		: 8000,								// (internal) for camera
+			motionport		: 8001,								// (internal) for camera (motion data)
+
+			// Webserver
+			wwwport			: 8080,								// (public) for client (web content)
+			publicpath		: path.resolve("../client/"),
+
+			// Public ports and limitations
+			videowsport		: 8081,								// (public) for client (stream)
+			motionwsport	: 8082,								// (public) for client (motion stream)
+			wsclientlimit	: 100,								// max number clients allowed
+
+			// Discovery settings
+			discovery		: true,								// Whether to discover neighbouring cameras (TODO: Rename to 'discover')
+			announce		: true,
+			servicename		: "MintyMint",						// You want to have this the same on ALL your devices (unless you want to group them)
+
+			// Video settings
+			bitrate			: 1700000,							// Bitrate of video stream
+			framerate		: 24,								// 30 FPS seems to be a bit high for single core
+			width			: 1920,
+			height			: 1080,								// WARNING, the height CAN NOT be divisible by 16! (it's a bug!)
+
+			// Recording settings
+			mayrecord		: true,								// If true, will allocate a buffer of the past
+			recordbuffersize: (3 * 1024 * 1024),				// How much to video (in bytes) to buffer for pre-recording
+			recordpath		: path.resolve("../client/clips/"),	// Where to store recordings
+			recordpathwww	: "/clips/",						// Where a web-client can find clips/etc
+			recordhistory	: 20,								// Number of latest clips to report to clients
+
+			// TODO: 
+			// to use camelCase or not?
+			recordrequirements : {
+				minimumActiveTime	: 2000			// ms
+				// ability to specify area
+				// ability to specify min AND max density
+			},
+
+			// TODO: Used to trigger external programs (such as sound a bell or send a text)
+			signalrequirements : {
+				// use recordrequirements unless specified
+			},
+		});
 	}
 
 
@@ -178,6 +173,21 @@ const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 			exit();
 		});
 
+	}
+
+
+	/**
+	 * Called when we are exitting.
+	 */
+	function exit()
+	{
+		if(videoListener.getRecorder()) {
+			videoListener.getRecorder().shutdown();
+		}
+
+		if(serviceAnnouncer) {
+			serviceAnnouncer.stop();
+		}
 	}
 
 
@@ -234,6 +244,7 @@ const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 		}
 	}
 
+
 	/**
 	 * Pass on recording progress to clients.
 	 * Called through callback by Recorder.
@@ -285,6 +296,4 @@ const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 		return new ServiceDiscoverer( conf, onAdd, onRemove );
 	}
 
-
 main();
-

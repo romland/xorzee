@@ -12,7 +12,7 @@ class Recorder
 	constructor(conf, notifyCb = null)
 	{
 		this.conf = conf;
-		this.recordBuffer = new BinaryRingBuffer(conf.get("rbuffersize"));
+		this.recordBuffer = new BinaryRingBuffer(conf.get("recordbuffersize"));
 		this.recording = false;
 		this.ffmpegProc = null;
 		this.recordingToId = null;
@@ -215,7 +215,7 @@ class Recorder
         }
 
         // Pass buffer of recorded data of the past in first...
-        let buff = this.recordBuffer.read(this.conf.get("rbuffersize"));
+        let buff = this.recordBuffer.read(this.conf.get("recordbuffersize"));
         logger.debug(`Passing %d bytes to ffmpeg...`, buff.length);
 
         this.ffmpegProc.stdin.write(buff);

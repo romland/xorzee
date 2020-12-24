@@ -28,8 +28,8 @@ class WebServer
             res.send(count.toString());
         });
 
-        app.listen(this.conf.get('queryport'), () => {
-            logger.info("Listening for HTTP requests on port %d", this.conf.get('queryport'));
+        app.listen(this.conf.get('wwwport'), () => {
+            logger.info("Listening for HTTP requests on port %d", this.conf.get('wwwport'));
         });
 	}
 }
