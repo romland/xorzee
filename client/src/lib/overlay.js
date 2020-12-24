@@ -6,7 +6,7 @@ import { VectorsFrame, getVectorAt } from "./vectorsframe";
 // want to save last 'clips' as a thumbnail (server tho) ...
 
 
-const RENDER_RAW = false;
+const RENDER_RAW = true;
 
 
 export class Overlay
