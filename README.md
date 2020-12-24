@@ -29,7 +29,7 @@ A fast, high quality streamer and motion detector. It must run on the one core o
 			https://stackoverflow.com/questions/5747692/avahi-broadcast-that-my-service-has-updated-information
 		- In java, but seems pretty clear:
 			https://github.com/Andymann/tcpSyphonServer_Java/blob/26b8c21916067d1ac3cd8ead16ce307a5e701360/_externalJar/avahi/avahi4j/src/avahi4j/examples/TestServicePublish.java
-
+- restart camera with different resolution -- how much time does it take?
 - want to announce presence on bonjour when starting up (so we don't have to copy files on install)
 - start with auto-recording
 - send event over bonjour when auto-record starts?
