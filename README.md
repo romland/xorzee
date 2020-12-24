@@ -47,7 +47,10 @@ A fast, high quality streamer and motion detector. It must run on the one core o
 - Would be nice to remap fisheye live (it should be somewhat parallellizable and could go on GPU?)
 - For 'stream only when activity', use motion-stream for that ... or possibly bonjour?
 - Stream instead of downloading recorded files...
-
+- Write a small script to install ffmpeg
+- Write a small script to configure basics (just set a unique name should do it?) -- allow this in client too
+- Auth: Protect websockets?
+- Auth: To be able to change server settings
 
 ## Misc notes for myself now
 - For Avahi DBUS API:

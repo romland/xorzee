@@ -108,6 +108,7 @@ export class Overlay
 		this.frameDataHeight = frameDataHeight;
 
 		this.cvRatio = cvRatio;
+		this.reverseCvRatio = (1/this.cvRatio);
 		this.canvas = canvas;
 		this.context = context;
 		this.canvasWidth = canvasWidth;
@@ -164,39 +165,61 @@ export class Overlay
 		this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
 	}
 
+	// rs = ReverseScale
+	rs(num)
+	{
+		return num * this.reverseCvRatio;
+	}
+
+	// scale
+	s(num)
+	{
+		return num * this.cvRatio;
+	}
+
 	renderShapes(data)
 	{
-		if(!data.clusters || data.clusters.length === 0) {
+		// const clusters = data.clusters;
+		const clusters = data.history;
+
+		if(!clusters || clusters.length === 0) {
 			return;
 		}
 
-		let reverseCvRatio = (1/this.cvRatio);
-
-//		this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-
 		let c;
-		for(let i = 0; i < data.clusters.length; i++) {
-			c = data.clusters[i];
+		for(let i = 0; i < clusters.length; i++) {
+			c = clusters[i];
 
 			if(c.within) {
 				this.context.strokeStyle = "#000000ff";
 			} else {
 				this.context.strokeStyle = "#FFFF00ff";
 			}
+
 			this.context.beginPath();
 
-			c.box[0] = (c.box[0] - 0) * reverseCvRatio;	// top
-			c.box[1] = (c.box[1] - 0) * reverseCvRatio;	// right
-			c.box[2] = (c.box[2] - 0) * reverseCvRatio;	// bottom
-			c.box[3] = (c.box[3] - 0) * reverseCvRatio;	// left
+			c.box[0] = this.rs(c.box[0] - 0);	// top
+			c.box[1] = this.rs(c.box[1] - 0);	// right
+			c.box[2] = this.rs(c.box[2] - 0);	// bottom
+			c.box[3] = this.rs(c.box[3] - 0);	// left
 
 			this.context.rect(
-				c.box[3],				// left / x
-				c.box[0],				// top / y
-				c.box[1] - c.box[3],	// width
-				c.box[2] - c.box[0]		// height
+				c.box[3],						// left / x
+				c.box[0],						// top / y
+				c.box[1] - c.box[3],			// width
+				c.box[2] - c.box[0]				// height
 			);
 			this.context.stroke();
+
+			// ctx.measureText('foo'); 
+			this.context.font = '8px serif';
+			this.context.fillStyle = "#ffffffff";
+//			this.context.strokeStyle = "#ffff00ff";
+			this.context.fillText(
+				'' + c.id + ", " + c.birth,
+				c.box[3],
+				c.box[0] - 2
+			);
 		}
 	}
 
@@ -206,15 +229,13 @@ export class Overlay
 		var x, y;
 		let mv = {};
 
-		// Normal behaviour.
 		this.vectorsFrame.loadFrame(frame, this.frameDataWidth, this.frameDataHeight);
 
-		// Render the vectors, colored by magnitude, we collected in the first pass.
+		// Render the vectors, strength by magnitude
 		for(y = 0; y < this.canvasHeight; y++) {
 			for(x = 0; x < this.canvasWidth; x++) {
-				mv = this.vectorsFrame.at(Math.floor(x*this.cvRatio), Math.floor(y*this.cvRatio));
-				// Support for both 'setup player' (no controls, larger dots) and 'development player' (controls, smaller dots)
-				//if((mv.mag > 0 && Math.floor(x*this.cvRatio) == (x*this.cvRatio) && Math.floor(y*this.cvRatio) == (y*this.cvRatio))) {
+				mv = this.vectorsFrame.at(Math.floor(this.s(x)), Math.floor(this.s(y)));
+				//if((mv.mag > 0 && Math.floor(this.s(x)) == (this.s(x)) && Math.floor(this.s(y)) == (this.s(y)))) {
 				if(mv.mag > 0) {
 					// Top-to-bottom: alpha, blue, green, red
 					this.offScreenBuf[y * this.canvasWidth + x] =

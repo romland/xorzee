@@ -5,6 +5,7 @@
 </script>
 
 <main>
+	<h1>Better Motion</h1>
 
 	<Player></Player>
 

@@ -1,7 +1,5 @@
 <script lang="ts">
 	import { createEventDispatcher, onMount, onDestroy } from 'svelte';
-
-	// import  { Overlay } from "../lib/overlay";
 	import { startStream } from "../lib/client";
 
 	const remoteServer = true;
@@ -36,8 +34,15 @@
 
 </script>
 
-	<h1>Better Motion</h1>
 	<div id='container'></div>
 
 	<button onclick=javascript:btnRecordStart()>Start recording</button>
 	<button onclick=javascript:btnRecordStop()>Stop recording</button>
+
+
+<style>
+	:global(canvas) {
+		border: 1px solid #eee;
+		margin-bottom: 20px;
+	}
+</style>
