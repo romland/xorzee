@@ -1,5 +1,7 @@
 "use strict";
 
+import { VectorsFrame, getVectorAt } from "./vectorsframe";
+
 // TODO
 // want to save last 'clips' as a thumbnail (server tho) ...
 
@@ -7,7 +9,7 @@
 const RENDER_RAW = false;
 
 
-class Overlay
+export class Overlay
 {
 	/*
 		this.overlayCanvas

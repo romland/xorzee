@@ -6,7 +6,7 @@
  * Fetches a vector from the raw frame data, refines it by calculating
  * direction and magnitude and then puts the data in 'outMv'.
  */
-function getVectorAt(index, frame, outMv) {
+export function getVectorAt(index, frame, outMv) {
 	outMv.dx  = frame[index + 0] & 0x80 ? frame[index + 0] ^ -0x100 : frame[index + 0];
 	outMv.dy  = frame[index + 1] & 0x80 ? frame[index + 1] ^ -0x100 : frame[index + 1];
 	outMv.sad = (frame[index + 3]<<8) + frame[index + 2];
@@ -17,7 +17,7 @@ function getVectorAt(index, frame, outMv) {
 // Main Class
 /////////////////////////////////////////////
 
-class VectorsFrame {
+export class VectorsFrame {
 
 	constructor() {
 		this.width  = 0;

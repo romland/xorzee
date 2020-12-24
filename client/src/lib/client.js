@@ -1,24 +1,11 @@
-const vPort = 8081;
-const oPort = 8082;
+"use strict";
 
-const initialCanvasWidth = 1920;
-const initialCanvasHeight = 1080;
-
-
-startStream(
-	'container',
-	window.location.protocol.replace(/http/, 'ws') + '//' + window.location.hostname + ':',
-	vPort,
-	oPort,
-	true,
-	'auto',
-	2000
-);
+import  { Overlay } from "../lib/overlay";
 
 var overlayWs;
 var ws;
 
-function startStream(playerId, wsUri, videoPort, overlayPort, useWorker, webgl, reconnectMs)
+export function startStream(playerId, wsUri, videoPort, overlayPort, useWorker, webgl, reconnectMs, initialCanvasWidth, initialCanvasHeight)
 {
 	var overlay;
 
@@ -26,6 +13,7 @@ function startStream(playerId, wsUri, videoPort, overlayPort, useWorker, webgl, 
 		window.player = new Player({
 			useWorker: useWorker,
 			webgl: webgl,
+			workerFile : "/lib/Decoder.js",
 			size: {
 				width: initialCanvasWidth,
 				height: initialCanvasHeight
@@ -89,7 +77,6 @@ function startStream(playerId, wsUri, videoPort, overlayPort, useWorker, webgl, 
 		ws.onmessage = function (msg) {
 			// msg.data = ArrayBuffer
 			//console.log(msg.data);
-
 			window.player.decode(new Uint8Array(addSeparator(msg.data)));
 
 			if(window.debugger) {

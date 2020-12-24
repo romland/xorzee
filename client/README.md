@@ -1,3 +1,3 @@
-for quick hosting of this directory:
+# The Client
 
-node ../server/node_modules/http-server/bin/http-server .
+Notes will come here.

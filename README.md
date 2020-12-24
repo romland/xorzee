@@ -23,6 +23,13 @@ A fast, high quality streamer and motion detector. It must run on the one core o
 - Should be able to detect neighbouring cameras live (and pass on to client as they come available)
 
 ## TODO now
+- what i want to do now:
+	- broadcast a message when there is movement on a camera so that any watching client can pick that up and show it
+		- (seems updating the TXT record of a service is the way to go?)
+			https://stackoverflow.com/questions/5747692/avahi-broadcast-that-my-service-has-updated-information
+		- In java, but seems pretty clear:
+			https://github.com/Andymann/tcpSyphonServer_Java/blob/26b8c21916067d1ac3cd8ead16ce307a5e701360/_externalJar/avahi/avahi4j/src/avahi4j/examples/TestServicePublish.java
+
 - want to announce presence on bonjour when starting up (so we don't have to copy files on install)
 - start with auto-recording
 - send event over bonjour when auto-record starts?

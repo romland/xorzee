@@ -108,38 +108,38 @@ const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 		 */
 		conf.argv().defaults({
 			// General
-			name			: "Camera at default location",		// A name of your choice identifying this camera
+			name			: "Camera at default location",			// A name of your choice identifying this camera
 
 			// Internal ports
-			videoport		: 8000,								// (internal) for camera
-			motionport		: 8001,								// (internal) for camera (motion data)
+			videoport		: 8000,									// (internal) for camera (video)
+			motionport		: 8001,									// (internal) for camera (motion data)
 
 			// Webserver
-			wwwport			: 8080,								// (public) for client (web content)
-			publicpath		: path.resolve("../client/"),
+			wwwport			: 8080,									// (public) for client (web content)
+			publicpath		: path.resolve("../client/public/"),	// The _public_ directory accessible by clients
 
 			// Public ports and limitations
-			videowsport		: 8081,								// (public) for client (stream)
-			motionwsport	: 8082,								// (public) for client (motion stream)
-			wsclientlimit	: 100,								// max number clients allowed
+			videowsport		: 8081,									// (public) for client (stream)
+			motionwsport	: 8082,									// (public) for client (motion stream)
+			wsclientlimit	: 100,									// max number clients allowed
 
 			// Discovery settings
-			discovery		: true,								// Whether to discover neighbouring cameras (TODO: Rename to 'discover')
-			announce		: true,
-			servicename		: "MintyMint",						// You want to have this the same on ALL your devices (unless you want to group them)
+			discovery		: true,									// Whether to discover neighbouring cameras (TODO: Rename to 'discover')
+			announce		: true,									// Whther to announce presence to neighbouring cameras
+			servicename		: "MintyMint",							// You want to have this the same on ALL your devices (unless you want to group them)
 
 			// Video settings
-			bitrate			: 1700000,							// Bitrate of video stream
-			framerate		: 24,								// 30 FPS seems to be a bit high for single core
+			bitrate			: 1700000,								// Bitrate of video stream
+			framerate		: 24,									// 30 FPS seems to be a bit high for single core
 			width			: 1920,
-			height			: 1080,								// WARNING, the height CAN NOT be divisible by 16! (it's a bug!)
+			height			: 1080,									// WARNING, the height CAN NOT be divisible by 16! (it's a bug!)
 
 			// Recording settings
-			mayrecord		: true,								// If true, will allocate a buffer of the past
-			recordbuffersize: (3 * 1024 * 1024),				// How much to video (in bytes) to buffer for pre-recording
-			recordpath		: path.resolve("../client/clips/"),	// Where to store recordings
-			recordpathwww	: "/clips/",						// Where a web-client can find clips/etc
-			recordhistory	: 20,								// Number of latest clips to report to clients
+			mayrecord		: true,									// If true, will allocate a buffer of the past
+			recordbuffersize: (3 * 1024 * 1024),					// How much to video (in bytes) to buffer for pre-recording
+			recordpath		: path.resolve("../client/public/clips/"),// Where to store recordings
+			recordpathwww	: "/clips/",							// Where a web-client can find clips/etc
+			recordhistory	: 20,									// Number of latest clips to report to clients
 
 			// TODO: 
 			// to use camelCase or not?
