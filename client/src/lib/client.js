@@ -5,6 +5,11 @@ import  { Overlay } from "../lib/overlay";
 var overlayWs;
 var ws;
 
+export function getOverlayWs()
+{
+	return overlayWs;
+}
+
 export function startStream(playerId, wsUri, videoPort, overlayPort, useWorker, webgl, reconnectMs, initialCanvasWidth, initialCanvasHeight)
 {
 	var overlay;
