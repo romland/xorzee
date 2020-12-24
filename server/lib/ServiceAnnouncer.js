@@ -10,6 +10,7 @@ class ServiceAnnouncer
 	constructor(conf)
 	{
 		this.conf = conf;
+		this.hostname = null;
 		this.bus =  dbus.systemBus();
 	}
 
@@ -17,6 +18,10 @@ class ServiceAnnouncer
 	{
 		let gotInterface = (err, iface) =>
 		{
+			if(err) {
+				logger.error("ServiceAnnouncer.gotInterface() error: %o", err);
+			}
+
 			iface.EntryGroupNew({
 				destination: 'org.freedesktop.Avahi',
 				path: '/',
@@ -26,6 +31,10 @@ class ServiceAnnouncer
 
 		let gotEntryGroup = (err, path) =>
 		{
+			if(err) {
+				logger.error("ServiceAnnouncer.gotEntryGroup() error: %o", err);
+			}
+
 			this.bus.invoke({
 				destination: 'org.freedesktop.Avahi',
 				path: path,
@@ -38,7 +47,7 @@ class ServiceAnnouncer
 					"Vidensi Jr.",									// name
 					"_" + this.conf.get("servicename") + "._tcp",	// type
 					"local",										// domain
-					"p19dev05.local",								// host -- not sure what this should be
+					this.hostname + ".local",						// host -- not sure what this should be
 					8080,											// port
 					[],												// txt
 				],
@@ -48,6 +57,10 @@ class ServiceAnnouncer
 
 		let gotNewService = (err, path) =>
 		{
+			if(err) {
+				logger.error("ServiceAnnouncer.gotoNewService() error: %o", err);
+			}
+
 			this.bus.invoke({
 				destination: 'org.freedesktop.Avahi',
 				path: path,
@@ -59,13 +72,29 @@ class ServiceAnnouncer
 		let done = (err) =>
 		{
 			if(err) {
-				logger.error(err);
+				logger.error("ServiceAnnouncer.done() error: %o", err);
 			}
 
 			logger.info("Announcing service");
 		}
 
-		this.bus.getInterface('org.freedesktop.Avahi', '/', 'org.freedesktop.Avahi.Server', gotInterface)
+		// Get hostname, then invoke announcing the service.
+		this.bus.invoke({
+			destination: 'org.freedesktop.Avahi',
+			path: '/',
+			interface: 'org.freedesktop.Avahi.Server',
+			member: 'GetHostName'
+		}, (err, hostname) => {
+			if(err) {
+				logger.error("ServiceAnnouncer.getHostName() error: %o", err);
+			}
+
+			this.hostname = hostname;
+			logger.info("Hostname is %s", this.hostname);
+
+			this.bus.getInterface('org.freedesktop.Avahi', '/', 'org.freedesktop.Avahi.Server', gotInterface)
+		});
+
 	}
 
 	stop()
