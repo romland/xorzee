@@ -19,7 +19,8 @@
     "nconf": "^0.8.4",
     "pino": "^6.8.0",
     "stream-split": "^1.1.0",
-    "systemd": "^0.2.6"
+    "systemd": "^0.2.6",
+    "tree-kill": "^1.2.2"
   },
   "devDependencies": {
     "pino-pretty": "^4.3.0"

@@ -202,6 +202,18 @@ const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 
 		let fn;
 		switch(parsed.verb) {
+			case "resize" :
+				logger.info("Resizing stream...");
+				fn = camera.restart(1280, 720, 40, 1700000);
+				motionSender.broadcastMessage(
+					{
+						"event" : "resize",
+						"data" : "todo-give-new-values"
+					}
+				);
+				logger.info("Resized stream...");
+				break;
+
 			case "start" :
 				fn = videoListener.getRecorder().start(videoListener.getHeaders());
 				motionSender.broadcastMessage(

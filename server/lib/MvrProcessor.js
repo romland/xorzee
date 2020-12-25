@@ -429,6 +429,8 @@ class MvrProcessor
 			// Do it only if we are more dense (and often bigger) than the one stored...
 			if(cluster.points.length > overlapping.size) {
 				overlapping.box = [...cluster.box];
+//				overlapping.points = [...cluster.points];
+				overlapping.size = cluster.points.length;
 			}
 		} else {
 			// add new cluster to history
