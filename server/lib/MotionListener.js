@@ -1,5 +1,6 @@
 /**
- *	Motion listener listens to input from camera.
+ * Motion listener listens to input from camera.
+ * TODO: refactor away all MVR fiddling into MotionSender (only forward data from here)
  */
 "use strict";
 
@@ -60,7 +61,7 @@ class MotionListener
 		this.vectorsPerLine = Util.getVecWidth(w);
 		this.vectorLines = Util.getVecHeight(h); 
 		this.frameLength = this.vectorsPerLine * this.vectorLines * 4;
-		this.mvrProcessor(w, h);
+		this.mvrProcessor.resize(w, h);
 	}
 
 	start()
@@ -116,6 +117,8 @@ class MotionListener
                             bl.consume(this.frameLength);
                         } while(bl.length > (this.frameLength * 3))
                     }
+
+					logger.debug("motion h/w/l %d/%d/%d", this.vectorLines, this.vectorsPerLine, this.frameLength)
 
                     //frameData = bl.shallowSlice(0, frameLength);      // argh, this does not expose fill() -- oh well, a memory copy then :(
                     frameData = bl.slice(0, this.frameLength);

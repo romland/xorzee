@@ -223,6 +223,8 @@ height: 720,
 				conf.set("framerate", 40);
 				conf.set("bitrate", 1700000);
 
+				motionListener.resize(conf.get("width"), conf.get("height"));
+
 				fn = camera.restart(conf);
 
 				motionSender.broadcastMessage(

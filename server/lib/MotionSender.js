@@ -1,3 +1,7 @@
+/**
+ * Send motion stream (and messages) to websocket clients.
+ */
+
 "use strict";
 
 const pino = require('pino');
@@ -41,7 +45,11 @@ class MotionSender
 
             logger.info('Motion client connected. Viewers: %d', this.motionWsServer.clients.length)
 
-			ws.send(JSON.stringify(welcomeMessage()), -1, false);
+			ws.send(
+				JSON.stringify(welcomeMessage()),
+				-1,
+				false
+			);
 
             ws.on('message', (msg) => {
 				controlHandler(msg);
