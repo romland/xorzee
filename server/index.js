@@ -71,12 +71,7 @@ const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 		if (conf.get('motionwsport')) {
 			motionSender = new MotionSender(conf);
 			motionSender.start(
-				{
-	                message : "Welcome",
-	                settings : conf.get(),
-	                neighbours : neighbours,
-					lastRecordings : videoListener.getRecorder().getLatestRecordings()
-				},
+				getWelcomeMessage,
 				handleControlCommand
 			);
 		}
@@ -89,6 +84,17 @@ const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 		// Camera
 		camera = new Camera(conf);
 		camera.start();
+	}
+
+
+	function getWelcomeMessage()
+	{
+		return {
+			message : "Welcome",
+			settings : conf.get(),
+			neighbours : neighbours,
+			lastRecordings : videoListener.getRecorder().getLatestRecordings()
+		};
 	}
 
 
@@ -133,8 +139,8 @@ const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 			framerate		: 24,									// 30 FPS seems to be a bit high for single core
 			width			: 1920,
 			height			: 1080,									// WARNING, the height CAN NOT be divisible by 16! (it's a bug!)
+
 /*
-framerate: 2,
 width: 1280,
 height: 720,
 */

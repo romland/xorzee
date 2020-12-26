@@ -54,14 +54,14 @@ class VideoSender
                 return;
             }
 
-            logger.info('Video client connected, watching %d', this.wsServer.clients.length)
+            logger.info('Video client connected. Viewers: %d', this.wsServer.clients.length)
 
             for (let i in this.headers) {
                 ws.send(this.headers[i]);
             }
 
             ws.on('close', (ws, id) => {
-                logger.debug('Video client disconnected, watching %d', this.wsServer.clients.length);
+                logger.debug('Video client disconnected. Viewers: %d', this.wsServer.clients.length);
             })
         });
 	}
