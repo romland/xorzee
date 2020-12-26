@@ -51,6 +51,11 @@ A fast, high quality streamer and motion detector. It must run on the one core o
 - Write a small script to configure basics (just set a unique name should do it?) -- allow this in client too
 - Auth: Protect websockets?
 - Auth: To be able to change server settings
+- "Beam" to TV:
+	https://connectsdk.readthedocs.io/en/latest/fundamentals/supported-feature.html
+	(seems to be some node packages)
+	- primary concern for me is that I want to switch back to 'previous mode' (e.g. TV) after streaming a clip
+
 
 ## Misc notes for myself now
 - For Avahi DBUS API:
