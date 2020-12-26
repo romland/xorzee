@@ -133,6 +133,11 @@ const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 			framerate		: 24,									// 30 FPS seems to be a bit high for single core
 			width			: 1920,
 			height			: 1080,									// WARNING, the height CAN NOT be divisible by 16! (it's a bug!)
+/*
+framerate: 2,
+width: 1280,
+height: 720,
+*/
 
 			// Recording settings
 			mayrecord		: true,									// If true, will allocate a buffer of the past
@@ -204,14 +209,26 @@ const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 		switch(parsed.verb) {
 			case "resize" :
 				logger.info("Resizing stream...");
-				fn = camera.restart(1280, 720, 40, 1700000);
+
+				motionListener.stopSending();
+
+				conf.set("width", 1280);
+				conf.set("height", 720);
+				conf.set("framerate", 40);
+				conf.set("bitrate", 1700000);
+
+				fn = camera.restart(conf);
+
 				motionSender.broadcastMessage(
 					{
 						"event" : "resize",
-						"data" : "todo-give-new-values"
+						"data" : "todo-give-new-values",
+						"settings" : conf.get()
 					}
 				);
 				logger.info("Resized stream...");
+
+				motionListener.resumeSending();
 				break;
 
 			case "start" :

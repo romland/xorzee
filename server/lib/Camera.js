@@ -80,21 +80,21 @@ class Camera
 		logger.info("Stopped camera");
 	}
 
-	async restart(width, height, framerate, bitrate)
+	async restart(c)
 	{
 		logger.debug("Restarting camera...");
-
+/*
 		let m = new Map();
 
 		m.set("width", width || this.conf.get("width"));
 		m.set("height", height || this.conf.get("height"));
 		m.set("framerate", framerate || this.conf.get("framerate"));
 		m.set("bitrate", bitrate || this.conf.get("bitrate"));
-
+*/
 		await this.stop();
 
 		setTimeout(() => {
-			this.start(m);
+			this.start(c);
 			logger.info("Restarted camera");
 		}, 200);
 	}

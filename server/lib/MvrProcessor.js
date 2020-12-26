@@ -6,6 +6,7 @@
  * 20-may-2020, Joakim Romland
  */
 
+const Util = require("./util");
 const jdbscan = require("./jdbscan");
 
 
@@ -48,10 +49,17 @@ class MvrProcessor
 		};
 
 
-		this.frameDataHeight = Math.floor( resolutionHeight / 16) + 1;
-		this.frameDataWidth = Math.floor( resolutionWidth / 16) + 1;
+//		this.frameDataHeight = Math.floor( resolutionHeight / 16) + 1;
+//		this.frameDataWidth = Math.floor( resolutionWidth / 16) + 1;
+
+/*
+		this.frameDataHeight = Util.getVecHeight(resolutionHeight);
+		this.frameDataWidth = Util.getVecWidth(resolutionWidth);
+
 		this.resolutionWidth = resolutionWidth;
 		this.resolutionHeight = resolutionHeight;
+*/
+		this.resize(resolutionWidth, resolutionHeight);
 		this.fps = fps;
 		this.startTime = Date.now();
 
@@ -59,10 +67,20 @@ class MvrProcessor
 		this.historyClusterId = 1;
 	}
 
+	resize(w, h)
+	{
+		this.frameDataWidth = Util.getVecWidth(w);
+		this.frameDataHeight = Util.getVecHeight(h);
+
+		this.resolutionWidth = w;
+		this.resolutionHeight = h;
+
+		this.history = [];
+	}
 
 	getFrameSize()
 	{
-		return ((Math.floor(this.resolutionHeight / 16) + 1) * (Math.floor(this.resolutionWidth / 16) + 1) * 4);
+		return this.frameDataHeight * this.frameDataWidth * 4;
 	}
 
 	getMotionVectorAt(buffer, index, outMv)
