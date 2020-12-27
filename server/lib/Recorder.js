@@ -28,7 +28,7 @@ class Recorder
 
 	getLatestRecordings()
 	{
-		logger.debug("Queried latest recordings. Have %d", this.latestRecordings);
+		logger.debug("Queried latest recordings. Have %d", this.latestRecordings.length);
 		return this.latestRecordings;
 	}
 

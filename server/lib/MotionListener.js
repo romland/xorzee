@@ -37,7 +37,8 @@ class MotionListener
 
     setupMotionProcessor()
     {
-		return new MvrProcessor(this.conf.get("framerate"), this.conf.get("width"), this.conf.get("height"));
+		//return new MvrProcessor(this.conf.get("framerate"), this.conf.get("width"), this.conf.get("height"));
+		return new MvrProcessor(this.conf);
     }
 
 
@@ -56,12 +57,12 @@ class MotionListener
 	/**
 	 * Note: You want to stop sending and resume if resizing...
 	 */
-	resize(w, h)
+	reconfigure(w, h)
 	{
 		this.vectorsPerLine = Util.getVecWidth(w);
 		this.vectorLines = Util.getVecHeight(h); 
 		this.frameLength = this.vectorsPerLine * this.vectorLines * 4;
-		this.mvrProcessor.resize(w, h);
+		this.mvrProcessor.reconfigure(this.conf, w, h);
 	}
 
 	start()

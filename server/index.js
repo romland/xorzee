@@ -108,7 +108,6 @@ const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 		 */
 		conf.file( { file: path.resolve("../mintymint.config") });
 
-
 		/**
 		 * Command line arguments / options
 		 */
@@ -141,12 +140,6 @@ const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 			width			: 1920,
 			height			: 1080,									// WARNING, the height CAN NOT be divisible by 16! (it's a bug!)
 
-//framerate : 5,
-/*
-width: 1280,
-height: 720,
-*/
-
 			// Recording settings
 			mayrecord		: true,									// If true, will allocate a buffer of the past
 			recordbuffersize: (3 * 1024 * 1024),					// How much to video (in bytes) to buffer for pre-recording
@@ -166,6 +159,17 @@ height: 720,
 			signalrequirements : {
 				// use recordrequirements unless specified
 			},
+
+			//
+			// Advanced settings
+			//
+
+			// Cluster definition
+			clusterEpsilon	: 2,
+			clusterMinPoints: 4,
+
+			// Individual vectors
+			vectorMinMagnitude : 2,
 		});
 	}
 
@@ -215,17 +219,22 @@ height: 720,
 
 		let fn;
 		switch(parsed.verb) {
-			case "resize" :
+			case "reconfigure" :
 				logger.info("Resizing stream...");
 
 				motionListener.stopSending();
 
+				for(let s in parsed.settings) {
+					logger.info("Changing setting %s to %s", s, parsed.settings[s]);
+					conf.set(s, parsed.settings[s]);
+				}
+/*
 				conf.set("width", parsed.settings.width);
 				conf.set("height", parsed.settings.height);
 				conf.set("framerate", parsed.settings.framerate);
 				conf.set("bitrate", parsed.settings.bitrate);
-
-				motionListener.resize(conf.get("width"), conf.get("height"));
+*/
+				motionListener.reconfigure(conf.get("width"), conf.get("height"));
 
 				fn = camera.restart(conf);
 

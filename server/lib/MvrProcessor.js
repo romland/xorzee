@@ -28,8 +28,11 @@ class MvrProcessor
 			this.fps
 			this.startTime
 	*/
-	constructor(fps, resolutionWidth, resolutionHeight)
+	//constructor(fps, resolutionWidth, resolutionHeight)
+	constructor(conf)
 	{
+		this.conf = conf;
+
 		this.stats = {
 			frameCount : 0,
 			flashes : 0,
@@ -59,21 +62,26 @@ class MvrProcessor
 		this.resolutionWidth = resolutionWidth;
 		this.resolutionHeight = resolutionHeight;
 */
-		this.resize(resolutionWidth, resolutionHeight);
-		this.fps = fps;
+		this.reconfigure(conf, this.conf.get("width"), this.conf.get("height"));
+		this.fps = this.conf.get("framerate");
 		this.startTime = Date.now();
+		this.minMagnitude = this.conf.get("vectorMinMagnitude");
 
 		this.history = [];
 		this.historyClusterId = 1;
 	}
 
-	resize(w, h)
+	reconfigure(conf, w, h)
 	{
+		this.conf = conf;
+
 		this.frameDataWidth = Util.getVecWidth(w);
 		this.frameDataHeight = Util.getVecHeight(h);
 
 		this.resolutionWidth = w;
 		this.resolutionHeight = h;
+		this.fps = this.conf.get("fps");
+		this.minMagnitude = this.conf.get("vectorMinMagnitude");
 
 		this.history = [];
 	}
@@ -183,7 +191,7 @@ class MvrProcessor
 
 	isMover(buffer, index)
 	{
-		return Math.max( Math.abs(buffer.readIntLE(index + 0, 1)), Math.abs(buffer.readIntLE(index + 1, 1)) ) > 2;
+		return Math.max( Math.abs(buffer.readIntLE(index + 0, 1)), Math.abs(buffer.readIntLE(index + 1, 1)) ) > this.minMagnitude;
 	}
 
 	isLoner(frameData, index)
@@ -240,9 +248,9 @@ class MvrProcessor
 		while(i < frameLength) {
 			this.getMotionVectorAt(frameData, i, this.mv);
 
-			if(true && this.mv.mag >= 2 && this.isLoner(frameData, i)) {
+			if(true && this.mv.mag >= this.minMagnitude && this.isLoner(frameData, i)) {
 				loners.push(i);
-			} else if(this.mv.mag > 2) {
+			} else if(this.mv.mag > this.minMagnitude) {
 				candidates.push(
 					{
 						x : ( (i/4) % this.frameDataWidth),
@@ -253,7 +261,7 @@ class MvrProcessor
 
 			if((filterFlags & MvrFilterFlags.DX_DY_LT_2) === MvrFilterFlags.DX_DY_LT_2) {
 				// 0x01
-				if(Math.abs(this.mv.dx) < 2 && Math.abs(this.mv.dy) < 2) {
+				if(Math.abs(this.mv.dx) < this.minMagnitude && Math.abs(this.mv.dy) < this.minMagnitude) {
 					// Zero out this complete vector
 					frameData.writeInt32LE(0, i); // WARNING: Changes the dataset!
 					this.mv.dx = 0;
@@ -350,8 +358,10 @@ class MvrProcessor
 
 //			console.time("clustering");
 			let dbscanner = jdbscan()
-				.eps(2)
-				.minPts(4)
+				//.eps(2)
+				//.minPts(4)
+				.eps(this.conf.get("clusterEpsilon"))
+				.minPts(this.conf.get("clusterMinPoints"))
 				.distance((p1, p2) => {
 //					return Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
 					return Math.abs(p1.x - p2.x) + Math.abs(p1.y - p2.y)
