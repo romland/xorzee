@@ -1,105 +1,123 @@
-/**
- * Find the convex hull of a set of points, then draw lines around the set.
- * 
- * https://stackoverflow.com/questions/13802203/draw-a-border-around-an-arbitrarily-positioned-set-of-shapes-with-raphaeljs
- */
 "use strict";
 
-	export function outlineAll(context, rs, clusters)
-	{
-		let ps;
-		for(let i = 0; i < clusters.length; i++) {
-			// HACK: Need to make convex-hullification use x/y attrs.
-			ps = [];
-			for(let j = 0; j < clusters[i].points.length; j++) {
-				ps.push( [ clusters[i].points[j].x * rs, clusters[i].points[j].y * rs ] );
-			}
-			outline(context, ps);
+export function outlineAll(context, rs, clusters)
+{
+	for(let i = 0; i < clusters.length; i++) {
+		if(clusters[i].within) {
+			continue;
 		}
-	}
-
-	export function outline(context, points)
-	{
-		if(points.length < 2) {
-			return;
-		}
-
-		var outline = convex_hull(points),
-			point;
 		
-		if(outline.length < 2) {
-			return;
-		}
+		outline(context, rs, clusters[i].points);
+	}
+}
 
-		context.beginPath();
-		context.moveTo(outline[0][0], outline[0][1]);
-		for (var i = 0; i < outline.length; i++) {
-			point = outline[i];
-			context.lineTo(point[0], point[1]);
-		}
-
-		context.strokeStyle = "#FFFF00ff";
-		context.stroke();
+function outline(context, rs, points)
+{
+	if(points.length < 2) {
+		return;
 	}
 
-	function cmp(x, y)
-	{
-        if (x > y) {
-            return 1;
-        } else if (x < y) {
+	var outline = convexhull.makeHull(points);
+
+	if(outline.length < 2) {
+		return;
+	}
+
+	context.beginPath();
+	context.moveTo(outline[0].x * rs, outline[0].y * rs);
+	for (var i = 0; i < outline.length; i++) {
+		context.lineTo(outline[i].x * rs, outline[i].y * rs);
+	}
+	context.lineTo(outline[0].x * rs, outline[0].y * rs);
+
+	context.strokeStyle = "#FFFF00ff";
+	context.stroke();
+}
+
+
+/*
+ * Convex hull algorithm - Library (compiled from TypeScript)
+ *
+ * Copyright (c) 2020 Project Nayuki
+ * https://www.nayuki.io/page/convex-hull-algorithm
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program (see COPYING.txt and COPYING.LESSER.txt).
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+var convexhull;
+(function (convexhull) {
+    // Returns a new array of points representing the convex hull of
+    // the given set of points. The convex hull excludes collinear points.
+    // This algorithm runs in O(n log n) time.
+    function makeHull(points) {
+        var newPoints = points.slice();
+        newPoints.sort(convexhull.POINT_COMPARATOR);
+        return convexhull.makeHullPresorted(newPoints);
+    }
+    convexhull.makeHull = makeHull;
+    // Returns the convex hull, assuming that each points[i] <= points[i + 1]. Runs in O(n) time.
+    function makeHullPresorted(points) {
+        if (points.length <= 1)
+            return points.slice();
+        // Andrew's monotone chain algorithm. Positive y coordinates correspond to "up"
+        // as per the mathematical convention, instead of "down" as per the computer
+        // graphics convention. This doesn't affect the correctness of the result.
+        var upperHull = [];
+        for (var i = 0; i < points.length; i++) {
+            var p = points[i];
+            while (upperHull.length >= 2) {
+                var q = upperHull[upperHull.length - 1];
+                var r = upperHull[upperHull.length - 2];
+                if ((q.x - r.x) * (p.y - r.y) >= (q.y - r.y) * (p.x - r.x))
+                    upperHull.pop();
+                else
+                    break;
+            }
+            upperHull.push(p);
+        }
+        upperHull.pop();
+        var lowerHull = [];
+        for (var i = points.length - 1; i >= 0; i--) {
+            var p = points[i];
+            while (lowerHull.length >= 2) {
+                var q = lowerHull[lowerHull.length - 1];
+                var r = lowerHull[lowerHull.length - 2];
+                if ((q.x - r.x) * (p.y - r.y) >= (q.y - r.y) * (p.x - r.x))
+                    lowerHull.pop();
+                else
+                    break;
+            }
+            lowerHull.push(p);
+        }
+        lowerHull.pop();
+        if (upperHull.length == 1 && lowerHull.length == 1 && upperHull[0].x == lowerHull[0].x && upperHull[0].y == lowerHull[0].y)
+            return upperHull;
+        else
+            return upperHull.concat(lowerHull);
+    }
+    convexhull.makeHullPresorted = makeHullPresorted;
+    function POINT_COMPARATOR(a, b) {
+        if (a.x < b.x)
             return -1;
-        } else {
+        else if (a.x > b.x)
+            return +1;
+        else if (a.y < b.y)
+            return -1;
+        else if (a.y > b.y)
+            return +1;
+        else
             return 0;
-        }
-	} 
-	
-	function turn(p, q, r)
-	{
-        return cmp((q[0] - p[0]) * (r[1] - p[1]) - (r[0] - p[0]) * (q[1] - p[1]), 0);
     }
-	
-	function dist(p, q)
-	{
-        var dx = q[0] - p[0];
-        var dy = q[1] - p[1];
-        return dx * dx + dy * dy;
-    }
-	
-	function next_hull_pt(points, p)
-	{
-        var q = p,
-            r,
-            t;
-        for (var i = 0; i < points.length; i++) {
-            r = points[i];
-            t = turn(p, q, r);
-            if (t == -1 || t == 0 && dist(p, r) > dist(p, q)) {
-                q = r;
-            }
-        }
-        return q;
-    }
-	
-	function convex_hull(points)
-	{
-        var left,
-            point;
-        for (var i = 0; i < points.length; i++) {
-            point = points[i];
-            if (!left || point[0] < left[0]) {
-                left = point;
-            }
-        }
-        var hull = [left],
-            p,
-            q;
-        for (var i = 0; i < hull.length; i++) {
-            p = hull[i];
-            q = next_hull_pt(points, p);
-            if (q[0] != hull[0][0] || q[1] != hull[0][1]) {
-                hull.push(q);
-            }
-        }
-        hull.push(left);
-        return hull;
-    }
+    convexhull.POINT_COMPARATOR = POINT_COMPARATOR;
+})(convexhull || (convexhull = {}));
