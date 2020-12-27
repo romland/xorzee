@@ -17,20 +17,20 @@
 
 	// Set to true if client (the Svelte app) is hosted by localhost but streaming server (Raspi) is not.
 	const remoteServer = true;
-
 	const vPort = 8081;
 	const oPort = 8082;
 
 	// The size of this does not really matter other than preventing a 'flash-before-render'.
 	const initialCanvasWidth = 1280;
 	const initialCanvasHeight = 720;
-
 	const containerId = "video"+Date.now();
+
 	let container;
-
-	let videoCanvas, motionCanvas;
-
+	let fullScreenState;
+	let videoCanvas;
+	let motionCanvas;
 	let wsUrl;
+
 	if(remoteServer && window.location.hostname === "localhost") {
 		wsUrl = 'ws://192.168.178.67:';
 	} else {
@@ -79,17 +79,20 @@
 	});
 
 
-	function resizeStream()
+	function reconfigureStream()
 	{
 		sendMessage(
 			{
-				scope			: "stream",
-				verb			: "resize",
+				scope				: "stream",
+				verb				: "reconfigure",
 				settings : {
-                	"width"		: 1280,
-                	"height"	: 720,
-                	"framerate"	: 24,
-					"bitrate"	: 1700000 / 4
+                	"width"			: 1280,
+                	"height"		: 720,
+                	"framerate"		: 24,
+					"bitrate"		: 1700000 / 4,
+					clusterEpsilon	: 3,
+					clusterMinPoints: 2,
+					vectorMinMagnitude: 1,
 				}
 			}
 		);
@@ -104,6 +107,7 @@
 			}
 		);
 	}
+	
 	function btnRecordStop()
 	{
 		sendMessage(
@@ -119,7 +123,6 @@
 		resizeMotionStream(motionCanvas, videoCanvas);
 	}
 
-	let fullScreenState;
 	function toggleFullScreen(request, exit)
 	{
 		if(fullScreenState) {
@@ -136,10 +139,13 @@
 
 	function toggleNotifications()
 	{
-		console.log(this.checked);
-		Notification.requestPermission().then(function(result) {
-			console.log(result);
-		});
+		if(this.checked) {
+			Notification.requestPermission().then(function(result) {
+				console.log(result);
+			});
+		} else {
+			// Stop notifications
+		}
 	}
 
 </script>
@@ -156,7 +162,7 @@
 	<button on:click={btnRecordStart}>Start recording</button>
 	<button on:click={btnRecordStop}>Stop recording</button>
 
-	<button on:click={resizeStream}>Resize</button>
+	<button on:click={reconfigureStream}>Reconfigure</button>
 
 	<input type="checkbox" on:change={toggleNotifications}/>Notifications
 

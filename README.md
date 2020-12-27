@@ -55,6 +55,8 @@ A fast, high quality streamer and motion detector. It must run on the one core o
 	https://connectsdk.readthedocs.io/en/latest/fundamentals/supported-feature.html
 	(seems to be some node packages)
 	- primary concern for me is that I want to switch back to 'previous mode' (e.g. TV) after streaming a clip
+- Be able to say how much disk-space can bse used for recordings (delete oldest)
+- Delete oldest videos if running out of disk-space
 
 
 ## Misc notes for myself now
