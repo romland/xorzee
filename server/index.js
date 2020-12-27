@@ -115,6 +115,7 @@ const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 		conf.argv().defaults({
 			// General
 			name			: "Camera at default location",			// A name of your choice identifying this camera
+			password		: "",									// TODO: be able to password protect stream (need to pass pw on connect)
 
 			// Internal ports
 			videoport		: 8000,									// (internal) for camera (video)
@@ -140,6 +141,7 @@ const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 			width			: 1920,
 			height			: 1080,									// WARNING, the height CAN NOT be divisible by 16! (it's a bug!)
 
+//framerate : 5,
 /*
 width: 1280,
 height: 720,
@@ -218,10 +220,10 @@ height: 720,
 
 				motionListener.stopSending();
 
-				conf.set("width", 1280);
-				conf.set("height", 720);
-				conf.set("framerate", 40);
-				conf.set("bitrate", 1700000);
+				conf.set("width", parsed.settings.width);
+				conf.set("height", parsed.settings.height);
+				conf.set("framerate", parsed.settings.framerate);
+				conf.set("bitrate", parsed.settings.bitrate);
 
 				motionListener.resize(conf.get("width"), conf.get("height"));
 

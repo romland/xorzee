@@ -25,8 +25,10 @@ class Recorder
 		this.latestRecordings = this._getLatestRecordings(conf.get("recordhistory"));
 	}
 
+
 	getLatestRecordings()
 	{
+		logger.debug("Queried latest recordings. Have %d", this.latestRecordings);
 		return this.latestRecordings;
 	}
 
@@ -51,6 +53,7 @@ class Recorder
 			);
 		}
 
+		logger.debug("_getLatestRecordings() returned: %d entries", ret.length);
 		return ret;
 	}
 
@@ -231,7 +234,11 @@ class Recorder
 			camera : this.conf.get("name"),
 			started : this.lastNotification,
 			screenshot : this.recordingToId + ".jpg",
-			video : this.recordingToId + ".h264"
+			video : this.recordingToId + ".h264",
+			width : this.conf.get("width"),
+			height : this.conf.get("height"),
+			framerate : this.conf.get("framerate"),
+			bitrate : this.conf.get("bitrate")
 		};
 
 		return this.recordingToId;

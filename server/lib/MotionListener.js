@@ -118,7 +118,7 @@ class MotionListener
                         } while(bl.length > (this.frameLength * 3))
                     }
 
-					logger.debug("motion h/w/l %d/%d/%d", this.vectorLines, this.vectorsPerLine, this.frameLength)
+//					logger.debug("motion h/w/l %d/%d/%d", this.vectorLines, this.vectorsPerLine, this.frameLength)
 
                     //frameData = bl.shallowSlice(0, frameLength);      // argh, this does not expose fill() -- oh well, a memory copy then :(
                     frameData = bl.slice(0, this.frameLength);
