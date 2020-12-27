@@ -2,13 +2,15 @@
 	import { createEventDispatcher, onMount, onDestroy } from 'svelte';
 	import { startStream, getOverlayWs } from "../lib/client";
 
+	// Set to true if client is hosted by localhost but streaming server is not.
 	const remoteServer = true;
 
 	const vPort = 8081;
 	const oPort = 8082;
 
-	const initialCanvasWidth = 1920;
-	const initialCanvasHeight = 1080;
+	// The size of this does not really matter other than preventing a 'flash-before-render'.
+	const initialCanvasWidth = 1280;
+	const initialCanvasHeight = 720;
 
 	let wsUrl;
 	if(remoteServer && window.location.hostname === "localhost") {
@@ -16,6 +18,10 @@
 	} else {
 		wsUrl = window.location.protocol.replace(/http/, 'ws') + '//' + window.location.hostname + ':';
 	}
+
+
+
+
 
 	onMount(() => {
 		startStream(
@@ -39,6 +45,12 @@
 			{
 				scope : "stream",
 				verb : "resize",
+				settings : {
+                	"width" : 1280,
+                	"height" : 720,
+                	"framerate" : 40,
+					"bitrate" : 1700000 / 4
+				}
 			})
 		);
 	}

@@ -1,13 +1,29 @@
 "use strict";
 
 import { VectorsFrame, getVectorAt } from "./vectorsframe";
+import { outlineAll } from "./edges";
 
 // TODO
 // want to save last 'clips' as a thumbnail (server tho) ...
 
 // http://82.74.2.185:8080
 
-const RENDER_RAW = false;
+const RBT_RECTANGLE = 1;
+const RBT_CONVEX = 2;
+
+const RENDER_RAW = true;
+const RENDER_BOUND_TYPE = RBT_CONVEX;
+
+
+
+/*
+at different resolution:
+
+the boxes and raw data render in wrong places, indicates that it is server?
+
+*/
+
+
 
 
 export class Overlay
@@ -75,8 +91,8 @@ export class Overlay
 	{
 		this.copyCanvas(resizedElt);
 
-		let frameDataHeight = Math.floor( height / 16) + 1;
 		let frameDataWidth = Math.floor( width / 16) + 1;
+		let frameDataHeight = Math.floor( height / 16) + 1;
 
 		let cvRatio = 0;			// Ratio of canvas' pixel-width to number-of-vectors' width.
 		let canvas, context, canvasWidth, canvasHeight, imageData;
@@ -129,7 +145,7 @@ export class Overlay
 		if(dataType === "string" && data.length > 0) {
 			let parsed = JSON.parse(data);
 			if(parsed.settings) {
-				console.log(parsed);
+				console.log("Got setting, setting 'em: ", parsed);
 				this.streamSettings = parsed.settings;
 				this.init(this.streamSettings.width, this.streamSettings.height);
 				return;
@@ -148,12 +164,22 @@ export class Overlay
 					console.log(parsed.history)
 				}
 */
-				this.renderShapes(parsed);
+
+				if(RENDER_BOUND_TYPE === RBT_CONVEX) {
+//					console.log(parsed.clusters);
+				 	outlineAll(this.context, this.reverseCvRatio, parsed.clusters);
+				} else if(RENDER_BOUND_TYPE === RBT_RECTANGLE) {
+					this.renderShapes(parsed);
+				}
 			}
 
 		} else if(dataType === "object") {
 			if(RENDER_RAW && this.initialized) {
-				this.renderVectors(new Uint8Array(data));
+//				try {
+					this.renderVectors(new Uint8Array(data));
+				// } catch(ex) {
+				// 	console.error(ex);
+				// }
 			}
 		} else {
 			console.log("unknown datatype", dataType);
@@ -232,10 +258,23 @@ export class Overlay
 
 		this.vectorsFrame.loadFrame(frame, this.frameDataWidth, this.frameDataHeight);
 
+// error: no mv! vector coord: 0 46 vector res: 81 46 real coord:  0 364 real res: 640 365
+
 		// Render the vectors, strength by magnitude
 		for(y = 0; y < this.canvasHeight; y++) {
 			for(x = 0; x < this.canvasWidth; x++) {
+
 				mv = this.vectorsFrame.at(Math.floor(this.s(x)), Math.floor(this.s(y)));
+				if(!mv) {
+					console.log(
+						"error: no mv!",
+						"vector coord:", Math.floor(this.s(x)), Math.floor(this.s(y)),
+						"vector res:", this.frameDataWidth, this.frameDataHeight,
+						"real coord: ", x, y,
+						"real res (actual pixels -- canvas may be resized to bigger):", this.canvasWidth, this.canvasHeight
+					);
+				}
+
 				//if((mv.mag > 0 && Math.floor(this.s(x)) == (this.s(x)) && Math.floor(this.s(y)) == (this.s(y)))) {
 				if(mv.mag > 0) {
 					// Top-to-bottom: alpha, blue, green, red
