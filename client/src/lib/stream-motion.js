@@ -29,7 +29,7 @@ export function start(motionCanvas, videoCanvas, wsUri, port, reconnectInterval 
 	}
 
 	configureCanvas(motionCanvas, videoCanvas);
-	setupWebSocket(motionCanvas, videoCanvas, wsUri, port, reconnectInterval);
+	setupWebSocket(wsUri, port, reconnectInterval);
 }
 
 function configureCanvas(motionCanvas, videoCanvas)
@@ -75,7 +75,7 @@ function handleMessage(dataType, data)
 	}
 }
 
-function setupWebSocket(motionCanvas, videoCanvas, wsUri, port, reconnectInterval)
+function setupWebSocket(wsUri, port, reconnectInterval)
 {
 	webSocket = new WebSocket(wsUri + port);
 	webSocket.binaryType = 'arraybuffer';
@@ -93,7 +93,7 @@ function setupWebSocket(motionCanvas, videoCanvas, wsUri, port, reconnectInterva
 
 		if(reconnectInterval > 0) {
 			setTimeout(function() {
-				start(motionCanvas, videoCanvas, wsUri, port, reconnectInterval);
+				setupWebSocket(wsUri, port, reconnectInterval);
 			}, reconnectInterval);
 		}
 

@@ -1,6 +1,6 @@
 "use strict";
 
-import { VectorsFrame, getVectorAt } from "./vectorsframe";
+import { MotionFrame } from "./motionframe";
 import { outlineAll } from "./convex-hull";
 
 const RBT_RECTANGLE = 1;
@@ -21,7 +21,6 @@ export class MotionRenderer
 	}
 
 
-	// This is actual stream-size (not canvas per se)
 	configure(videoWidth, videoHeight)
 	{
 		let frameDataWidth = Math.floor( videoWidth / 16) + 1;
@@ -65,8 +64,8 @@ export class MotionRenderer
 		this.offScreenBuf8 = offScreenBuf8;
 		this.offScreenBuf = offScreenBuf;
 
-		this.vectorsFrame = new VectorsFrame(); 
-		this.vectorsFrame.init(this.frameDataWidth, this.frameDataHeight);
+		this.motionFrame = new MotionFrame(); 
+		this.motionFrame.init(this.frameDataWidth, this.frameDataHeight);
 
 		this.initialized = true;
 	}
@@ -84,12 +83,12 @@ export class MotionRenderer
 				}
 
 				if(RENDER_BOUND_TYPE === RBT_CONVEX) {
-					 outlineAll(
+					outlineAll(
 						 this.context,
 						 this.reverseCvRatio,
 						 data.clusters
 					);
-					 
+
 				} else if(RENDER_BOUND_TYPE === RBT_RECTANGLE) {
 					this.renderShapes(
 						data
@@ -184,21 +183,26 @@ export class MotionRenderer
 			outMv.dir = 0;
 		}
 	}
-	
+
+// with vectorsFrame: 20 - 35ms
+// without: 200-300ms
+// wtf?
+
 
 	// Raw motion data
 	renderVectors(frame)
 	{
-		var x, y;
-		let mv = {};
+		console.time("renderVectors");
 
-		this.vectorsFrame.loadFrame(frame, this.frameDataWidth, this.frameDataHeight);
+		var x, y, mv;
+
+		this.motionFrame.load(frame, this.frameDataWidth, this.frameDataHeight);
 
 		// Render the vectors, strength by magnitude
 		for(y = 0; y < this.canvasHeight; y++) {
 			for(x = 0; x < this.canvasWidth; x++) {
 
-				mv = this.vectorsFrame.at(Math.floor(this.s(x)), Math.floor(this.s(y)));
+				mv = this.motionFrame.at(Math.floor(this.s(x)), Math.floor(this.s(y)));
 				// this.getVectorAt(((Math.floor(this.s(y)) * this.frameDataWidth + Math.floor(this.s(x)))*4), frame, mv);
 
 				//if((mv.mag > 0 && Math.floor(this.s(x)) == (this.s(x)) && Math.floor(this.s(y)) == (this.s(y)))) {
@@ -218,5 +222,7 @@ export class MotionRenderer
 
 		this.imageData.data.set(this.offScreenBuf8);
 		this.context.putImageData(this.imageData, 0, 0);
+
+		console.timeEnd("renderVectors");
 	}
 }

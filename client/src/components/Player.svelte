@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { createEventDispatcher, onMount, onDestroy } from 'svelte';
 	import Fullscreen from "./Fullscreen.svelte";
+	import BroadwayStats, { onNALunit } from "./BroadwayStats.svelte";
 
 	import {
 		start as startVideoStream
@@ -21,11 +22,10 @@
 	const oPort = 8082;
 
 	// The size of this does not really matter other than preventing a 'flash-before-render'.
-	const initialCanvasWidth = 1280;
-	const initialCanvasHeight = 720;
 	const containerId = "video"+Date.now();
 
 	let container;
+	let videoPlayer;
 	let fullScreenState;
 	let videoCanvas;
 	let motionCanvas;
@@ -38,16 +38,16 @@
 	}
 
 	onMount(() => {
-		videoCanvas = startVideoStream(
-			container,
+		videoPlayer = startVideoStream(
 			wsUrl,
 			vPort,
 			2000,	// reconnect
-			initialCanvasWidth,
-			initialCanvasHeight.
 			true,	// workers
 			'auto',	// webgl
+			onNALunit
 		);
+		videoCanvas = videoPlayer.canvas;
+		container.prepend(videoCanvas);
 
 		startMotionStream(
 			motionCanvas,
@@ -77,7 +77,6 @@
 			}
 		}, false);
 	});
-
 
 	function reconfigureStream()
 	{
@@ -158,6 +157,10 @@
 			<canvas on:dblclick={ () => toggleFullScreen(onRequest, onExit) } bind:this={motionCanvas}/>
 		</div>
 	</Fullscreen>
+
+	{#if videoPlayer}
+		<BroadwayStats player={videoPlayer}></BroadwayStats>
+	{/if}
 
 	<button on:click={btnRecordStart}>Start recording</button>
 	<button on:click={btnRecordStop}>Stop recording</button>
