@@ -23,6 +23,9 @@ A fast, high quality streamer and motion detector. It must run on the one core o
 - Should be able to detect neighbouring cameras live (and pass on to client as they come available)
 
 ## TODO now
+- biggest dilemma: CPU useage on client, need to minimize that somehow since I will want multiple cameras.
+	- Reducing resolution is no good as it gives us fewer macro blocks
+	- Reducing bitrate is not great as it affects recordings and restarting camera with new settings takes long
 - what i want to do now:
 	- broadcast a message when there is movement on a camera so that any watching client can pick that up and show it
 		- (seems updating the TXT record of a service is the way to go?)

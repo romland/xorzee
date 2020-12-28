@@ -4,6 +4,7 @@ import  { MotionRenderer } from "./motionrenderer";
 
 var webSocket;
 var motionRenderer;
+var messageHandler;
 
 export function getWebSocket()
 {
@@ -21,8 +22,10 @@ export function onResize(motionCanvas, videoCanvas)
 	motionRenderer.configure(videoCanvas.width, videoCanvas.height);
 }
 
-export function start(motionCanvas, videoCanvas, wsUri, port, reconnectInterval )
+export function start(motionCanvas, videoCanvas, wsUri, port, reconnectInterval, messageHandlerCallback )
 {
+	messageHandler = messageHandlerCallback
+	
 	if(!motionRenderer) {
 		motionRenderer = new MotionRenderer(motionCanvas);
 		motionRenderer.configure(videoCanvas.width, videoCanvas.height);
@@ -59,12 +62,16 @@ function handleMessage(dataType, data)
 		if(parsed.settings) {
 			motionRenderer.configure(parsed.settings.width, parsed.settings.height);
 		}
-
-		// TODO: Deal with other types of messages (e.g. events)
+		
+		if(messageHandler && !parsed.clusters) {
+			// Deal with other types of messages (e.g. events)
+			messageHandler(parsed);
+		}
 
 		if(document.hidden) {
 			return;
 		}
+
 		motionRenderer.render(dataType, parsed);
 
 	} else {
