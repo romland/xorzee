@@ -12,6 +12,7 @@ const MotionListener = require("./lib/MotionListener").default;
 const ServiceAnnouncer = require("./lib/ServiceAnnouncer").default;
 const ServiceDiscoverer = require("./lib/ServiceDiscoverer").default;
 const VideoScreenshotter = require("./lib/VideoScreenshotter").default;
+const MotionRuleEngine = require("./lib/MotionRuleEngine").default;
 const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 
 	var camera;
@@ -23,6 +24,7 @@ const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 	var serviceAnnouncer;
 	var serviceDiscoverer;
 	var videoScreenshotter;
+	var motionRuleEngine;
 
 	var neighbours;
 
@@ -41,7 +43,7 @@ const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 		// Misc
 		videoScreenshotter = new VideoScreenshotter(conf);
 
-		if (conf.get('wwwport')) {
+		if(conf.get('wwwport')) {
 			webServer = new WebServer(conf);
 			webServer.start();
 		}
@@ -57,18 +59,18 @@ const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 		}
 
 		// Video
-		if (conf.get('videowsport')) {
+		if(conf.get('videowsport')) {
 			videoSender = new VideoSender(conf);
 			videoSender.start();
 		}
 
-		if (conf.get('videoport')) {
+		if(conf.get('videoport')) {
 			videoListener = new VideoListener(conf, videoSender, recordProgressNotification);
 			videoListener.start();
 		}
 	
 		// Motion
-		if (conf.get('motionwsport')) {
+		if(conf.get('motionwsport')) {
 			motionSender = new MotionSender(conf);
 			motionSender.start(
 				getWelcomeMessage,
@@ -76,10 +78,13 @@ const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 			);
 		}
 
-		if (conf.get('motionport')) {
+		if(conf.get('motionport')) {
 			motionListener = new MotionListener(conf, motionSender);
 			motionListener.start();
 		}
+
+		motionRuleEngine = new MotionRuleEngine(conf, motionListener);
+		motionRuleEngine.start();
 
 		// Camera
 		camera = new Camera(conf);
@@ -148,16 +153,26 @@ const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 			recordhistory	: 20,									// Number of latest clips to report to clients
 
 			// TODO: 
-			// to use camelCase or not?
-			recordrequirements : {
-				minimumActiveTime	: 2000			// ms
+			startRecordRequirements : {
+				activeTime			: 2000,			// ms
+				minFrameMagnitude	: 0,
+				minBlocks			: 0,
 				// ability to specify area
 				// ability to specify min AND max density
 			},
 
+			stopRecordRequirements : {
+				stillTime			: 3000,
+				maxFrameMagnitude	: 0,
+				maxRecordTime		: 0,			// + what is buffered
+				minRecordTime		: 0,			// - what is buffered
+				
+			},
+
 			// TODO: Used to trigger external programs (such as sound a bell or send a text)
-			signalrequirements : {
-				// use recordrequirements unless specified
+			signalRequirements : {
+				minInterval			: 10000,
+				// use startrecordrequirements unless specified
 			},
 
 			//
