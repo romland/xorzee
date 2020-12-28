@@ -147,7 +147,8 @@ const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 			recordpathwww	: "/clips/",							// Where a web-client can find clips/etc
 			recordhistory	: 20,									// Number of latest clips to report to clients
 
-			trackReasons	: true,									// Whether to track why start/stop recording did not trigger on a frame
+			trackReasons	: false,								// Whether to track why start/stop recording did not trigger on a frame
+			simulateRecord	: false,								// If true, run only MotionRuleEngine, do not trigger Recorder (i.e. nothing written to disk)
 
 			// TODO: 
 			startRecordRequirements : {
@@ -263,6 +264,13 @@ const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 							"event" : "stopRecordingMotion",
 							"filename" : meta.video,
 							"meta" : meta
+						}
+					);
+
+					motionSender.broadcastMessage(
+						{
+							"event" : "lastRecordings",
+							"data" : videoListener.getRecorder().getLatestRecordings()
 						}
 					);
 					break;

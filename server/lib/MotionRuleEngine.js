@@ -11,15 +11,18 @@
 const pino = require('pino');
 const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 
-const SIMULATE_RECORDING = true;
+// Now set by config.
+var SIMULATE_RECORDING;
 
 class MotionRuleEngine
 {
 	constructor(conf, mvrProcessor, videoListener, eventTriggerCallback = null)
 	{
 		this.conf = conf;
+
 		this.eventTriggerCallback = eventTriggerCallback;
 		this.mp = mvrProcessor;
+		this.videoListener = videoListener;
 		this.recorder = videoListener.getRecorder();
 
 		this.reconfigure(conf);
@@ -46,6 +49,13 @@ class MotionRuleEngine
 		this.startReq = conf.get("startRecordRequirements");
 		this.stopReq = conf.get("stopRecordRequirements");
 		this.sigReq = conf.get("signalRequirements");
+		SIMULATE_RECORDING = conf.get("simulateRecord");
+
+		if(SIMULATE_RECORDING) {
+			logger.info("Simulating recording. Nothing will be written to disk.");
+		} else {
+			logger.info("Recordings will be written to disk.");
+		}
 	}
 
 
@@ -71,7 +81,7 @@ class MotionRuleEngine
 			this._simulatedRecordStatus = true;
 		} else {
 			// TODO
-			this.recorder.start(TODO_NEED_HEADERS);
+			this.recorder.start(this.videoListener.getHeaders());
 		}
 
 		this.lastRecordingStarted = Date.now();
