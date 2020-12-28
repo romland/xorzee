@@ -23,6 +23,7 @@ A fast, high quality streamer and motion detector. It must run on the one core o
 - Should be able to detect neighbouring cameras live (and pass on to client as they come available)
 
 ## TODO now
+- refactor/move all the motion processing from MotionListener to MotionSender
 - biggest dilemma: CPU useage on client, need to minimize that somehow since I will want multiple cameras.
 	- Reducing resolution is no good as it gives us fewer macro blocks
 	- Reducing bitrate is not great as it affects recordings and restarting camera with new settings takes long
