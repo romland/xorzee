@@ -18,16 +18,14 @@
 	const remoteServer = true;
 	const videoStreamPort = 8081;
 	const motionStreamPort = 8082;
+	const reconnectInterval = 2000;
 
-	// The size of this does not really matter other than preventing a 'flash-before-render'.
-	const containerId = "video"+Date.now();
-
+	let wsUrl;
 	let container;
 	let videoPlayer;
-	let fullScreenState;
 	let videoCanvas;
 	let motionCanvas;
-	let wsUrl;
+	let fullScreenState;
 
 	if(remoteServer && window.location.hostname === "localhost") {
 		wsUrl = 'ws://192.168.178.67:';
@@ -36,24 +34,11 @@
 	}
 
 	onMount(() => {
-		videoPlayer = startVideoStream(
-			wsUrl,
-			videoStreamPort,
-			2000,	// reconnect
-			true,	// workers
-			'auto',	// webgl
-			onNALunit
-		);
+		videoPlayer = startVideoStream(wsUrl, videoStreamPort, reconnectInterval, true, 'auto', onNALunit);
 		videoCanvas = videoPlayer.canvas;
 		container.prepend(videoCanvas);
 
-		startMotionStream(
-			motionCanvas,
-			videoCanvas,
-			wsUrl,
-			motionStreamPort,
-			2000
-		);
+		startMotionStream(motionCanvas, videoCanvas, wsUrl, motionStreamPort, reconnectInterval, handleServerMessage);
 
 		new ResizeObserver((elt) => {
 			resizeMotionStream(motionCanvas, elt[0].target);
@@ -75,6 +60,11 @@
 			}
 		}, false);
 	});
+
+	function handleServerMessage(msg)
+	{
+		console.log("handleServerMessage()", msg);
+	}
 
 	function reconfigureStream()
 	{
@@ -141,7 +131,7 @@
 				console.log(result);
 			});
 		} else {
-			// Stop notifications
+			// Stop notifications (make a state for this)
 		}
 	}
 
@@ -150,7 +140,7 @@
 	<svelte:window on:resize={windowResized}/>
 
 	<Fullscreen let:onRequest let:onExit>
-		<div bind:this={container} id={containerId}>
+		<div bind:this={container}>
 			<!-- videoCanvas will be inserted above by Broadway -->
 			<canvas on:dblclick={ () => toggleFullScreen(onRequest, onExit) } bind:this={motionCanvas}/>
 		</div>
@@ -162,7 +152,6 @@
 
 	<button on:click={btnRecordStart}>Start recording</button>
 	<button on:click={btnRecordStop}>Stop recording</button>
-
 	<button on:click={reconfigureStream}>Reconfigure</button>
 
 	<input type="checkbox" on:change={toggleNotifications}/>Notifications
