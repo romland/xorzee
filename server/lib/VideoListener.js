@@ -20,10 +20,8 @@ class VideoListener
 		this.conf = conf;
 		this.videoSender = videoSender;
 		this.recorder = this.setupRecorder(recorderNotifyCb);
-
-// how to deal with headers, need them for recorder...
-
 	}
+
 
 	getHeaders()
 	{
@@ -46,6 +44,7 @@ class VideoListener
 		return this.recorder;
 	}
 
+
 	start()
 	{
         const tcpServer = net.createServer((socket) => {
@@ -57,14 +56,14 @@ class VideoListener
             const NALSplitter = new Split(NALSeparator);
 
             NALSplitter.on('data', (data) => {
-                if (this.videoSender.getClientCount() > 0) {
-                    // XXX: Why does this work? Should we not get these headers when the camera starts up?
-                    if (this.headers.length < 3) {
-                        this.headers.push(data);
-                    }
+				if(this.videoSender.getClientCount() > 0) {
+					// XXX: Should we not get these headers when the camera starts up?
+					if (this.headers.length < 3) {
+						this.headers.push(data);
+					}
 
-                    this.videoSender.broadcast(data);
-                }
+					this.videoSender.broadcast(data);
+				}
 
                 if(this.conf.get("mayrecord")) {
                     this.recorder.buffer(data);

@@ -33,6 +33,7 @@ class MvrProcessor
 	{
 		this.conf = conf;
 
+		// Totals
 		this.stats = {
 			frameCount : 0,
 			flashes : 0,
@@ -41,6 +42,9 @@ class MvrProcessor
 			motionFlashes : 0,
 			ignoredFrames : 0,
 		};
+
+
+		this.resetFrameInfo();
 
 		this.mv = {
 			dx : null,
@@ -51,17 +55,6 @@ class MvrProcessor
 			mag : null
 		};
 
-
-//		this.frameDataHeight = Math.floor( resolutionHeight / 16) + 1;
-//		this.frameDataWidth = Math.floor( resolutionWidth / 16) + 1;
-
-/*
-		this.frameDataHeight = Util.getVecHeight(resolutionHeight);
-		this.frameDataWidth = Util.getVecWidth(resolutionWidth);
-
-		this.resolutionWidth = resolutionWidth;
-		this.resolutionHeight = resolutionHeight;
-*/
 		this.reconfigure(conf, this.conf.get("width"), this.conf.get("height"));
 		this.fps = this.conf.get("framerate");
 		this.startTime = Date.now();
@@ -106,7 +99,12 @@ class MvrProcessor
 		return outMv;
 	}
 
-	outputFrameStats(frameData)
+	getTotalStats()
+	{
+		return this.stats;
+	}
+
+	getFrameStats(frameData)
 	{
 		let frameLength = this.getFrameSize();
 
@@ -166,6 +164,7 @@ class MvrProcessor
 			i += 4;
 		}
 
+/*
 		ts = ((Date.now() - this.startTime) / 1000);
 
 		let out = ""
@@ -186,6 +185,33 @@ class MvrProcessor
 		console.clear();
 		console.log(out);
 		//Log.info(out);
+*/
+		return {
+			"maxDx" : maxDx,
+			"minDx" : minDx,
+			"totDx" : totDx,
+			"avgDx" : Math.round(totDx / vectorsPerFrame),
+
+			"maxDy" : maxDy,
+			"minDy" : minDy,
+			"totDy" : totDy,
+			"avgDy" : Math.round(totDy / vectorsPerFrame),
+
+			"maxSad" : maxSad,
+			"minSad" : minSad,
+			"totSad" : totSad,
+			"avgSad" : Math.round(totSad / vectorsPerFrame),
+
+			"maxMag" : maxMag,
+			"minMag" : minMag,
+			"totMag" : totMag,
+			"avgMag" : Math.round(totMag / vectorsPerFrame),
+
+			"maxDir" : maxDir,
+			"minDir" : minDir,
+			"totDir" : totDir,
+			"avgDir" : Math.round(totDir / vectorsPerFrame)
+		};
 	}
 
 
@@ -199,7 +225,6 @@ class MvrProcessor
 		let w4 = this.frameDataWidth * 4;
 		let x = Math.floor(index % w4);
 		let y = Math.floor(index / w4);
-//console.log(index, index - w4, x, y);
 
 		// Above
 		if(y > 0 && this.isMover(frameData, index - w4))
@@ -224,6 +249,26 @@ class MvrProcessor
 
 
 	/**
+	 * Cheaper than getFrameStats(), but has less information
+	 */
+	getFrameInfo()
+	{
+		return this.frameInfo;
+	}
+
+
+	resetFrameInfo()
+	{
+		// Info about last frame (for cheap querying)
+		this.frameInfo = {
+			nullFrame : false,
+			totalMagnitude : 0,
+			candidates : 0,			// "blocks"
+		};
+	}
+
+
+	/**
 	 * This is the important one.
 	 * This is the one that modifies source data.
 	 * 
@@ -233,11 +278,12 @@ class MvrProcessor
 	processFrame(frameData, filterFlags)
 	{
 		let i = 0;
-		let totMag = 0;
 		let previousFrameMagTotal = 0;
 		let frameLength = this.getFrameSize();
 		let loners = [];
 		let candidates = [];
+
+		this.resetFrameInfo();
 
 		// Default filter flags
 		if(!filterFlags) {
@@ -277,13 +323,11 @@ class MvrProcessor
 				frameData.writeInt16LE(0, i+2); // WARNING: Changes the dataset!
 			}
 
-			totMag += this.mv.mag;
+			this.frameInfo.totalMagnitude += this.mv.mag;
 			i += 4;
 		} // each vector
 //		console.timeEnd("filterVectors");
 
-
-		let nullFrame = false;
 
 //		console.time("filterFrame");
 		if((filterFlags & MvrFilterFlags.FRAME_MAGNITUDE_400_INCREASE) === MvrFilterFlags.FRAME_MAGNITUDE_400_INCREASE) {
@@ -291,7 +335,7 @@ class MvrProcessor
 			// (is it camera? something else? what do these vectors look like?)
 			// I see similarities to a SAD rendering in these flashes -- can I use that as a 
 			// template to figure out whether to filter?
-			if(previousFrameMagTotal > 0 && totMag > (previousFrameMagTotal * 4)) {
+			if(previousFrameMagTotal > 0 && this.frameInfo.totalMagnitude > (previousFrameMagTotal * 4)) {
 				// A motion flash!
 				this.stats.motionFlashes++;
 				
@@ -300,7 +344,7 @@ class MvrProcessor
 
 				// Zero out frames that are motion-flashes [flash-rem in compression results]
 				frameData.fill(0);	// WARNING: Changes the dataset!
-				nullFrame = true;
+				this.frameInfo.nullFrame = true;
 			}
 			// -- flash check
 		}
@@ -309,20 +353,20 @@ class MvrProcessor
 			// Check total magnitude of frame, if low, zero it
 			// This is by no means a number I have come to with a lot of research,
 			// so tweak/verify to hearts content!
-			if(totMag < 300) {
+			if(this.frameInfo.totalMagnitude < 300) {
 				this.stats.ignoredFrames++;
 				frameData.fill(0);	// WARNING: Changes the dataset!
-				nullFrame = true;
+				this.frameInfo.nullFrame = true;
 			}
 		}
 //		console.timeEnd("filterFrame");
 
 
 		let clusters = [];
-		if(!nullFrame) {
+		if(!this.frameInfo.nullFrame) {
 
 			for(let i = 0; i < loners.length; i++) {
-				// TODO: Decrease totMag equivalent to the vectors we remove
+				// TODO: Decrease this.frameInfo.totalMagnitude equivalent to the vectors we remove
 				frameData.writeInt32LE(0, loners[i]); // WARNING: Changes the dataset!
 			}
 
@@ -338,6 +382,8 @@ class MvrProcessor
 			let reduced = false;
 
 //			console.log("loners", loners.length, "candidate points", candidates.length, "reduction factor", Math.floor(candidates.length/targetCandidates) );
+
+			this.frameInfo.candidates = candidates.length;
 
 //			console.time("reducing");
 			if(candidates.length > (targetCandidates * 1.25)) {
@@ -425,7 +471,7 @@ class MvrProcessor
 		}
 
 
-		previousFrameMagTotal = totMag;
+		previousFrameMagTotal = this.frameInfo.totalMagnitude;
 		this.stats.frameCount++;
 
 		if(this.history.length > 0) {
@@ -442,6 +488,9 @@ class MvrProcessor
 	}
 
 
+	/**
+	 * overlapping is the cluster in history
+	 */
 	trackTemporal(cluster)
 	{
 		// TODO: Move out of this scope
@@ -452,6 +501,7 @@ class MvrProcessor
 			// update cluster in history
 			cluster.age = now - overlapping.birth;
 			overlapping.active = now;
+			overlapping.age = cluster.age;
 
 			// Do I want to update the history box? Let's see...
 			// Do it only if we are more dense (and often bigger) than the one stored...
@@ -464,19 +514,22 @@ class MvrProcessor
 			// add new cluster to history
 			this.history.push({
 				id : this.historyClusterId++,
+				age : 0,
 				active : now,
 				birth : now,
 				box : [...cluster.box],
-				size : cluster.length
+				size : cluster.points.length
 			});
 		}
 	}
 
+
+	// discardInactiveAfter
 	// Expire ones that have had no activity for expireAfter ms
 	temporalExpiration()
 	{
 		// TODO: Move out of this scope
-		const expireAfter = 2000;
+		const expireAfter = this.conf.get("discardInactiveAfter");
 		const now = Date.now();
 
 		for(let i = this.history.length - 1; i >= 0; i--) {

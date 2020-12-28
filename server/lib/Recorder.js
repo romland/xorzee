@@ -127,12 +127,16 @@ class Recorder
 			return this.recordingToId;
 		}
 
-		this.recordingMeta = null;
 		this.lastNotification = null;
 		this.recordLen = 0;
 		return null;
 	}
 
+
+	getRecordingMeta()
+	{
+		return this.recordingMeta;
+	}
 
 	append(data)
 	{
@@ -231,14 +235,15 @@ class Recorder
 		this.lastNotification = Date.now();
 
 		this.recordingMeta = {
-			camera : this.conf.get("name"),
-			started : this.lastNotification,
-			screenshot : this.recordingToId + ".jpg",
-			video : this.recordingToId + ".h264",
-			width : this.conf.get("width"),
-			height : this.conf.get("height"),
-			framerate : this.conf.get("framerate"),
-			bitrate : this.conf.get("bitrate")
+			host		: "todo-hostname",
+			camera		: this.conf.get("name"),
+			started		: this.lastNotification,
+			screenshot	: this.recordingToId + ".jpg",
+			video		: this.recordingToId + ".h264",
+			width		: this.conf.get("width"),
+			height		: this.conf.get("height"),
+			framerate	: this.conf.get("framerate"),
+			bitrate		: this.conf.get("bitrate")
 		};
 
 		return this.recordingToId;

@@ -14,6 +14,9 @@ const MvrFilterFlags = mvrproc.MvrFilterFlags;
 const net = require('net');
 //const dgram = require('dgram');
 
+const MotionRuleEngine = require("./MotionRuleEngine").default;
+
+
 const pino = require('pino');
 const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 
@@ -21,7 +24,7 @@ const skipMotionFramesAtStart = 17;
 
 class MotionListener
 {
-	constructor(conf, motionSender)
+	constructor(conf, motionSender, videoListener, eventCallback)
 	{
 		this.conf = conf;
 		this.motionSender = motionSender;
@@ -30,16 +33,20 @@ class MotionListener
 		this.vectorLines = Util.getVecHeight(this.conf.get("height")); 
 		this.frameLength = this.vectorsPerLine * this.vectorLines * 4;
 
-		this.mvrProcessor = this.setupMotionProcessor();
+		this.mvrProcessor = this._setupMotionProcessor();
+
+		this.motionRuleEngine = new MotionRuleEngine(conf, this.mvrProcessor, videoListener, eventCallback);
+		this.motionRuleEngine.start();
 
 		this.stop = false;
 	}
 
-    setupMotionProcessor()
-    {
+
+	_setupMotionProcessor()
+	{
 		//return new MvrProcessor(this.conf.get("framerate"), this.conf.get("width"), this.conf.get("height"));
 		return new MvrProcessor(this.conf);
-    }
+	}
 
 
 	stopSending()
@@ -48,11 +55,13 @@ class MotionListener
 		this.stop = true;
 	}
 
+
 	resumeSending()
 	{
 		logger.info("Resume transmitting motion data");
 		this.stop = false;
 	}
+
 
 	/**
 	 * Note: You want to stop sending and resume if resizing...
@@ -65,6 +74,7 @@ class MotionListener
 		this.mvrProcessor.reconfigure(this.conf, w, h);
 	}
 
+
 	start()
 	{
         const tcpServer = net.createServer((socket) => {
@@ -74,14 +84,6 @@ class MotionListener
                 logger.info('Motion streamer disconnected');
             });
 
-
-//            let vectorLines = Math.floor( this.conf.get("height") / 16) + 1;
-//            let vectorsPerLine = Math.floor( this.conf.get("width") / 16) + 1;
-/*
-			let vectorLines = Util.getVecHeight(this.conf.get("height")); 
-            let vectorsPerLine = Util.getVecWidth(this.conf.get("width"));
-            let frameLength = vectorsPerLine * vectorLines * 4;
-*/
             let bl = new BufferListStream();
             let frameData = null;
             let frameCount = 0;
@@ -119,22 +121,21 @@ class MotionListener
                         } while(bl.length > (this.frameLength * 3))
                     }
 
-//					logger.debug("motion h/w/l %d/%d/%d", this.vectorLines, this.vectorsPerLine, this.frameLength)
-
                     //frameData = bl.shallowSlice(0, frameLength);      // argh, this does not expose fill() -- oh well, a memory copy then :(
                     frameData = bl.slice(0, this.frameLength);
 
-//                  console.time("processFrame");
+					//console.time("processFrame");
                     clusters = this.mvrProcessor.processFrame(
                         frameData,
                         MvrFilterFlags.MAGNITUDE_LT_300 | MvrFilterFlags.DX_DY_LT_2 | MvrFilterFlags.FRAME_MAGNITUDE_400_INCREASE
                     );
-//                  console.timeEnd("processFrame");
+					//console.timeEnd("processFrame");
+
+					this.motionRuleEngine.processFrame(frameData, clusters);
 
                     bl.consume(this.frameLength);
 
                     this.motionSender.broadcastRaw(frameData, this.frameLength, true);
-
                     this.motionSender.broadcastMessage(
                         {
                             clusters : clusters,

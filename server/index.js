@@ -12,7 +12,6 @@ const MotionListener = require("./lib/MotionListener").default;
 const ServiceAnnouncer = require("./lib/ServiceAnnouncer").default;
 const ServiceDiscoverer = require("./lib/ServiceDiscoverer").default;
 const VideoScreenshotter = require("./lib/VideoScreenshotter").default;
-const MotionRuleEngine = require("./lib/MotionRuleEngine").default;
 const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 
 	var camera;
@@ -24,7 +23,6 @@ const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 	var serviceAnnouncer;
 	var serviceDiscoverer;
 	var videoScreenshotter;
-	var motionRuleEngine;
 
 	var neighbours;
 
@@ -79,12 +77,9 @@ const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 		}
 
 		if(conf.get('motionport')) {
-			motionListener = new MotionListener(conf, motionSender);
+			motionListener = new MotionListener(conf, motionSender, videoListener, handleMotionEvent);
 			motionListener.start();
 		}
-
-		motionRuleEngine = new MotionRuleEngine(conf, motionListener);
-		motionRuleEngine.start();
 
 		// Camera
 		camera = new Camera(conf);
@@ -152,11 +147,14 @@ const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 			recordpathwww	: "/clips/",							// Where a web-client can find clips/etc
 			recordhistory	: 20,									// Number of latest clips to report to clients
 
+			trackReasons	: true,									// Whether to track why start/stop recording did not trigger on a frame
+
 			// TODO: 
 			startRecordRequirements : {
 				activeTime			: 2000,			// ms
 				minFrameMagnitude	: 0,
-				minBlocks			: 0,
+				minActiveBlocks		: 0,
+				minInterval			: 2000,							// Do not start recording again if we stopped a previous one less than this ago
 				// ability to specify area
 				// ability to specify min AND max density
 			},
@@ -164,13 +162,14 @@ const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 			stopRecordRequirements : {
 				stillTime			: 3000,
 				maxFrameMagnitude	: 0,
-				maxRecordTime		: 0,			// + what is buffered
+				maxRecordTime		: 60000,		// + what is buffered (default one minute)
 				minRecordTime		: 0,			// - what is buffered
 				
 			},
 
 			// TODO: Used to trigger external programs (such as sound a bell or send a text)
 			signalRequirements : {
+				runAfterEvent		: false,
 				minInterval			: 10000,
 				// use startrecordrequirements unless specified
 			},
@@ -180,12 +179,18 @@ const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 			//
 
 			// Cluster definition
-			clusterEpsilon	: 2,
-			clusterMinPoints: 4,
+			clusterEpsilon			: 2,
+			clusterMinPoints		: 4,
+
+			// Historical clusters
+			discardInactiveAfter	: 2000,
 
 			// Individual vectors
-			vectorMinMagnitude : 2,
+			vectorMinMagnitude 		: 2,
 		});
+
+
+		conf.use('memory');
 	}
 
 
@@ -219,6 +224,56 @@ const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 
 		if(serviceAnnouncer) {
 			serviceAnnouncer.stop();
+		}
+	}
+
+
+	function handleMotionEvent(module, eventType, eventData, simulation = false)
+	{
+		logger.info("handleMotionEvent(): %s, %s", module, eventType);
+
+		if(module === "MotionRuleEngine") {
+			let meta;
+
+			if(simulation) {
+				//meta = videoListener.getRecorder().getRecordingMeta();
+				meta = {
+					"SIMULATION" : true,
+					video : "fakevideo.h264"
+				};
+
+			} else {
+				meta = videoListener.getRecorder().getRecordingMeta();
+			}
+
+			switch(eventType) {
+				case "start" :
+					motionSender.broadcastMessage(
+						{
+							"event" : "startRecordingMotion",
+							"filename" : meta.video,
+							"meta" : meta
+						}
+					);
+					break;
+
+				case "stop" :
+					motionSender.broadcastMessage(
+						{
+							"event" : "stopRecordingMotion",
+							"filename" : meta.video,
+							"meta" : meta
+						}
+					);
+					break;
+
+				default :
+					break;
+			}
+
+
+		} else {
+			logger.warn("handleMotionEvent(), event from unknown module %s %s", module, eventType);
 		}
 	}
 
