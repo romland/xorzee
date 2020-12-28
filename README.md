@@ -39,7 +39,7 @@ A fast, high quality streamer and motion detector. It must run on the one core o
 - send event over bonjour when auto-record starts?
 
 
-## Future stuff (ideas)
+## Future stuff (and ideas)
 - be able to stream recordings to remote location (if failure, store locally)
 - Port MvrProcessor to a native node module (C/C++)
 - Write the client using Svelte (very plain atm)
@@ -63,6 +63,12 @@ A fast, high quality streamer and motion detector. It must run on the one core o
 - Be able to say how much disk-space can bse used for recordings (delete oldest)
 - Delete oldest videos if running out of disk-space
 - At high frame-rate, merge several motion frames into one to easier detect motion (?)
+- Actually write logs to disk? Or let something like PM2 handle that?
+- Remove 'http-server' dep on server
+- Rewrite/ditch avahi-dbus
+- Need better name
+- Go through misc directory: Set up service and docker (ditch the shell scripts)
+- Merge doc/notes.txt into README or another .md
 
 ## Misc notes for myself now
 - For Avahi DBUS API:
