@@ -1,3 +1,8 @@
+const pino = require('pino');
+const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
+const fs = require("fs");
+
+
 class Util
 {
 // let vectorLines = Math.floor( this.conf.get("height") / 16) + 1;
@@ -13,9 +18,25 @@ class Util
 		}
 	}
 
+
 	static getVecWidth(w)
 	{
 		return Math.floor( w / 16) + 1;
+	}
+
+
+	static savePartialSettings(fileName, settings)
+	{
+		let data = JSON.parse( fs.readFileSync(fileName, "utf8") );
+
+		for(let s in settings) {
+			data[s] = settings[s];
+		}
+
+		fs.writeFileSync(fileName, JSON.stringify(data));
+
+		logger.debug("Wrote %s with partial settings: %o", fileName, settings);
+		return true;
 	}
 
 
@@ -47,6 +68,32 @@ class Util
 		}
 
 		return isInside;
+	}
+
+
+	static scalePolygon(polygon, currentResolution, targetResolution, roundToNearest = 16)
+	{
+		let wr = targetResolution.width / currentResolution.width;
+		let hr = targetResolution.height / currentResolution.height;
+
+		logger.info("width ratio: %d, height ratio: %d", wr, hr);
+
+		for(let i = 0; i < polygon.length; i++) {
+			if(roundToNearest > 0) {
+				polygon[i].x *= wr;
+				polygon[i].y *= hr;
+			} else {
+				// Rounds to nearest N and 0 decimals
+				polygon[i].x = Math.round(
+					Math.round( (polygon[i].x * wr) / roundToNearest) * roundToNearest
+				);
+				polygon[i].y = Math.round(
+					Math.round( (polygon[i].y * hr) / roundToNearest) * roundToNearest
+				);
+			}
+		}
+
+		return polygon;
 	}
 
 }

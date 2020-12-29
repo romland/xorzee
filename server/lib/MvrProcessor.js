@@ -8,7 +8,8 @@
 
 const Util = require("./util");
 const jdbscan = require("./jdbscan");
-
+const pino = require('pino');
+const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 
 const MvrFilterFlags = {
 	MAGNITUDE_LT_300 : 1,
@@ -68,6 +69,8 @@ class MvrProcessor
 	{
 		this.conf = conf;
 
+		logger.debug("MvrProcessor got reconfigure", this.conf.get());
+
 		this.frameDataWidth = Util.getVecWidth(w);
 		this.frameDataHeight = Util.getVecHeight(h);
 
@@ -77,7 +80,34 @@ class MvrProcessor
 		this.minMagnitude = this.conf.get("vectorMinMagnitude");
 
 		this.history = [];
+
+		if(this.conf.get("ignoreArea") && this.conf.get("ignoreArea").length > 2) {
+			this.ignoredArea = Util.scalePolygon(
+				this.conf.get("ignoreArea"),
+				{ width: 1920, height: 1088},
+				{ width: this.frameDataWidth, height: this.frameDataHeight },
+				1
+			);
+		} else {
+			this.ignoredArea = null;
+		}
+
+		logger.debug("Ignored area set to %o", this.ignoredArea);
 	}
+
+
+	/**
+	 * Expects point to be { x : ?, y : ? }
+	 */
+	inIgnoredArea(point)
+	{
+		if(this.ignoredArea === null) {
+			return false;
+		}
+
+		return Util.pointIsInPoly(point, this.ignoredArea);
+	}
+
 
 	getFrameSize()
 	{
@@ -264,6 +294,7 @@ class MvrProcessor
 			nullFrame : false,
 			totalMagnitude : 0,
 			candidates : 0,			// "blocks"
+			ignoredVectors : 0,
 		};
 	}
 
@@ -290,17 +321,28 @@ class MvrProcessor
 			filterFlags = MvrFilterFlags.DX_DY_LT_2 | MvrFilterFlags.FRAME_MAGNITUDE_400_INCREASE | MvrFilterFlags.MAGNITUDE_LT_300;
 		}
 
+		let coord = { x : 0, y : 0 };
+
 //		console.time("filterVectors");
 		while(i < frameLength) {
 			this.getMotionVectorAt(frameData, i, this.mv);
+
+			coord.x = ( (i/4) % this.frameDataWidth);
+			coord.y = ( (i/4) / this.frameDataWidth);
+
+			if(this.ignoredArea && this.inIgnoredArea(coord)) {
+				this.frameInfo.ignoredVectors++;
+				continue;
+			}
+
 
 			if(true && this.mv.mag >= this.minMagnitude && this.isLoner(frameData, i)) {
 				loners.push(i);
 			} else if(this.mv.mag > this.minMagnitude) {
 				candidates.push(
 					{
-						x : ( (i/4) % this.frameDataWidth),
-						y : ( (i/4) / this.frameDataWidth)
+						x : coord.x,
+						y : coord.y
 					}
 				);
 			}

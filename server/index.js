@@ -1,8 +1,8 @@
 "use strict";
 
 const path = require("path");
-const pino = require('pino');
 const conf = require('nconf');
+const Util = require("./lib/util");
 const Camera = require("./lib/Camera").default;
 const WebServer = require("./lib/WebServer").default;
 const VideoSender = require("./lib/VideoSender").default;
@@ -12,7 +12,11 @@ const MotionListener = require("./lib/MotionListener").default;
 const ServiceAnnouncer = require("./lib/ServiceAnnouncer").default;
 const ServiceDiscoverer = require("./lib/ServiceDiscoverer").default;
 const VideoScreenshotter = require("./lib/VideoScreenshotter").default;
+
+const pino = require('pino');
 const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
+
+const settingsFile = path.resolve("../mintymint.config");
 
 	var camera;
 	var webServer;
@@ -106,7 +110,7 @@ const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 		/**
 		 * Let a config file override defaults...
 		 */
-		conf.file( { file: path.resolve("../mintymint.config") });
+		conf.file( { file: settingsFile });
 
 		/**
 		 * Command line arguments / options
@@ -130,15 +134,19 @@ const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 			wsclientlimit	: 100,									// max number clients allowed
 
 			// Discovery settings
+			servicename		: "MintyMint",							// You want to have this the same on ALL your devices (unless you want to group them)
 			discovery		: true,									// Whether to discover neighbouring cameras (TODO: Rename to 'discover')
 			announce		: true,									// Whther to announce presence to neighbouring cameras
-			servicename		: "MintyMint",							// You want to have this the same on ALL your devices (unless you want to group them)
 
 			// Video settings
 			bitrate			: 1700000,								// Bitrate of video stream
 			framerate		: 24,									// 30 FPS seems to be a bit high for single core
-			width			: 1920,
-			height			: 1080,									// WARNING, the height CAN NOT be divisible by 16! (it's a bug!)
+			width			: 1920,									// Video stream width (the higher resolution, the more exact motion tracking)
+			height			: 1080,									// Video stream height
+
+			// Ignore
+			ignoreArea		: [],									// If setting manually, remember resolution should be 1920x1088.
+																	// Format, a convex hulled polygon [ { x: ?, y: ? }, ... ] (i.e. array of objects with x/y pairs)
 
 			// Recording settings
 			mayrecord		: true,									// If true, will allocate a buffer of the past
@@ -147,26 +155,21 @@ const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 			recordpathwww	: "/clips/",							// Where a web-client can find clips/etc
 			recordhistory	: 20,									// Number of latest clips to report to clients
 
-			trackReasons	: false,								// Whether to track why start/stop recording did not trigger on a frame
-			simulateRecord	: true,								// If true, run only MotionRuleEngine, do not trigger Recorder (i.e. nothing written to disk)
+			trackReasons	: true,									// Whether to track why start/stop recording did not trigger on a frame
+			simulateRecord	: true,									// If true, run only MotionRuleEngine, do not trigger Recorder (i.e. nothing written to disk)
 
 			startRecordRequirements : {
-				activeTime			: 2000,			// ms
-				minFrameMagnitude	: 0,
-				minActiveBlocks		: 0,
-				minInterval			: 2000,							// Do not start recording again if we stopped a previous one less than this ago
-				// TODO:
-				// ability to specify area
-				// ability to specify min AND max density
-				// client should be able to pass these in...
+				activeTime			: 2000,							// Time that needs to be active to trigger recording
+				minFrameMagnitude	: 0,							// Total magnitude to be beaten to start recording
+				minActiveBlocks		: 0,							// Total number of 'blocks'/vectors that need to be in play
+				minInterval			: 5000,							// Do not start recording again if we stopped a previous one less than this ago
 			},
 
 			stopRecordRequirements : {
-				stillTime			: 3000,
-				maxFrameMagnitude	: 0,
-				maxRecordTime		: 60000,						// + what is buffered. Default is one minute.
-				minRecordTime		: 0,							// - what is buffered
-				
+				stillTime			: 3000,							// How long things must be 'still' before we can stop recording
+				maxFrameMagnitude	: 0,							// A frame is deemed 'active' if it has a total magnitude of this
+				maxRecordTime		: 60000,						// Max length to record (+ what is buffered). Default is one minute.
+				minRecordTime		: 0,							// Min length reo record (- what is buffered)
 			},
 
 			// TODO: Used to trigger external programs (such as sound a bell or send a text)
@@ -183,14 +186,14 @@ const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 			//
 
 			// Cluster definition
-			clusterEpsilon			: 2,
-			clusterMinPoints		: 4,
+			clusterEpsilon			: 2,							// The max distance (manhattan) to include points in a cluster (DBscan)
+			clusterMinPoints		: 4,							// The min number of points to be classified as a cluster (DBscan)
 
 			// Historical clusters
-			discardInactiveAfter	: 2000,
+			discardInactiveAfter	: 2000,							// If a cluster was still for longer than this, discard it
 
 			// Individual vectors
-			vectorMinMagnitude 		: 2,
+			vectorMinMagnitude 		: 2,							// Minimum magnitude of a vector to be deemed moving
 		});
 
 
@@ -294,27 +297,47 @@ const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 	 */
 	function handleControlCommand(msg)
 	{
+		let ret;
+
 		let parsed = JSON.parse(msg);
 
 		logger.debug("Incoming control msg %s", parsed);
 
+		switch(parsed.scope) {
+			case "general" :
+				ret = handleGeneralCommands(parsed.verb, parsed.data);
+				break;
+
+			case "record" :
+				ret = handleRecordCommands(parsed.verb, parsed.data);
+				break;
+
+			case "motion" :
+				ret = handleMotionCommands(parsed.verb, parsed.data);
+				break;
+
+			default :
+				logger.error("Unknown command scope %s", parsed.scope);
+				break;
+		}
+	}
+
+
+	function handleGeneralCommands(cmd, data)
+	{
 		let fn;
-		switch(parsed.verb) {
+
+		switch(cmd) {
 			case "reconfigure" :
 				logger.info("Resizing stream...");
 
 				motionListener.stopSending();
 
-				for(let s in parsed.settings) {
-					logger.info("Changing setting %s to %s", s, parsed.settings[s]);
-					conf.set(s, parsed.settings[s]);
+				for(let s in data) {
+					logger.info("Changing setting %s to %s", s, data[s]);
+					conf.set(s, data[s]);
 				}
-/*
-				conf.set("width", parsed.settings.width);
-				conf.set("height", parsed.settings.height);
-				conf.set("framerate", parsed.settings.framerate);
-				conf.set("bitrate", parsed.settings.bitrate);
-*/
+
 				motionListener.reconfigure(conf.get("width"), conf.get("height"));
 
 				fn = camera.restart(conf);
@@ -331,6 +354,18 @@ const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 				motionListener.resumeSending();
 				break;
 
+			default :
+				logger.warn("Unknown general command %s", cmd);
+				break;
+		}
+	}
+
+
+	function handleRecordCommands(cmd, data)
+	{
+		let fn;
+
+		switch(cmd) {
 			case "start" :
 				fn = videoListener.getRecorder().start(videoListener.getHeaders());
 				motionSender.broadcastMessage(
@@ -351,24 +386,56 @@ const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 				);
 
 				videoScreenshotter.start(fn);
-	            motionSender.broadcastMessage(
-	                {
-	                    "event" : "screenshot",
-	                    "filename" : fn + ".jpg",
-	                }
-	            );
+				motionSender.broadcastMessage(
+					{
+						"event" : "screenshot",
+						"filename" : fn + ".jpg",
+					}
+				);
 
-
-	            motionSender.broadcastMessage(
-	                {
-	                    "event" : "lastRecordings",
+				motionSender.broadcastMessage(
+					{
+						"event" : "lastRecordings",
 						"data" : videoListener.getRecorder().getLatestRecordings()
-	                }
-	            );
+					}
+				);
+				break;
+			default :
+				logger.warn("Unknown record command %s", cmd);
+				break;
+		}
+	}
+
+
+	function handleMotionCommands(cmd, data)
+	{
+		switch(cmd) {
+			case "ignore" :
+				logger.info("Got ignore area %o", data);
+
+				let scaledPolygon = Util.scalePolygon(
+					data.points,
+					data.resolution,
+					{ width: 1920, height: 1088 }
+				);
+
+				logger.debug("Scaled polygon %o", scaledPolygon);
+
+				conf.set("ignoreArea", scaledPolygon);
+				motionListener.reconfigure();
+
+				Util.savePartialSettings(settingsFile, { ignoreArea : scaledPolygon });
+
+				motionSender.broadcastMessage(
+					{
+						"event" : "updatedIgnoreArea",
+						"settings" : conf.get()
+					}
+				);
 				break;
 
 			default :
-				logger.error("Unknown command %s", parsed.verb);
+				logger.warn("Unknown motion command %s", cmd);
 				break;
 		}
 	}

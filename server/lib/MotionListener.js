@@ -68,10 +68,12 @@ class MotionListener
 	 */
 	reconfigure(w, h)
 	{
-		this.vectorsPerLine = Util.getVecWidth(w);
-		this.vectorLines = Util.getVecHeight(h); 
+		// TODO: w/h is now ignored (fix all places calling this method)
+
+		this.vectorsPerLine = Util.getVecWidth(this.conf.get("width"));
+		this.vectorLines = Util.getVecHeight(this.conf.get("height")); 
 		this.frameLength = this.vectorsPerLine * this.vectorLines * 4;
-		this.mvrProcessor.reconfigure(this.conf, w, h);
+		this.mvrProcessor.reconfigure(this.conf, this.conf.get("width"), this.conf.get("height"));
 	}
 
 
