@@ -168,13 +168,13 @@
 	<Fullscreen let:onRequest let:onExit>
 		<div bind:this={container}>
 			<!-- videoCanvas will be inserted above by Broadway -->
-			<canvas on:dblclick={ () => toggleFullScreen(onRequest, onExit) } bind:this={motionCanvas}/>
+			<canvas bind:this={motionCanvas}/>
 
-			<div id="polydrawContainer" style="width: 1280px; height: 720px; z-index: 10; position: absolute;">
+			<div on:dblclick={ () => toggleFullScreen(onRequest, onExit) } id="polydrawContainer" style="width: 1280px; height: 720px; z-index: 10; position: absolute;">
 				{#if drawingIgnoreArea}
 					<PolyDraw placeOn={videoCanvas} on:complete={setIgnoreArea}></PolyDraw>
 				{:else if settings}
-					<PolyShow points={settings.ignoreArea}></PolyShow>
+					<PolyShow bind:width={settings.width} bind:height={settings.height} points={settings.ignoreArea}></PolyShow>
 				{/if}
 			</div>
 		</div>
