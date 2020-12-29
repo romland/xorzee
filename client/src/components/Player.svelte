@@ -3,6 +3,7 @@
 	import Fullscreen from "./Fullscreen.svelte";
 	import BroadwayStats, { onNALunit } from "./BroadwayStats.svelte";
 	import PolyDraw from "./PolyDraw.svelte";
+	import PolyShow from "./PolyShow.svelte";
 	import { copyGeography } from "../lib/utils.js";
 
 	import {
@@ -22,6 +23,7 @@
 	const motionStreamPort = 8082;
 	const reconnectInterval = 0;// 2000;		// set to 0 for no auto-reconnect
 
+	let settings = null;
 	let wsUrl;
 	let container;
 	let videoPlayer;
@@ -66,6 +68,11 @@
 
 	function handleServerMessage(msg)
 	{
+		if(msg.settings) {
+			console.log("Got settings from server");
+			settings = msg.settings;
+		}
+
 		console.log("handleServerMessage()", msg);
 	}
 
@@ -73,9 +80,9 @@
 	{
 		sendMessage(
 			{
-				scope	: "stream",
+				scope	: "general",
 				verb	: "reconfigure",
-				settings : {
+				data : {
                 	"width"				: 1280,
                 	"height"			: 720,
                 	"framerate"			: 24,
@@ -141,7 +148,7 @@
 
 	function setIgnoreArea(e)
 	{
-		console.log("TODO, pass ignore area to server:", e.detail.data);
+		console.log("Got ignore area, passing to server:", e.detail.data);
 
 		sendMessage(
 			{
@@ -150,8 +157,9 @@
 				data	: e.detail.data
 			}
 		);
-
 	}
+
+	let drawingIgnoreArea = false;
 
 </script>
 
@@ -162,8 +170,12 @@
 			<!-- videoCanvas will be inserted above by Broadway -->
 			<canvas on:dblclick={ () => toggleFullScreen(onRequest, onExit) } bind:this={motionCanvas}/>
 
-			<div id="polydrawContainer" style="width: 1200px; height: 1200px; z-index: 100; position: absolute; top: 10px; left: 10px;">
-				<PolyDraw placeOn={videoCanvas} on:complete={setIgnoreArea}></PolyDraw>
+			<div id="polydrawContainer" style="width: 1280px; height: 720px; z-index: 10; position: absolute;">
+				{#if drawingIgnoreArea}
+					<PolyDraw placeOn={videoCanvas} on:complete={setIgnoreArea}></PolyDraw>
+				{:else if settings}
+					<PolyShow points={settings.ignoreArea}></PolyShow>
+				{/if}
 			</div>
 		</div>
 
@@ -176,6 +188,7 @@
 	<button on:click={btnRecordStart}>Start recording</button>
 	<button on:click={btnRecordStop}>Stop recording</button>
 	<button on:click={reconfigureStream}>Reconfigure</button>
+	<button on:click={() => drawingIgnoreArea = !drawingIgnoreArea}>Toggle adding ignore area</button>
 
 	<input type="checkbox" on:change={toggleNotifications}/>Notifications
 

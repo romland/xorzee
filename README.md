@@ -43,6 +43,7 @@ A fast, high quality streamer and motion detector. It must run on the one core o
 
 
 ## Future stuff (and ideas)
+- be able to specify overlay over a camera (top-left, top-right, bottom-left, bottom-right)
 - store (in meta) where motion was during the recorded clip (the tricky thing is the pre-buffer here)
 	frame 1: [ polygons... ]
 	frame 2: ...

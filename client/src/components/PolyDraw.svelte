@@ -12,6 +12,8 @@
 	const GRID_SIZE = 16;
 	const dispatch = createEventDispatcher();
 
+	let scrollLeft, scrollTop;
+
 	function getMousePosition(e)
 	{
 		// XXX:
@@ -21,8 +23,8 @@
 
 		if(GRID) {
 			return {
-				x :	(Math.round((e.pageX - svgRect.left) / GRID_SIZE) * GRID_SIZE),
-				y :	(Math.round((e.pageY - svgRect.top) / GRID_SIZE) * GRID_SIZE)
+				x :	(Math.round((e.pageX - svgRect.left - scrollLeft) / GRID_SIZE) * GRID_SIZE),
+				y :	(Math.round((e.pageY - svgRect.top - scrollTop) / GRID_SIZE) * GRID_SIZE)
 			};
 		} else {
 			return {
@@ -171,8 +173,9 @@
 		}
 	}
 
-
 </script>
+
+<svelte:window bind:scrollX={scrollLeft} bind:scrollY={scrollTop}></svelte:window>
 
 	<svg id="svg"
 			on:contextmenu={(e)=>{ return false}}
@@ -181,8 +184,7 @@
 			on:mouseup|preventDefault|stopPropagation={mouseUp}
 			height="100%"
 			width="100%"
-			style="
-			"
+			style=""
 		>
 
 		<defs>
@@ -206,7 +208,8 @@
 			stroke-width:1;
 		"/>
 
-    <rect width="100%" height="100%" fill="url(#grid)" />
-	
+	    <rect width="100%" height="100%" fill="url(#grid)" />
 	</svg>
-	double-click to stop adding vertices
+
+Instructions:
+- click on same spot twice to end the polygon
