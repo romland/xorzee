@@ -72,7 +72,7 @@
 		<g fill="none" fill-rule="evenodd">
 			<polyline id="polyline"
 				style="
-					fill: #33333350;
+					fill: #ff000030;
 					stroke: black;
 					stroke-width: 1
 				"
