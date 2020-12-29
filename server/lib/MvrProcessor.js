@@ -86,13 +86,14 @@ class MvrProcessor
 				this.conf.get("ignoreArea"),
 				{ width: 1920, height: 1088},
 				{ width: this.frameDataWidth, height: this.frameDataHeight },
-				1
+				1,
+				true
 			);
 		} else {
 			this.ignoredArea = null;
 		}
 
-		logger.debug("Ignored area set to %o", this.ignoredArea);
+		logger.debug("Ignored (vector) area set to %o", this.ignoredArea);
 	}
 
 
@@ -330,8 +331,13 @@ class MvrProcessor
 			coord.x = ( (i/4) % this.frameDataWidth);
 			coord.y = ( (i/4) / this.frameDataWidth);
 
+// TODO: Make a (fast) lookup table of ignored-area (can do it when we reconfigure even!)
+
+			// This would _technically_ belong in MotionRuleEngine. The gains to be had
+			// to have it in here were too much to ignore.
 			if(this.ignoredArea && this.inIgnoredArea(coord)) {
 				this.frameInfo.ignoredVectors++;
+				i += 4;
 				continue;
 			}
 

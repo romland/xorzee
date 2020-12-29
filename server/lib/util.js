@@ -71,29 +71,40 @@ class Util
 	}
 
 
-	static scalePolygon(polygon, currentResolution, targetResolution, roundToNearest = 16)
+	static scalePolygon(polygon, currentResolution, targetResolution, roundToNearest = 16, copy = false)
 	{
 		let wr = targetResolution.width / currentResolution.width;
 		let hr = targetResolution.height / currentResolution.height;
 
-		logger.info("width ratio: %d, height ratio: %d", wr, hr);
+		logger.info("scalePolygin(): width ratio: %d, height ratio: %d", wr, hr);
 
-		for(let i = 0; i < polygon.length; i++) {
+		let p;
+
+		if(copy) {
+			p = polygon.map( (n) => {
+				return { x: n.x, y: n.y };
+			});
+
+		} else {
+			p = polygon;
+		}
+
+		for(let i = 0; i < p.length; i++) {
 			if(roundToNearest > 0) {
-				polygon[i].x *= wr;
-				polygon[i].y *= hr;
+				p[i].x *= wr;
+				p[i].y *= hr;
 			} else {
 				// Rounds to nearest N and 0 decimals
-				polygon[i].x = Math.round(
-					Math.round( (polygon[i].x * wr) / roundToNearest) * roundToNearest
+				p[i].x = Math.round(
+					Math.round( (p[i].x * wr) / roundToNearest) * roundToNearest
 				);
-				polygon[i].y = Math.round(
-					Math.round( (polygon[i].y * hr) / roundToNearest) * roundToNearest
+				p[i].y = Math.round(
+					Math.round( (p[i].y * hr) / roundToNearest) * roundToNearest
 				);
 			}
 		}
 
-		return polygon;
+		return p;
 	}
 
 }

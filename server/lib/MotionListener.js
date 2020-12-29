@@ -20,7 +20,8 @@ const MotionRuleEngine = require("./MotionRuleEngine").default;
 const pino = require('pino');
 const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 
-const skipMotionFramesAtStart = 17;
+//const skipMotionFramesAtStart = 17;
+const SKIP_AT_START = 600;	// ms
 
 class MotionListener
 {
@@ -88,9 +89,12 @@ class MotionListener
 
             let bl = new BufferListStream();
             let frameData = null;
-            let frameCount = 0;
+//			let frameCount = 0;
             let clusters = null;
             let str;
+
+			let skip = true;
+			let started = Date.now();
 
             socket.on('data', (data) => {
 				if(this.stop) {
@@ -109,9 +113,14 @@ class MotionListener
                         break;
                     }
 
-                    if(skipMotionFramesAtStart > frameCount++) {
-                        logger.debug("Skipping motion frame %d/%d...", frameCount, skipMotionFramesAtStart);
+//                    if(skipMotionFramesAtStart > frameCount++) {
+					if(skip) {
+//                        logger.debug("Skipping motion frame %d/%d...", frameCount, skipMotionFramesAtStart);
+						logger.debug("Skipping motion frame (starting up)...");
                         bl.consume(this.frameLength);
+						if(Date.now() > (started + SKIP_AT_START)) {
+							skip = false;
+						}
                         return;
                     }
 
