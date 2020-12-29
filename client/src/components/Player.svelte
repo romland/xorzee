@@ -2,6 +2,8 @@
 	import { createEventDispatcher, onMount, onDestroy } from 'svelte';
 	import Fullscreen from "./Fullscreen.svelte";
 	import BroadwayStats, { onNALunit } from "./BroadwayStats.svelte";
+	import PolyDraw from "./PolyDraw.svelte";
+	import { copyGeography } from "../lib/utils.js";
 
 	import {
 		start as startVideoStream
@@ -18,7 +20,7 @@
 	const remoteServer = true;
 	const videoStreamPort = 8081;
 	const motionStreamPort = 8082;
-	const reconnectInterval = 2000;
+	const reconnectInterval = 0;// 2000;		// set to 0 for no auto-reconnect
 
 	let wsUrl;
 	let container;
@@ -42,6 +44,7 @@
 
 		new ResizeObserver((elt) => {
 			resizeMotionStream(motionCanvas, elt[0].target);
+			copyGeography(elt[0].target, polydrawContainer);
 		}).observe(videoCanvas);
 
 		document.addEventListener("visibilitychange", function() {
@@ -108,6 +111,7 @@
 	function windowResized()
 	{
 		resizeMotionStream(motionCanvas, videoCanvas);
+		copyGeography(elt[0].target, polydrawContainer);
 	}
 
 	function toggleFullScreen(request, exit)
@@ -143,7 +147,12 @@
 		<div bind:this={container}>
 			<!-- videoCanvas will be inserted above by Broadway -->
 			<canvas on:dblclick={ () => toggleFullScreen(onRequest, onExit) } bind:this={motionCanvas}/>
+
+			<div id="polydrawContainer" style="width: 1200px; height: 1200px; z-index: 100; position: absolute; top: 10px; left: 10px;">
+				<PolyDraw placeOn={videoCanvas}></PolyDraw>
+			</div>
 		</div>
+
 	</Fullscreen>
 
 	{#if videoPlayer}

@@ -34,6 +34,10 @@ function outline(context, rs, points)
 	context.stroke();
 }
 
+export function getOutline(points)
+{
+	return convexhull.makeHull(points);
+}
 
 /*
  * Convex hull algorithm - Library (compiled from TypeScript)

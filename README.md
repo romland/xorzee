@@ -23,6 +23,8 @@ A fast, high quality streamer and motion detector. It must run on the one core o
 - Should be able to detect neighbouring cameras live (and pass on to client as they come available)
 
 ## TODO now
+- add 'trigger areas' (polygons)
+- add 'signals' for triggering 'ding-dong', telegram, bonjour etc
 - refactor/move all the motion processing from MotionListener to MotionSender
 - biggest dilemma: CPU useage on client, need to minimize that somehow since I will want multiple cameras.
 	- Reducing resolution is no good as it gives us fewer macro blocks
@@ -37,9 +39,17 @@ A fast, high quality streamer and motion detector. It must run on the one core o
 - want to announce presence on bonjour when starting up (so we don't have to copy files on install)
 - start with auto-recording
 - send event over bonjour when auto-record starts?
+- make 'sending raw' configurable under advanced settings (default false)
 
 
 ## Future stuff (and ideas)
+- store (in meta) where motion was during the recorded clip (the tricky thing is the pre-buffer here)
+	frame 1: [ polygons... ]
+	frame 2: ...
+	- also store magnitude / frame in the meta
+- add 'signals' for triggering 'ding-dong', telegram, bonjour etc
+- telegram support:
+	https://gist.github.com/Sinequanonh/f5625a2807f89ce4f6634cd3b1ab65a0
 - be able to stream recordings to remote location (if failure, store locally)
 - Port MvrProcessor to a native node module (C/C++)
 - Write the client using Svelte (very plain atm)
@@ -67,8 +77,11 @@ A fast, high quality streamer and motion detector. It must run on the one core o
 - Remove 'http-server' dep on server
 - Rewrite/ditch avahi-dbus
 - Need better name
+	- call it aufero?
 - Go through misc directory: Set up service and docker (ditch the shell scripts)
 - Merge doc/notes.txt into README or another .md
+- Option to not stream video (and only stream when there is activity) -- can still stream motion
+- Recording simulation should be moved into Recorder actually (realized this late as it propagated outside of MotionRuleEngine)
 
 ## Misc notes for myself now
 - For Avahi DBUS API:
