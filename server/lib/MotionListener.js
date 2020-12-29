@@ -146,7 +146,10 @@ class MotionListener
 
                     bl.consume(this.frameLength);
 
-                    this.motionSender.broadcastRaw(frameData, this.frameLength, true);
+					if(this.conf.get("sendRaw") === true) {
+	                    this.motionSender.broadcastRaw(frameData, this.frameLength, true);
+					}
+
                     this.motionSender.broadcastMessage(
                         {
                             clusters : clusters,

@@ -195,6 +195,7 @@ const settingsFile = path.resolve("../mintymint.config");
 
 			// Individual vectors
 			vectorMinMagnitude 		: 2,							// Minimum magnitude of a vector to be deemed moving
+			sendRaw					: false,						// Whether to pass raw vectors to client (debug -- enable RENDER_RAW on client too)
 		});
 
 
