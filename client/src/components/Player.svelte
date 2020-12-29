@@ -111,7 +111,7 @@
 	function windowResized()
 	{
 		resizeMotionStream(motionCanvas, videoCanvas);
-		copyGeography(elt[0].target, polydrawContainer);
+		copyGeography(videoCanvas, polydrawContainer);
 	}
 
 	function toggleFullScreen(request, exit)
@@ -139,6 +139,20 @@
 		}
 	}
 
+	function setIgnoreArea(e)
+	{
+		console.log("TODO, pass ignore area to server:", e.detail.data);
+
+		sendMessage(
+			{
+				scope	: "motion",
+				verb	: "ignore",
+				data	: e.detail.data
+			}
+		);
+
+	}
+
 </script>
 
 	<svelte:window on:resize={windowResized}/>
@@ -149,7 +163,7 @@
 			<canvas on:dblclick={ () => toggleFullScreen(onRequest, onExit) } bind:this={motionCanvas}/>
 
 			<div id="polydrawContainer" style="width: 1200px; height: 1200px; z-index: 100; position: absolute; top: 10px; left: 10px;">
-				<PolyDraw placeOn={videoCanvas}></PolyDraw>
+				<PolyDraw placeOn={videoCanvas} on:complete={setIgnoreArea}></PolyDraw>
 			</div>
 		</div>
 
