@@ -148,31 +148,34 @@ const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 			recordhistory	: 20,									// Number of latest clips to report to clients
 
 			trackReasons	: false,								// Whether to track why start/stop recording did not trigger on a frame
-			simulateRecord	: false,								// If true, run only MotionRuleEngine, do not trigger Recorder (i.e. nothing written to disk)
+			simulateRecord	: true,								// If true, run only MotionRuleEngine, do not trigger Recorder (i.e. nothing written to disk)
 
-			// TODO: 
 			startRecordRequirements : {
 				activeTime			: 2000,			// ms
 				minFrameMagnitude	: 0,
 				minActiveBlocks		: 0,
 				minInterval			: 2000,							// Do not start recording again if we stopped a previous one less than this ago
+				// TODO:
 				// ability to specify area
 				// ability to specify min AND max density
+				// client should be able to pass these in...
 			},
 
 			stopRecordRequirements : {
 				stillTime			: 3000,
 				maxFrameMagnitude	: 0,
-				maxRecordTime		: 60000,		// + what is buffered (default one minute)
-				minRecordTime		: 0,			// - what is buffered
+				maxRecordTime		: 60000,						// + what is buffered. Default is one minute.
+				minRecordTime		: 0,							// - what is buffered
 				
 			},
 
 			// TODO: Used to trigger external programs (such as sound a bell or send a text)
 			signalRequirements : {
-				runAfterEvent		: false,
-				minInterval			: 10000,
-				// use startrecordrequirements unless specified
+				// uses startRecordRequirements to trigger
+				sendDefaultSignals	: true,							// Send whatever built-in signals (configurable elsewhere)
+				runAfterEvent		: false,						// Run when recording stops, not when it starts
+				minInterval			: 10000,						// Minimum time that needs to pass before triggering signal again
+				executeScript		: null,							// Execute a shell script
 			},
 
 			//
