@@ -126,13 +126,18 @@ class MotionRuleEngine
 	{
 		this._resetReasons();
 
-		let cs = this.mp.getActiveClusters();
+		const cs = this.mp.getActiveClusters();
+
+		const active = this.isActiveFrame(cs)
+
+		if(active) {
+			const fi = this.mp.getFrameInfo();
+			this._sendEvent("activity", fi);
+		}
 
 		if(!this.isRecording()) {
 			// Should we start recording?
-			if(this.isActiveFrame(cs)) {
-				this._sendEvent("activity", null);
-
+			if(active) {
 				if(this.isActivePeriod(cs)) {
 					this.startRecording();
 					return;

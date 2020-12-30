@@ -26,7 +26,7 @@ class VideoSender
 
 	broadcast(data)
 	{
-		if(this.conf.get("onlyActivity") && Date.now() > (this.lastActive + 1000)) {
+		if(this.conf.get("onlyActivity") && Date.now() > (this.lastActive + 2000)) {
 			return;
 		}
 
@@ -71,6 +71,9 @@ class VideoSender
             for (let i in this.headers) {
                 ws.send(this.headers[i]);
             }
+
+			// We always want to send a little when a new client connects
+			this.setActive();
 
             ws.on('close', (ws, id) => {
                 logger.debug('Video client disconnected. Viewers: %d', this.wsServer.clients.length);

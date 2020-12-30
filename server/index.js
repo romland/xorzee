@@ -124,6 +124,8 @@ const settingsFile = path.resolve("../mintymint.config");
 			videoport		: 8000,									// (internal) for camera (video)
 			motionport		: 8001,									// (internal) for camera (motion data)
 			onlyActivity	: true,									// Stream only when there is 'valid' activity (experimental!)
+																	// You will want to set 'minActiveBlocks' to 20 or so, depending on i
+																	// lighting conditions (there's always some noise)
 
 			// Webserver
 			wwwport			: 8080,									// (public) for client (web content)
@@ -163,7 +165,7 @@ const settingsFile = path.resolve("../mintymint.config");
 			startRecordRequirements : {
 				activeTime			: 2000,							// Time that needs to be active to trigger recording
 				minFrameMagnitude	: 0,							// Total magnitude to be beaten to start recording
-				minActiveBlocks		: 0,							// Total number of 'blocks'/vectors that need to be in play
+				minActiveBlocks		: 20,							// Total number of 'blocks'/vectors that need to be in play
 				minInterval			: 5000,							// Do not start recording again if we stopped a previous one less than this ago
 			},
 
