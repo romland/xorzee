@@ -1,15 +1,13 @@
 <script lang="ts">
 	import { createEventDispatcher, onMount, onDestroy } from 'svelte';
-	import Fullscreen from "./Fullscreen.svelte";
-	import BroadwayStats, { onNALunit } from "./BroadwayStats.svelte";
-	import PolyDraw from "./PolyDraw.svelte";
-	import PolyShow from "./PolyShow.svelte";
 	import { copyGeography } from "../lib/utils.js";
 
-	import {
-		start as startVideoStream
-	} from "../lib/stream-video";
-
+	import BroadwayStats, { onNALunit } from "./BroadwayStats.svelte";
+	import Fullscreen from "./Fullscreen.svelte";
+	import PolyDraw from "./PolyDraw.svelte";
+	import PolyShow from "./PolyShow.svelte";
+	import ScreenshotList from "./ScreenshotList.svelte";
+	import { start as startVideoStream } from "../lib/stream-video";
 	import {
 		start as startMotionStream,
 		onResize as resizeMotionStream,
@@ -19,11 +17,13 @@
 
 	// Set to true if client (the Svelte app) is hosted by localhost but streaming server (Raspi) is not.
 	const remoteServer = true;
+	// This only needs to be set to an address if above is true.
+	const remoteAddress = "192.168.178.67";
+	const wwwPort = 8080;
 	const videoStreamPort = 8081;
 	const motionStreamPort = 8082;
 	const reconnectInterval = 0;// 2000;		// set to 0 for no auto-reconnect
 
-	let settings = null;
 	let wsUrl;
 	let container;
 	let videoPlayer;
@@ -31,8 +31,13 @@
 	let motionCanvas;
 	let fullScreenState;
 
+	let settings = null;
+	let lastRecordings = [];
+
+	let remoteUrl = "";
 	if(remoteServer && window.location.hostname === "localhost") {
-		wsUrl = 'ws://192.168.178.67:';
+		wsUrl = `ws://${remoteAddress}:`;
+		remoteUrl = window.location.protocol + "//" + remoteAddress + ":" + wwwPort;
 	} else {
 		wsUrl = window.location.protocol.replace(/http/, 'ws') + '//' + window.location.hostname + ':';
 	}
@@ -71,6 +76,12 @@
 		if(msg.settings) {
 			console.log("Got settings from server");
 			settings = msg.settings;
+
+		}
+
+		if(msg.lastRecordings) {
+			console.log("Got lastRecordings from server");
+			lastRecordings = msg.lastRecordings;
 		}
 
 		console.log("handleServerMessage()", msg);
@@ -178,7 +189,6 @@
 				{/if}
 			</div>
 		</div>
-
 	</Fullscreen>
 
 	{#if videoPlayer}
@@ -189,12 +199,17 @@
 	<button on:click={btnRecordStop}>Stop recording</button>
 	<button on:click={reconfigureStream}>Reconfigure</button>
 	<button on:click={() => drawingIgnoreArea = !drawingIgnoreArea}>Toggle adding ignore area</button>
-
 	<input type="checkbox" on:change={toggleNotifications}/>Notifications
+
+	{#if settings}
+		<ScreenshotList server={remoteUrl} bind:dir={settings.recordpathwww} bind:items={lastRecordings}></ScreenshotList>
+	{/if}
+
 
 <style>
 	:global(canvas) {
 		border: 1px solid #eee;
 		margin-bottom: 20px;
+		width: 100%;
 	}
 </style>
