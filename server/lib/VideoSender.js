@@ -16,6 +16,7 @@ class VideoSender
 
 		this.wsServer = null;
 		this.headers = null;
+		this.lastActive = Date.now();
 	}
 
 	getClientCount()
@@ -25,6 +26,10 @@ class VideoSender
 
 	broadcast(data)
 	{
+		if(this.conf.get("onlyActivity") && Date.now() > (this.lastActive + 1000)) {
+			return;
+		}
+
         this.wsServer.clients.forEach((ws) => {
             if (ws.readyState === 1) {
                 ws.send(data, { binary: true });
@@ -36,6 +41,13 @@ class VideoSender
 	{
 		this.headers = h;
 	}
+
+
+	setActive()
+	{
+		this.lastActive = Date.now();
+	}
+
 
 	start()
 	{

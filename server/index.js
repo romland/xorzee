@@ -123,6 +123,7 @@ const settingsFile = path.resolve("../mintymint.config");
 			// Internal ports
 			videoport		: 8000,									// (internal) for camera (video)
 			motionport		: 8001,									// (internal) for camera (motion data)
+			onlyActivity	: true,									// Stream only when there is 'valid' activity (experimental!)
 
 			// Webserver
 			wwwport			: 8080,									// (public) for client (web content)
@@ -239,7 +240,6 @@ const settingsFile = path.resolve("../mintymint.config");
 
 	function handleMotionEvent(module, eventType, eventData, simulation = false)
 	{
-		logger.info("handleMotionEvent(): %s, %s", module, eventType);
 
 		if(module === "MotionRuleEngine") {
 			let meta;
@@ -257,6 +257,7 @@ const settingsFile = path.resolve("../mintymint.config");
 
 			switch(eventType) {
 				case "start" :
+					logger.info("handleMotionEvent(): %s, %s", module, eventType);
 					motionSender.broadcastMessage(
 						{
 							"event" : "startRecordingMotion",
@@ -267,6 +268,7 @@ const settingsFile = path.resolve("../mintymint.config");
 					break;
 
 				case "stop" :
+					logger.info("handleMotionEvent(): %s, %s", module, eventType);
 					motionSender.broadcastMessage(
 						{
 							"event" : "stopRecordingMotion",
@@ -281,6 +283,10 @@ const settingsFile = path.resolve("../mintymint.config");
 							"data" : videoListener.getRecorder().getLatestRecordings()
 						}
 					);
+					break;
+
+				case "activity" :
+					videoSender.setActive();
 					break;
 
 				default :

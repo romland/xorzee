@@ -144,19 +144,19 @@ class MotionListener
 
 					this.motionRuleEngine.processFrame(frameData, clusters);
 
-                    bl.consume(this.frameLength);
+					bl.consume(this.frameLength);
 
 					if(this.conf.get("sendRaw") === true) {
-	                    this.motionSender.broadcastRaw(frameData, this.frameLength, true);
+						this.motionSender.broadcastRaw(frameData, this.frameLength, true);
 					}
 
-                    this.motionSender.broadcastMessage(
-                        {
-                            clusters : clusters,
-                            history : this.mvrProcessor.getActiveClusters()
-                        }
-                    );
-                }
+					this.motionSender.broadcastMessage(
+						{
+							clusters : clusters,
+							history : this.mvrProcessor.getActiveClusters()
+						}
+					);
+				}
 
             });
 

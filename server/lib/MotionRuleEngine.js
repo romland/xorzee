@@ -131,6 +131,8 @@ class MotionRuleEngine
 		if(!this.isRecording()) {
 			// Should we start recording?
 			if(this.isActiveFrame(cs)) {
+				this._sendEvent("activity", null);
+
 				if(this.isActivePeriod(cs)) {
 					this.startRecording();
 					return;
