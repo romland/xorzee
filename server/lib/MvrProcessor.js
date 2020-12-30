@@ -95,6 +95,7 @@ class MvrProcessor
 				1,
 				true
 			);
+			this.preCalculateIgnoredArea();
 		} else {
 			this.ignoredArea = null;
 		}
@@ -322,14 +323,34 @@ class MvrProcessor
 		}
 	}
 
+	preCalculateIgnoredArea()
+	{
+		this.ignoredAreaLookup = { };
 
-	/**
-	 * This is the important one.
-	 * This is the one that modifies source data.
-	 * 
-	 * This is where we want to remove as little as possible yet reduce size as much 
-	 * as possible, use statistics to figure out what is useful and useless.
-	 */
+		if(!this.ignoredArea) {
+			return;
+		}
+
+		let i = 0;
+		let frameLength = this.getFrameSize();
+
+		let coord = {
+			x : 0,
+			y : 0
+		};
+
+		while(i < frameLength) {
+			coord.x = ( (i/4) % this.frameDataWidth);
+			coord.y = ( (i/4) / this.frameDataWidth);
+			if(this.inIgnoredArea(coord)) {
+				this.ignoredAreaLookup[i] = true;
+			}
+
+			i += 4;
+		}
+	}
+
+
 	processFrame(frameData, filterFlags)
 	{
 		this.outputCost();
@@ -340,6 +361,8 @@ class MvrProcessor
 		let frameLength = this.getFrameSize();
 		let loners = [];
 		let candidates = [];
+		let sendingRaw = this.conf.get("sendRaw");
+		let preFilterLoners = this.conf.get("preFilterLoners");
 
 		this.resetFrameInfo();
 
@@ -348,59 +371,52 @@ class MvrProcessor
 			filterFlags = MvrFilterFlags.DX_DY_LT_2 | MvrFilterFlags.FRAME_MAGNITUDE_400_INCREASE | MvrFilterFlags.MAGNITUDE_LT_300;
 		}
 
-		let coord = { x : 0, y : 0 };
-
 		then = Date.now();
 		//console.time("filterVectors");
 		while(i < frameLength) {
-			this.getMotionVectorAt(frameData, i, this.mv);
-
-			coord.x = ( (i/4) % this.frameDataWidth);
-			coord.y = ( (i/4) / this.frameDataWidth);
-
-// TODO: Make a (fast) lookup table of ignored-area (can do it when we reconfigure even!)
-
-			// This would _technically_ belong in MotionRuleEngine. The gains to be had
-			// to have it in here were too much to ignore.
-			if(this.ignoredArea && this.inIgnoredArea(coord)) {
+			if(this.ignoredArea !== null && this.ignoredAreaLookup[i] === true) {
 				this.frameInfo.ignoredVectors++;
 				i += 4;
 				continue;
 			}
 
+			this.getMotionVectorAt(frameData, i, this.mv);
 
-			if(true && this.mv.mag >= this.minMagnitude && this.isLoner(frameData, i)) {
+			if(preFilterLoners && this.mv.mag >= this.minMagnitude && this.isLoner(frameData, i)) {
 				loners.push(i);
 			} else if(this.mv.mag > this.minMagnitude) {
 				candidates.push(
 					{
-						x : coord.x,
-						y : coord.y
+						x : ( (i/4) % this.frameDataWidth),
+						y : ( (i/4) / this.frameDataWidth)
 					}
 				);
 			}
 
-			if((filterFlags & MvrFilterFlags.DX_DY_LT_2) === MvrFilterFlags.DX_DY_LT_2) {
-				// 0x01
-				if(Math.abs(this.mv.dx) < this.minMagnitude && Math.abs(this.mv.dy) < this.minMagnitude) {
-					// Zero out this complete vector
-					frameData.writeInt32LE(0, i); // WARNING: Changes the dataset!
-					this.mv.dx = 0;
-					this.mv.dy = 0;
-					this.mv.sad = 0;
-					this.mv.dir = 0;
-					this.mv.mag = 0;
+			if(sendingRaw) {
+				if((filterFlags & MvrFilterFlags.DX_DY_LT_2) === MvrFilterFlags.DX_DY_LT_2) {
+					// 0x01
+					if(Math.abs(this.mv.dx) < this.minMagnitude && Math.abs(this.mv.dy) < this.minMagnitude) {
+						// Zero out this complete vector
+						frameData.writeInt32LE(0, i); // WARNING: Changes the dataset!
+						this.mv.dx = 0;
+						this.mv.dy = 0;
+						this.mv.sad = 0;
+						this.mv.dir = 0;
+						this.mv.mag = 0;
+					}
 				}
-			}
 
-			if((filterFlags & MvrFilterFlags.NO_SAD) === MvrFilterFlags.NO_SAD) {
-				// 0x02: zero out SAD of the vector
-				frameData.writeInt16LE(0, i+2); // WARNING: Changes the dataset!
+				if((filterFlags & MvrFilterFlags.NO_SAD) === MvrFilterFlags.NO_SAD) {
+					// 0x02: zero out SAD of the vector
+					frameData.writeInt16LE(0, i+2); // WARNING: Changes the dataset!
+				}
 			}
 
 			this.frameInfo.totalMagnitude += this.mv.mag;
 			i += 4;
 		} // each vector
+
 		//console.timeEnd("filterVectors");
 		this.stats.cost.filterVectors += Date.now() - then;
 
@@ -419,7 +435,9 @@ class MvrProcessor
 				//return;
 
 				// Zero out frames that are motion-flashes [flash-rem in compression results]
-				frameData.fill(0);	// WARNING: Changes the dataset!
+				if(sendingRaw) {
+					frameData.fill(0);	// WARNING: Changes the dataset!
+				}
 				this.frameInfo.nullFrame = true;
 			}
 			// -- flash check
@@ -431,7 +449,9 @@ class MvrProcessor
 			// so tweak/verify to hearts content!
 			if(this.frameInfo.totalMagnitude < 300) {
 				this.stats.ignoredFrames++;
-				frameData.fill(0);	// WARNING: Changes the dataset!
+				if(sendingRaw) {
+					frameData.fill(0);	// WARNING: Changes the dataset!
+				}
 				this.frameInfo.nullFrame = true;
 			}
 		}
@@ -443,7 +463,10 @@ class MvrProcessor
 
 			for(let i = 0; i < loners.length; i++) {
 				// TODO: Decrease this.frameInfo.totalMagnitude equivalent to the vectors we remove
-				frameData.writeInt32LE(0, loners[i]); // WARNING: Changes the dataset!
+
+				if(sendingRaw) {
+					frameData.writeInt32LE(0, loners[i]); // WARNING: Changes the dataset!
+				}
 			}
 
 			// =============== clustering
@@ -483,14 +506,16 @@ class MvrProcessor
 			//console.time("clustering");
 			then = Date.now();
 			let dbscanner = jdbscan()
-				//.eps(2)
-				//.minPts(4)
 				.eps(this.conf.get("clusterEpsilon"))
 				.minPts(this.conf.get("clusterMinPoints"))
+				/*
 				.distance((p1, p2) => {
-//					return Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
-					return Math.abs(p1.x - p2.x) + Math.abs(p1.y - p2.y)
-				})
+						return Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
+						//return Math.abs(p1.x - p2.x) + Math.abs(p1.y - p2.y)
+					}
+				)
+				*/
+				.distance(this.conf.get("clusterDistancing"))
 				.data(candidates);
 			let results = dbscanner();
 			//console.timeEnd("clustering");

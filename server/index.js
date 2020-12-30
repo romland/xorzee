@@ -192,6 +192,8 @@ const settingsFile = path.resolve("../mintymint.config");
 			// Cluster definition
 			clusterEpsilon			: 2,							// The max distance (manhattan) to include points in a cluster (DBscan)
 			clusterMinPoints		: 4,							// The min number of points to be classified as a cluster (DBscan)
+			clusterDistancing		: 'MANHATTAN',					// MANHATTAN or EUCLIDEAN
+			preFilterLoners			: false,						// Whether to filter out loners before density scan to (_possibly_) make clustering cheaper
 
 			// Historical clusters
 			discardInactiveAfter	: 2000,							// If a cluster was still for longer than this, discard it
@@ -200,7 +202,7 @@ const settingsFile = path.resolve("../mintymint.config");
 			vectorMinMagnitude 		: 2,							// Minimum magnitude of a vector to be deemed moving
 			sendRaw					: false,						// Whether to pass raw vectors to client (debug -- enable RENDER_RAW on client too)
 
-			// Performance output
+			// Performance output/tests
 			outputMotionCost		: 100,							// Output motion performance averages every N frames (0 = disabled)
 		});
 
