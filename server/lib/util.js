@@ -33,7 +33,7 @@ class Util
 			data[s] = settings[s];
 		}
 
-		fs.writeFileSync(fileName, JSON.stringify(data));
+		fs.writeFileSync(fileName, JSON.stringify(data, null, 4));
 
 		logger.debug("Wrote %s with partial settings: %o", fileName, settings);
 		return true;
