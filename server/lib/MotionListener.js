@@ -113,6 +113,9 @@ class MotionListener
                         break;
                     }
 
+					//console.log("===");
+					//console.time("motionFrameTotal");
+
 //                    if(skipMotionFramesAtStart > frameCount++) {
 					if(skip) {
 //                        logger.debug("Skipping motion frame %d/%d...", frameCount, skipMotionFramesAtStart);
@@ -135,14 +138,16 @@ class MotionListener
                     //frameData = bl.shallowSlice(0, frameLength);      // argh, this does not expose fill() -- oh well, a memory copy then :(
                     frameData = bl.slice(0, this.frameLength);
 
-					//console.time("processFrame");
+//					console.time("processFrame");
                     clusters = this.mvrProcessor.processFrame(
                         frameData,
                         MvrFilterFlags.MAGNITUDE_LT_300 | MvrFilterFlags.DX_DY_LT_2 | MvrFilterFlags.FRAME_MAGNITUDE_400_INCREASE
                     );
-					//console.timeEnd("processFrame");
+//					console.timeEnd("processFrame");
 
+					//console.time("motionRuleEngine.processFrame");
 					this.motionRuleEngine.processFrame(frameData, clusters);
+					//console.timeEnd("motionRuleEngine.processFrame");
 
 					bl.consume(this.frameLength);
 
@@ -156,6 +161,8 @@ class MotionListener
 							history : this.mvrProcessor.getActiveClusters()
 						}
 					);
+
+					//console.timeEnd("motionFrameTotal");
 				}
 
             });

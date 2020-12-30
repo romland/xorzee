@@ -42,6 +42,12 @@ class MvrProcessor
 			previousFrameMagTotal : 0,
 			motionFlashes : 0,
 			ignoredFrames : 0,
+
+			cost : {
+				filterVectors : 0,
+				clustering : 0,
+				reducing : 0,
+			}
 		};
 
 
@@ -300,6 +306,23 @@ class MvrProcessor
 	}
 
 
+	outputCost()
+	{
+		if(this.conf.get("outputMotionCost") === 0) {
+			return;
+		}
+
+		if(this.stats.frameCount > 0 && (this.stats.frameCount % this.conf.get("outputMotionCost")) === 0) {
+			this.stats.averageCost = {
+				filterVectors : (this.stats.cost.filterVectors / this.stats.frameCount),
+				clustering : (this.stats.cost.clustering / this.stats.frameCount),
+				reducing :  (this.stats.cost.reducing / this.stats.frameCount),
+			};
+			console.log(this.stats);
+		}
+	}
+
+
 	/**
 	 * This is the important one.
 	 * This is the one that modifies source data.
@@ -309,6 +332,9 @@ class MvrProcessor
 	 */
 	processFrame(frameData, filterFlags)
 	{
+		this.outputCost();
+
+		let then;	// used for measuring cost and temporal tracking
 		let i = 0;
 		let previousFrameMagTotal = 0;
 		let frameLength = this.getFrameSize();
@@ -324,7 +350,8 @@ class MvrProcessor
 
 		let coord = { x : 0, y : 0 };
 
-//		console.time("filterVectors");
+		then = Date.now();
+		//console.time("filterVectors");
 		while(i < frameLength) {
 			this.getMotionVectorAt(frameData, i, this.mv);
 
@@ -374,10 +401,11 @@ class MvrProcessor
 			this.frameInfo.totalMagnitude += this.mv.mag;
 			i += 4;
 		} // each vector
-//		console.timeEnd("filterVectors");
+		//console.timeEnd("filterVectors");
+		this.stats.cost.filterVectors += Date.now() - then;
 
 
-//		console.time("filterFrame");
+		//console.time("filterFrame");
 		if((filterFlags & MvrFilterFlags.FRAME_MAGNITUDE_400_INCREASE) === MvrFilterFlags.FRAME_MAGNITUDE_400_INCREASE) {
 			// 400% increase in motion compared to last frame -- get this from encoder sometimes 
 			// (is it camera? something else? what do these vectors look like?)
@@ -407,7 +435,7 @@ class MvrProcessor
 				this.frameInfo.nullFrame = true;
 			}
 		}
-//		console.timeEnd("filterFrame");
+		//console.timeEnd("filterFrame");
 
 
 		let clusters = [];
@@ -433,7 +461,8 @@ class MvrProcessor
 
 			this.frameInfo.candidates = candidates.length;
 
-//			console.time("reducing");
+			//console.time("reducing");
+			then = Date.now();
 			if(candidates.length > (targetCandidates * 1.25)) {
 				reductionFactor = Math.floor(candidates.length / targetCandidates);
 				let reducedCandidates = [];
@@ -447,10 +476,12 @@ class MvrProcessor
 				reduced = true;
 				candidates = reducedCandidates;
 			}
-//			console.timeEnd("reducing");
+			//console.timeEnd("reducing");
+			this.stats.cost.reducing += Date.now() - then;
 
 
-//			console.time("clustering");
+			//console.time("clustering");
+			then = Date.now();
 			let dbscanner = jdbscan()
 				//.eps(2)
 				//.minPts(4)
@@ -462,9 +493,11 @@ class MvrProcessor
 				})
 				.data(candidates);
 			let results = dbscanner();
-//			console.timeEnd("clustering");
+			//console.timeEnd("clustering");
 
-//			console.time("boundingbox");
+			this.stats.cost.clustering += Date.now() - then;
+
+			//console.time("boundingbox");
 			let id, cluster;
 			for(let i = 0; i < results.length; i++) {
 				id = results[i];
@@ -496,21 +529,21 @@ class MvrProcessor
 			if(clusters.length > 0) {
 				clusters.splice(0, 1);
 			}
-//			console.timeEnd("boundingbox");
+			//console.timeEnd("boundingbox");
 			// ================ /clustering
 
 
 			// ================ remove clusters within others
-//			console.time("insidereduction");
+			//console.time("insidereduction");
 			for(let i = 0; i < clusters.length; i++) {
 				if(this.isWithin(clusters[i], clusters, i)) {
 					clusters[i].within = true;
 				} else {
 					// Cluster is not discarded
-					this.trackTemporal(clusters[i]);
+					this.trackTemporal(clusters[i], then);
 				}
 			}
-//			console.timeEnd("insidereduction");
+			//console.timeEnd("insidereduction");
 			// ================ /cluster removal
 
 
@@ -522,9 +555,11 @@ class MvrProcessor
 		previousFrameMagTotal = this.frameInfo.totalMagnitude;
 		this.stats.frameCount++;
 
+		//console.time("temporalExpiration");
 		if(this.history.length > 0) {
-			this.temporalExpiration();
+			this.temporalExpiration(then);
 		}
+		//console.timeEnd("temporalExpiration");
 
 		return clusters;
 	} // processFrame
@@ -539,11 +574,8 @@ class MvrProcessor
 	/**
 	 * overlapping is the cluster in history
 	 */
-	trackTemporal(cluster)
+	trackTemporal(cluster, now)
 	{
-		// TODO: Move out of this scope
-		const now = Date.now();
-
 		let overlapping = this.overlapsAny(cluster, this.history);
 		if(overlapping !== false) {
 			// update cluster in history
@@ -574,11 +606,10 @@ class MvrProcessor
 
 	// discardInactiveAfter
 	// Expire ones that have had no activity for expireAfter ms
-	temporalExpiration()
+	temporalExpiration(now)
 	{
 		// TODO: Move out of this scope
 		const expireAfter = this.conf.get("discardInactiveAfter");
-		const now = Date.now();
 
 		for(let i = this.history.length - 1; i >= 0; i--) {
 			if((now - this.history[i].active) > expireAfter) {
