@@ -21,21 +21,22 @@ A fast, high quality streamer and motion detector. It must run on the one core o
 - ...modern web-client that can handle multiple cameras
 
 ## Quick do's
-- make 'sending raw' configurable under advanced settings (default false)
-- store (in meta) where motion was during the recorded clip (the tricky thing is the pre-buffer here)
-	frame 1: [ polygons... ]
-	frame 2: ...
-	- also store magnitude / frame in the meta
 - Write a small script to install ffmpeg
 - Write a small script to configure basics (just set a unique name should do it?) -- allow this in client too
-- Remove 'http-server' dep on server
 - Rewrite/ditch avahi-dbus
 - Need better name
 	- call it aufero?
-- Go through misc directory: Set up service and docker (ditch the shell scripts)
+- make a '... | bash' script (host on github)
+- set up a service (service file)
 - Merge doc/notes.txt into README or another .md
+- store (in meta) where motion was during the recorded clip (the tricky thing is the pre-buffer here)
+	frame 1: [ points... ]
+	frame 2: ...
+	- also store magnitude / frame in the meta
 
 ## TODO
+- test ffmpeg encoding on gpu (for scaling downwards -- can we get away with it on multiple cores?)
+- render overlay every frame (to facilitate animations)
 - add 'signals' for triggering 'ding-dong', telegram, bonjour etc
 - biggest dilemma: CPU useage on client, need to minimize that somehow since I will want multiple cameras.
 	- Reducing resolution is no good as it gives us fewer macro blocks
@@ -116,3 +117,7 @@ A fast, high quality streamer and motion detector. It must run on the one core o
 - want to announce presence on bonjour when starting up (so we don't have to copy files on install)
 - start with auto-recording
 - Write the client using Svelte (very plain atm)
+- make 'sending raw' configurable under advanced settings (default false)
+- test: maybe simply not stream video if there is no motion? How will Broadway handle that?
+- Remove 'http-server' dep on server
+- clear up misc directory
