@@ -23,18 +23,25 @@ A fast, high quality streamer and motion detector. It must run on the one core o
 ## Quick do's
 - Write a small script to install ffmpeg
 - Write a small script to configure basics (just set a unique name should do it?) -- allow this in client too
-- Rewrite/ditch avahi-dbus
-- Need better name
-	- call it aufero?
+- get rid of 'bl'
+- Need better name: call it aufero?
 - make a '... | bash' script (host on github)
 - set up a service (service file)
 - Merge doc/notes.txt into README or another .md
-- store (in meta) where motion was during the recorded clip (the tricky thing is the pre-buffer here)
+- recordings: store (in meta) where motion was during the recorded clip (the tricky thing is the pre-buffer here)
 	frame 1: [ points... ]
 	frame 2: ...
 	- also store magnitude / frame in the meta
 
 ## TODO
+- biggest issue right now:
+	- filterVectors / clustering on busy frames take too long for a poor RaspiZero. Will need to 
+	  optimize before continuing with features.
+	- need a good reproducable(-ish) way to measure improvements (easy way: just measure 1k frames
+	  and avg. cost?)
+
+- Rewrite/ditch avahi-dbus
+- measure disk speed (to see if SD card) as to whether to record things by default
 - test ffmpeg encoding on gpu (for scaling downwards -- can we get away with it on multiple cores?)
 - render overlay every frame (to facilitate animations)
 - add 'signals' for triggering 'ding-dong', telegram, bonjour etc

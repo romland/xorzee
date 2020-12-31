@@ -19,6 +19,7 @@
 	const remoteServer = true;
 	// This only needs to be set to an address if above is true.
 	const remoteAddress = "192.168.178.67";
+	// const remoteAddress = "192.168.178.194";
 	const wwwPort = 8080;
 	const videoStreamPort = 8081;
 	const motionStreamPort = 8082;

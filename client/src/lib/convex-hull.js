@@ -26,6 +26,7 @@ function outline(context, rs, points)
 	context.beginPath();
 	context.moveTo(outline[0].x * rs, outline[0].y * rs);
 	for (var i = 0; i < outline.length; i++) {
+		outline[i].x += 1;		// XXX: At some point we have a one-off error in visualization. We fix it here :(
 		context.lineTo(outline[i].x * rs, outline[i].y * rs);
 	}
 	context.lineTo(outline[0].x * rs, outline[0].y * rs);
