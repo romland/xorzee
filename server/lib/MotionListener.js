@@ -20,15 +20,14 @@ const MotionRuleEngine = require("./MotionRuleEngine").default;
 const pino = require('pino');
 const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 
-// TODO: Make configurable
-const SKIP_AT_START = 600;	// ms
-
 class MotionListener
 {
 	constructor(conf, motionSender, videoListener, eventCallback)
 	{
 		this.conf = conf;
 		this.motionSender = motionSender;
+
+		this.startupIgnoreTime = this.conf.get("startupIgnore");
 
 		this.vectorsPerLine = Util.getVecWidth(this.conf.get("width"));
 		this.vectorLines = Util.getVecHeight(this.conf.get("height")); 
@@ -127,7 +126,7 @@ class MotionListener
 					if(skip) {
 						logger.debug("Skipping motion frame (starting up)...");
                         bl.consume(this.frameLength);
-						if(Date.now() > (started + SKIP_AT_START)) {
+						if(Date.now() > (started + this.startupIgnoreTime)) {
 							skip = false;
 						}
                         return;

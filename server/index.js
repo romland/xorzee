@@ -123,9 +123,6 @@ const settingsFile = path.resolve("../mintymint.config");
 			// Internal ports
 			videoport		: 8000,									// (internal) for camera (video)
 			motionport		: 8001,									// (internal) for camera (motion data)
-			onlyActivity	: true,									// Stream only when there is 'valid' activity (experimental!)
-																	// You will want to set 'minActiveBlocks' to 20 or so, depending on i
-																	// lighting conditions (there's always some noise)
 
 			// Webserver
 			wwwport			: 8080,									// (public) for client (web content)
@@ -135,6 +132,9 @@ const settingsFile = path.resolve("../mintymint.config");
 			videowsport		: 8081,									// (public) for client (stream)
 			motionwsport	: 8082,									// (public) for client (motion stream)
 			wsclientlimit	: 100,									// max number clients allowed
+			onlyActivity	: true,									// Stream only _video_ when there is 'valid' activity (experimental!)
+																	// You will want to set 'minActiveBlocks' to 20 or so, depending on i
+																	// lighting conditions (there's always some noise).
 
 			// Discovery settings
 			servicename		: "MintyMint",							// You want to have this the same on ALL your devices (unless you want to group them)
@@ -144,9 +144,9 @@ const settingsFile = path.resolve("../mintymint.config");
 			// Video settings
 			bitrate			: 1700000,								// Bitrate of video stream
 			framerate		: 24,									// 30 FPS seems to be a bit high for single core - let's go for Hollywood standard!
-//framerate		: 1,									// 30 FPS seems to be a bit high for single core
 			width			: 1920,									// Video stream width (the higher resolution, the more exact motion tracking)
 			height			: 1080,									// Video stream height
+			startupIgnore	: 600,									// How long we should ignore data from camera after starting up (ms)
 
 			// Ignore
 			ignoreArea		: [],									// If setting manually, remember resolution should be 1920x1088.
