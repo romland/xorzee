@@ -377,7 +377,7 @@ class MvrProcessor
 
 		let then;	// used for measuring cost and temporal tracking
 		let i = 0;
-		let previousFrameMagTotal = 0;
+//		let previousFrameMagTotal = 0;
 		let frameLength = this.getFrameSize();
 		let loners = [];
 		let candidates = [];
@@ -447,7 +447,7 @@ class MvrProcessor
 			// (is it camera? something else? what do these vectors look like?)
 			// I see similarities to a SAD rendering in these flashes -- can I use that as a 
 			// template to figure out whether to filter?
-			if(previousFrameMagTotal > 0 && this.frameInfo.totalMagnitude > (previousFrameMagTotal * 4)) {
+			if(this.stats.previousFrameMagTotal > 0 && this.frameInfo.totalMagnitude > (this.stats.previousFrameMagTotal * 4)) {
 				// A motion flash!
 				this.stats.motionFlashes++;
 				
@@ -610,7 +610,7 @@ class MvrProcessor
 		}
 
 
-		previousFrameMagTotal = this.frameInfo.totalMagnitude;
+		this.stats.previousFrameMagTotal = this.frameInfo.totalMagnitude;
 		this.stats.frameCount++;
 
 		//console.time("temporalExpiration");
