@@ -28,9 +28,19 @@ const jDBSCAN = function() {
 			if (point_idx === i) {
 				continue;
 			}
-			if (distance(data[i], d) <= eps) {
+
+//			if (distance(data[i], d) <= eps) {
+//				neighbours.push(i);
+//			}
+			// The pre-check before calling distance here will actually cut execution time down to 50%.
+			// It also seems to make execution time a little more predictable.
+			// The downside is that it makes epsilon mean something else now.
+			if(Math.abs(data[i].x - d.x) < eps
+				&& Math.abs(data[i].y - d.y) < eps
+				&& distance(data[i], d) <= eps) {
 				neighbours.push(i);
 			}
+
 		}
 
 		return neighbours;
@@ -46,7 +56,7 @@ const jDBSCAN = function() {
 		for (let i = 0; i < neighbours.length; i++) {
 			curr_point_idx = neighbours[i];
 
-			if (status[curr_point_idx] === undefined) {
+			if (status[curr_point_idx] === 0xffff) {
 				status[curr_point_idx] = 0; // visited and marked as noise by default
 				curr_neighbours = get_region_neighbours(curr_point_idx);
 				curr_num_neighbours = curr_neighbours.length;
@@ -65,13 +75,13 @@ const jDBSCAN = function() {
 	}
 
 	let dbscan = function() {
-		status = [];
+		status = new Uint16Array(data.length).fill(0xffff);//[];
 		clusters = [];
 
 		let neighbours, num_neighbours, cluster_idx;
 
 		for (let i = 0; i < data.length; i++) {
-			if (status[i] === undefined) {
+			if (status[i] === 0xffff) {
 				status[i] = 0; // visited and marked as noise by default
 				neighbours = get_region_neighbours(i);
 				num_neighbours = neighbours.length;

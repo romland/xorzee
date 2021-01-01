@@ -21,6 +21,7 @@ const pino = require('pino');
 const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 
 //const skipMotionFramesAtStart = 17;
+// TODO: Make configurable
 const SKIP_AT_START = 600;	// ms
 
 class MotionListener

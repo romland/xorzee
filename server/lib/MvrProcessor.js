@@ -47,6 +47,7 @@ class MvrProcessor
 				filterVectors : 0,
 				clustering : 0,
 				reducing : 0,
+				maxClusteringCost : 0,
 			}
 		};
 
@@ -281,6 +282,21 @@ class MvrProcessor
 			return false;
 
 		// TODO: check diagonals
+        // Left Above
+        if(y > 0 && x > 0 && this.isMover(frameData, index - w4 - 4))
+            return false;
+
+        // Right Above
+        if(y > 0 && x < (this.frameDataWidth-1) && this.isMover(frameData, index - w4 + 4))
+            return false;
+
+        // Left Below
+        if(y < (this.frameDataHeight-1) && x > 0 && this.isMover(frameData, index + w4 - 4))
+            return false;
+
+        // Right Below
+        if(y < (this.frameDataHeight-1) && x < (this.frameDataWidth - 1) && this.isMover(frameData, index + w4 + 4))
+            return false;
 
 		return true;
 	}
@@ -371,6 +387,8 @@ class MvrProcessor
 			filterFlags = MvrFilterFlags.DX_DY_LT_2 | MvrFilterFlags.FRAME_MAGNITUDE_400_INCREASE | MvrFilterFlags.MAGNITUDE_LT_300;
 		}
 
+		let x,y;
+
 		then = Date.now();
 		//console.time("filterVectors");
 		while(i < frameLength) {
@@ -385,12 +403,10 @@ class MvrProcessor
 			if(preFilterLoners && this.mv.mag >= this.minMagnitude && this.isLoner(frameData, i)) {
 				loners.push(i);
 			} else if(this.mv.mag > this.minMagnitude) {
-				candidates.push(
-					{
-						x : ( (i/4) % this.frameDataWidth),
-						y : ( (i/4) / this.frameDataWidth)
-					}
-				);
+				x = ( (i/4) % this.frameDataWidth);
+				y = Math.floor( (i/4) / this.frameDataWidth);
+
+				candidates.push( { x : x, y : y } );
 			}
 
 			if(sendingRaw) {
@@ -520,9 +536,26 @@ class MvrProcessor
 			let results = dbscanner();
 			//console.timeEnd("clustering");
 
-			this.stats.cost.clustering += Date.now() - then;
+			let cost = Date.now() - then;
+			this.stats.cost.clustering += cost;
+			if(cost > this.stats.cost.maxClusteringCost) {
+				this.stats.cost.maxClusteringCost = cost;
+			}
 
 			//console.time("boundingbox");
+
+			/*
+			 * On clustering:
+			 * Returns array 'results' (of same size as candidates):
+			 *
+			 *	if results[i] is 0 = noise
+			 *	oterhwise results[i] = a cluster id
+			 *		and 'i' = index of the candidate in 'candidates'
+			 *
+			 *	we then take candidates[i] and throw that into a grouped
+			 *	collection. Ie. cluster[cluster-id] = [ candidates... ]
+			 */
+
 			let id, cluster;
 			for(let i = 0; i < results.length; i++) {
 				id = results[i];

@@ -144,7 +144,7 @@ const settingsFile = path.resolve("../mintymint.config");
 			// Video settings
 			bitrate			: 1700000,								// Bitrate of video stream
 			framerate		: 24,									// 30 FPS seems to be a bit high for single core - let's go for Hollywood standard!
-//framerate		: 2,									// 30 FPS seems to be a bit high for single core
+//framerate		: 1,									// 30 FPS seems to be a bit high for single core
 			width			: 1920,									// Video stream width (the higher resolution, the more exact motion tracking)
 			height			: 1080,									// Video stream height
 
