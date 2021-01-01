@@ -40,6 +40,14 @@ class MotionListener
 		this.motionRuleEngine = new MotionRuleEngine(conf, this.mvrProcessor, videoListener, eventCallback);
 		this.motionRuleEngine.start();
 
+		this.cost = {
+			frameCount : 0,
+			processFrameCostTot : 0,
+			processFrameCostAvg : 0,
+			processFrameCostMin : 1000,
+			processFrameCostMax : 0
+		};
+
 		this.stop = false;
 	}
 
@@ -96,6 +104,7 @@ class MotionListener
 
 			let skip = true;
 			let started = Date.now();
+			let cost;
 
             socket.on('data', (data) => {
 				if(this.stop) {
@@ -127,6 +136,8 @@ class MotionListener
 						}
                         return;
                     }
+
+					cost = Date.now();
 
                     // Protect against eating too much damn memory if we are too slow.
                     if(bl.length > this.frameLength * 3) {
@@ -163,8 +174,18 @@ class MotionListener
 						}
 					);
 
+					this.cost.frameCount++;
+					cost = Date.now() - cost;
+					this.cost.processFrameCostTot += cost;
+					this.cost.processFrameCostAvg = this.cost.processFrameCostTot / this.cost.frameCount;
+					if(cost < this.cost.processFrameCostMin) this.cost.processFrameCostMin = cost;
+					if(cost > this.cost.processFrameCostMax) this.cost.processFrameCostMax = cost;
+
 					//console.timeEnd("motionFrameTotal");
-				}
+					if(this.conf.get("outputMotionCost") > 0 && (this.cost.frameCount % this.conf.get("outputMotionCost")) === 0) {
+						console.log(this.cost);
+					}
+				} // once per frame
 
             });
 

@@ -24,6 +24,11 @@ const jDBSCAN = function() {
 		let i = 0;
 		let dlen = data.length;
 
+/*
+XXX
+can get rid of the point_idx check in every iteration by making two loops
+*/
+
 		for (; i < dlen; i++) {
 			if (point_idx === i) {
 				continue;
