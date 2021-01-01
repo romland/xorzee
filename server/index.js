@@ -192,7 +192,7 @@ const settingsFile = path.resolve("../mintymint.config");
 			// Cluster definition
 			clusterEpsilon			: 2,							// The max distance (manhattan) to include points in a cluster (DBscan)
 			clusterMinPoints		: 4,							// The min number of points to be classified as a cluster (DBscan)
-			clusterDistancing		: 'MANHATTAN',					// MANHATTAN or EUCLIDEAN
+			clusterDistancing		: 'Manhattan',					// MANHATTAN or EUCLIDEAN
 			preFilterLoners			: false,						// Whether to filter out loners before density scan to (_possibly_) make clustering cheaper
 
 			// Historical clusters

@@ -20,7 +20,6 @@ const MotionRuleEngine = require("./MotionRuleEngine").default;
 const pino = require('pino');
 const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 
-//const skipMotionFramesAtStart = 17;
 // TODO: Make configurable
 const SKIP_AT_START = 600;	// ms
 
@@ -98,7 +97,6 @@ class MotionListener
 
             let bl = new BufferListStream();
             let frameData = null;
-//			let frameCount = 0;
             let clusters = null;
             let str;
 
@@ -126,9 +124,7 @@ class MotionListener
 					//console.log("===");
 					//console.time("motionFrameTotal");
 
-//                    if(skipMotionFramesAtStart > frameCount++) {
 					if(skip) {
-//                        logger.debug("Skipping motion frame %d/%d...", frameCount, skipMotionFramesAtStart);
 						logger.debug("Skipping motion frame (starting up)...");
                         bl.consume(this.frameLength);
 						if(Date.now() > (started + SKIP_AT_START)) {
@@ -147,19 +143,15 @@ class MotionListener
                         } while(bl.length > (this.frameLength * 3))
                     }
 
-                    //frameData = bl.shallowSlice(0, frameLength);      // argh, this does not expose fill() -- oh well, a memory copy then :(
+					// Can I avoid this slice somehow?
                     frameData = bl.slice(0, this.frameLength);
 
-//					console.time("processFrame");
                     clusters = this.mvrProcessor.processFrame(
                         frameData,
                         MvrFilterFlags.MAGNITUDE_LT_300 | MvrFilterFlags.DX_DY_LT_2 | MvrFilterFlags.FRAME_MAGNITUDE_400_INCREASE
                     );
-//					console.timeEnd("processFrame");
 
-					//console.time("motionRuleEngine.processFrame");
 					this.motionRuleEngine.processFrame(frameData, clusters);
-					//console.timeEnd("motionRuleEngine.processFrame");
 
 					bl.consume(this.frameLength);
 
