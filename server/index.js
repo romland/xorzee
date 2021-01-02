@@ -21,7 +21,7 @@ const StandardSignals = motsig.StandardSignals;
 const pino = require('pino');
 const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 
-const settingsFile = path.resolve("../mintymint.config");
+const settingsFile = path.resolve("../conf/mintymint.config");
 
 	var camera;
 	var webServer;
@@ -119,7 +119,7 @@ const settingsFile = path.resolve("../mintymint.config");
 		/**
 		 * Let a config file override defaults...
 		 */
-		conf.file( { file: settingsFile });
+		conf.file( { file: settingsFile, format: require('hjson') });
 
 		/**
 		 * Command line arguments / options
