@@ -11,10 +11,11 @@ A fast, high quality streamer and motion detector. The goal is that it must run 
 - [x] ...save motion-sequences (video) to disk
 - [x] ...make thumbnails of of motion sequences
 - [x] ...discover all other cameras on the network
-- [x] ...signal external programs on activity
+- [x] ...optionally play audio, invoke remote URL or send mail on activity
+- [x] ...optionally signal an external programs on activity
 - [x] ...highly configurable (but sane out of the box)
-- [ ] ...connect to any camera on the network and the others are available
 - [ ] ...modern web-client that can handle multiple cameras
+- [ ] ...connect to any camera on the network to access _all_ cameras on network
 - [ ] ...zero-configuration (that is, image card, connect to network and off we go)
 
 [1] If it can run on that, it will run on any other (whoop).
@@ -27,8 +28,8 @@ A fast, high quality streamer and motion detector. The goal is that it must run 
 ## Quick do's
 - a few default signals:
 	- play a sound
-	- send 'event' to remote URL (must include secret below)
-	- add "signalSecret" setting -- used so that signals cannot be (as) easily spoofed
+	- mail an address
+- add "signalSecret" setting (used primarily for 'fetch') -- used so that signals cannot be (as) easily spoofed
 - be able to ignore motion processing (just use as 'real time' streamer)
 - rename all config options to use camelCase
 - Need better name: call it Aufero?
@@ -45,6 +46,12 @@ A fast, high quality streamer and motion detector. The goal is that it must run 
 
 
 ## TODO
+- split 'signals' up into one signal per file (perhaps make signals-available and signals-enabled directories)
+- flesh out 'activity mails':
+	- template-vars for subject and body
+	- attach screenshot if 'on stop recording'
+	- make a good looking default template for the body
+	- saw some logging being off when sending SES mail
 - 'filtervectors' takes like 40ms on Raspi Zero and 7ms on Raspi3B (need to get that down to sub-20 on the Zero)
 - Rewrite/ditch avahi-dbus
 - measure disk speed (to see if SD card) as to whether to record things by default
@@ -152,3 +159,4 @@ A fast, high quality streamer and motion detector. The goal is that it must run 
 	- need a good reproducable(-ish) way to measure improvements (easy way: just measure 1k frames
 	  and avg. cost?)
 - lib/MotionSignaller.js
+- send 'event' to remote URL (must include secret below)
