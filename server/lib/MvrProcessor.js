@@ -129,6 +129,9 @@ class MvrProcessor
 
 	getMotionVectorAt(buffer, index, outMv)
 	{
+		outMv.x = ( (index/4) % this.frameDataWidth);
+		outMv.y = Math.floor( (index/4) / this.frameDataWidth);
+
 		outMv.dx = buffer.readIntLE(index + 0, 1);
 		outMv.dy = buffer.readIntLE(index + 1, 1);
 		outMv.sad = buffer.readIntLE(index + 2, 2);
@@ -136,7 +139,7 @@ class MvrProcessor
 		// Angle
 		outMv.dir = Math.atan2(outMv.dy, -outMv.dx) * 180 / Math.PI + 180;
 
-		// Magnitude (Pythagoras) -- TODO: could just use Manhattan distance? (cheaper)
+		// Magnitude 
 		outMv.mag = Math.sqrt(outMv.dx * outMv.dx + outMv.dy * outMv.dy);
 
 		return outMv;
@@ -207,28 +210,6 @@ class MvrProcessor
 			i += 4;
 		}
 
-/*
-		ts = ((Date.now() - this.startTime) / 1000);
-
-		let out = ""
-			+ "ts: " + Math.round(ts)
-			+ "\tfps: " + Math.ceil(this.stats.frameCount / ts)
-			+ "\tframe: " + this.stats.frameCount
-			+ "\tdx: " + minDx +	" - " + maxDx + ` (${Math.round(totDx / vectorsPerFrame)})`
-			+ "\tdy: " + minDy +	" - " + maxDy + ` (${Math.round(totDy / vectorsPerFrame)})`
-			+ "\n"
-			+ "dir: " + Math.round(minDir) +	"-" + Math.round(maxDir) + ` (${Math.round(totDir / vectorsPerFrame)})`
-			+ "\n"
-			+ "\tmag: " + minMag +	"-" + Math.round(maxMag) + ` (frame tot: ${Math.round(totMag)} vec avg: ${Math.round(totMag / vectorsPerFrame)})`
-			+ "\n"
-			+ "\tflashes: " + this.stats.motionFlashes
-			+ "\tignored: " + this.stats.ignoredFrames
-			+ "\tsad: " + minSad +	"-" + maxSad + ` (${Math.round(totSad / vectorsPerFrame)})`;
-
-		console.clear();
-		console.log(out);
-		//Log.info(out);
-*/
 		return {
 			"maxDx" : maxDx,
 			"minDx" : minDx,
@@ -285,7 +266,6 @@ class MvrProcessor
 		if(x < this.frameDataWidth && this.isMover(frameData, index + (1 * 4)))
 			return false;
 
-		// TODO: check diagonals
         // Left Above
         if(y > 0 && x > 0 && this.isMover(frameData, index - w4 - 4))
             return false;
@@ -377,7 +357,6 @@ class MvrProcessor
 
 		let then;	// used for measuring cost and temporal tracking
 		let i = 0;
-//		let previousFrameMagTotal = 0;
 		let frameLength = this.getFrameSize();
 		let loners = [];
 		let candidates = [];
@@ -390,8 +369,6 @@ class MvrProcessor
 		if(!filterFlags) {
 			filterFlags = MvrFilterFlags.DX_DY_LT_2 | MvrFilterFlags.FRAME_MAGNITUDE_400_INCREASE | MvrFilterFlags.MAGNITUDE_LT_300;
 		}
-
-		let x,y;
 
 		then = Date.now();
 		//console.time("filterVectors");
@@ -407,10 +384,14 @@ class MvrProcessor
 			if(preFilterLoners && this.mv.mag >= this.minMagnitude && this.isLoner(frameData, i)) {
 				loners.push(i);
 			} else if(this.mv.mag > this.minMagnitude) {
-				x = ( (i/4) % this.frameDataWidth);
-				y = Math.floor( (i/4) / this.frameDataWidth);
-
-				candidates.push( { x : x, y : y } );
+				candidates.push(
+					{
+						x :this.mv.x,
+						y : this.mv.y,
+						mag : this.mv.mag,
+						dir : this.mv.dir
+					}
+				);
 			}
 
 			if(sendingRaw) {
@@ -493,14 +474,10 @@ class MvrProcessor
 
 			// Thought: If we have a lot of candidates: Shrink the dataset by reducing 'resolution'
 			//		remove every Nth and divide the coordinate of vector by N
-
 			// let's say, if it is above 200 (nee 400) points, get it down to that...
-
 			let reductionFactor;
 			let targetCandidates = 200;
 			let reduced = false;
-
-//			console.log("loners", loners.length, "candidate points", candidates.length, "reduction factor", Math.floor(candidates.length/targetCandidates) );
 
 			this.frameInfo.candidates = candidates.length;
 
@@ -566,7 +543,12 @@ class MvrProcessor
 				}
 
 				if(!clusters[id]) {
-					clusters[id] = { points : [], /* clockwise from top */ box : [ 1000, 0, 0, 1000 ] };
+					clusters[id] = {
+						points : [],
+						dir : 0,
+						mag : 0,
+						box : [ 1000, 0, 0, 1000 ] // clockwise from top
+					};
 				}
 				cluster = clusters[id];
 
@@ -582,6 +564,9 @@ class MvrProcessor
 				if(candidates[i].x > cluster.box[1]) cluster.box[1] = candidates[i].x;
 				if(candidates[i].y > cluster.box[2]) cluster.box[2] = candidates[i].y;
 				if(candidates[i].x < cluster.box[3]) cluster.box[3] = candidates[i].x;
+
+				cluster.dir += candidates[i].dir;
+				cluster.mag += candidates[i].mag;
 			}
 
 			if(clusters.length > 0) {
@@ -594,6 +579,11 @@ class MvrProcessor
 			// ================ remove clusters within others
 			//console.time("insidereduction");
 			for(let i = 0; i < clusters.length; i++) {
+				// Get average dir/mag from the total stored with every 
+				// cluster in previouys pass
+				clusters[i].dir /= clusters[i].points.length;
+				clusters[i].mag /= clusters[i].points.length;
+
 				if(this.isWithin(clusters[i], clusters, i)) {
 					clusters[i].within = true;
 				} else {
@@ -643,11 +633,14 @@ class MvrProcessor
 
 			// Do I want to update the history box? Let's see...
 			// Do it only if we are more dense (and often bigger) than the one stored...
-			if(cluster.points.length > overlapping.size) {
+//			if(cluster.points.length > overlapping.size) {
 				overlapping.box = [...cluster.box];
-//				overlapping.points = [...cluster.points];
 				overlapping.size = cluster.points.length;
-			}
+
+				overlapping.points = [...cluster.points];
+				overlapping.mag = cluster.mag;
+				overlapping.dir = cluster.dir;
+//			}
 		} else {
 			// add new cluster to history
 			this.history.push({
@@ -656,7 +649,11 @@ class MvrProcessor
 				active : now,
 				birth : now,
 				box : [...cluster.box],
-				size : cluster.points.length
+				size : cluster.points.length,
+
+				points : [...cluster.points],
+				mag : cluster.mag,
+				dir : cluster.dir
 			});
 		}
 	}
