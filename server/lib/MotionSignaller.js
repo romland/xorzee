@@ -5,6 +5,8 @@ const tkill = require('tree-kill');
 const pino = require('pino');
 const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 
+const Fetch = require("./signals/Fetch").default;
+
 const Signals = {
 	ACTIVE_FRAME	: 1,
 	ACTIVE_PERIOD	: 2,	// XXX: Not implemented ... yet
@@ -22,9 +24,11 @@ const StandardSignals = {
 
 class MotionSignaller
 {
-	constructor(conf)
+	constructor(conf, recorder)
 	{
 		this.conf = conf;
+		this.recorder = recorder;
+
 		this.signals = this.conf.get("signals");
 		this.enabledSignals = this.hasEnabledSignals();;
 
@@ -87,9 +91,26 @@ class MotionSignaller
 
 			switch(s.execute) {
 				case StandardSignals.FETCH :
-					// TODO
 					attemptedExecutes++;
 					logger.debug("StandardSignal.FETCH triggered");
+
+					let f = new Fetch(s,
+						(startData) => {
+							logger.info("Fetch start: %s", startData);
+						},
+						(doneData) => {
+							if(s.log) {
+								logger.info("Fetch done: %s", doneData);
+							} else {
+								logger.info("Fetch done: %s", s.name);
+							}
+						},
+						(errorData) => {
+							logger.error("Fetch error: %o", errorData);
+						}
+					);
+
+					f.start(type, this.recorder.getRecordingMeta());
 					break;
 
 				case StandardSignals.SOUND :
@@ -267,8 +288,6 @@ class MotionSignaller
 		};
 
 		this.running.push(runObject);
-
-
 
 		return proc.pid;
 	}

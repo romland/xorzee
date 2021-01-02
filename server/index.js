@@ -91,7 +91,7 @@ const settingsFile = path.resolve("../mintymint.config");
 			motionListener.start();
 		}
 
-		motionSignaller = new MotionSignaller(conf);
+		motionSignaller = new MotionSignaller(conf, videoListener.getRecorder());
 		motionSignaller.start();
 
 		// Camera
@@ -190,7 +190,7 @@ const settingsFile = path.resolve("../mintymint.config");
 			signals : [
 				{
 					name			: "Some fetch",					// A name that identifies the signal
-					enabled			: false,						// Toggle signal on or off
+					enabled			: true,							// Toggle signal on or off
 					log				: true,							// Whether to log script's std-out/err
 					onEvent			: Signals.START_RECORDING,		// When to run signal
 					minInterval		: 10000,						// Minimum time that needs to pass before triggering signal again
@@ -199,11 +199,11 @@ const settingsFile = path.resolve("../mintymint.config");
 					maxRunTime		: 5000,							// Signal cannot run for longer than this
 					cwd				: path.resolve("../scripts/signals"),	// Current working directory when executing external script
 					execute			: StandardSignals.FETCH,		// Execute a shell command/script or the constant of a default signal
-					args			: "GET,http://localhost:8080/test",	// Comma separated arguments to pass to the signal being executed (see docs elsewhere)
+					args			: "http://localhost:8080",	// Comma separated arguments to pass to the signal being executed (see docs elsewhere)
 				},
 				{
 					name			: "Some script",				// A name that identifies the signal
-					enabled			: true,							// Toggle signal on or off
+					enabled			: false,							// Toggle signal on or off
 					log				: true,							// Whether to log script's std-out/err
 					onEvent			: Signals.START_RECORDING,		// When to run signal
 					minInterval		: 10000,						// Minimum time that needs to pass before triggering signal again

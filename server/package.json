@@ -16,6 +16,7 @@
     "bl": "^4.0.3",
     "express": "^4.15.2",
     "nconf": "^0.8.4",
+    "node-fetch": "^2.6.1",
     "pino": "^6.8.0",
     "stream-split": "^1.1.0",
     "systemd": "^0.2.6",
