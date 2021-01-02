@@ -9,11 +9,12 @@ A fast, high quality streamer and motion detector. The goal is that it must run 
 - [x] ...configurable sensitivity of motion detection
 - [x] ...set areas of interest for motion detection
 - [x] ...save motion-sequences (video) to disk
-- [x] ...make thumbnails of of motion sequences
+- [x] ...make thumbnails of motion sequences
 - [x] ...discover all other cameras on the network
 - [x] ...optionally play audio, invoke remote URL or send mail on activity
-- [x] ...optionally signal an external programs on activity
+- [x] ...optionally signal external programs on activity (or end of)
 - [x] ...highly configurable (but sane out of the box)
+- [ ] ...store meta-data of amount of activity in period (graph)
 - [ ] ...modern web-client that can handle multiple cameras
 - [ ] ...connect to any camera on the network to access _all_ cameras on network
 - [ ] ...zero-configuration (that is, image card, connect to network and off we go)
@@ -26,11 +27,8 @@ A fast, high quality streamer and motion detector. The goal is that it must run 
 
 
 ## Quick do's
-- a few default signals:
-	- play a sound
-	- mail an address
 - add "signalSecret" setting (used primarily for 'fetch') -- used so that signals cannot be (as) easily spoofed
-- be able to ignore motion processing (just use as 'real time' streamer)
+- be able to ignore motion processing (ie. just use as 'real time' streamer)
 - rename all config options to use camelCase
 - Need better name: call it Aufero?
 - make a '... | bash' script (host on github)
@@ -46,6 +44,7 @@ A fast, high quality streamer and motion detector. The goal is that it must run 
 
 
 ## TODO
+- ability to set an 'on' schedule (for signals and recording)
 - split 'signals' up into one signal per file (perhaps make signals-available and signals-enabled directories)
 - flesh out 'activity mails':
 	- template-vars for subject and body
@@ -57,11 +56,11 @@ A fast, high quality streamer and motion detector. The goal is that it must run 
 - measure disk speed (to see if SD card) as to whether to record things by default
 - test ffmpeg encoding on gpu (for scaling downwards -- can we get away with it on multiple cores?)
 - render overlay every frame (to facilitate animations)
-- add 'signals' for triggering 'ding-dong', telegram, bonjour etc
+- add additional 'signals': telegram
 - biggest dilemma: CPU useage on client, need to minimize that somehow since I will want multiple cameras.
 	- Reducing resolution is no good as it gives us fewer macro blocks
 	- Reducing bitrate is not great as it affects recordings and restarting camera with new settings takes long
-- send event over bonjour when auto-record starts?
+- (a signal, actually): send event over bonjour when auto-record starts?
 	- broadcast a message when there is movement on a camera so that any watching client can pick that up and show it
 		- (seems updating the TXT record of a service is the way to go?)
 			https://stackoverflow.com/questions/5747692/avahi-broadcast-that-my-service-has-updated-information
@@ -76,6 +75,8 @@ A fast, high quality streamer and motion detector. The goal is that it must run 
 - At high frame-rate, merge several motion frames into one to easier detect motion (?)
 - refactor/move all the motion processing from MotionListener to MotionSender
 - Write a script to configure basics (just set a unique name should do it?) -- allow this in client too
+- Be able to upload files via http 
+- SMB should come for free, perhaps provide some configuration options for some common NAS(s)?
 
 ## TODO client
 - Be able to see recent/latest detected motion sequences in client
@@ -160,3 +161,6 @@ A fast, high quality streamer and motion detector. The goal is that it must run 
 	  and avg. cost?)
 - lib/MotionSignaller.js
 - send 'event' to remote URL (must include secret below)
+- a few default signals:
+	- play a sound
+	- mail an address
