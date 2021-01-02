@@ -13,6 +13,11 @@ const ServiceAnnouncer = require("./lib/ServiceAnnouncer").default;
 const ServiceDiscoverer = require("./lib/ServiceDiscoverer").default;
 const VideoScreenshotter = require("./lib/VideoScreenshotter").default;
 
+const motsig = require("./lib/MotionSignaller");
+const MotionSignaller = motsig.default;
+const Signals = motsig.Signals;
+const StandardSignals = motsig.StandardSignals;
+
 const pino = require('pino');
 const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 
@@ -24,6 +29,7 @@ const settingsFile = path.resolve("../mintymint.config");
 	var videoListener;
 	var motionSender;
 	var motionListener;
+	var motionSignaller;
 	var serviceAnnouncer;
 	var serviceDiscoverer;
 	var videoScreenshotter;
@@ -84,6 +90,9 @@ const settingsFile = path.resolve("../mintymint.config");
 			motionListener = new MotionListener(conf, motionSender, videoListener, handleMotionEvent);
 			motionListener.start();
 		}
+
+		motionSignaller = new MotionSignaller(conf);
+		motionSignaller.start();
 
 		// Camera
 		camera = new Camera(conf);
@@ -176,17 +185,25 @@ const settingsFile = path.resolve("../mintymint.config");
 				minRecordTime		: 0,							// Min length reo record (- what is buffered)
 			},
 
-			// TODO: Used to trigger external programs (such as sound a bell or send a text)
-			signalRequirements : {
-				// uses startRecordRequirements to trigger
-				sendDefaultSignals	: true,							// Send whatever built-in signals (configurable elsewhere)
-				runAfterEvent		: false,						// Run when recording stops, not when it starts
-				minInterval			: 10000,						// Minimum time that needs to pass before triggering signal again
-				executeScript		: null,							// Execute a shell script
-			},
+			// Used to trigger external programs, such as sound
+			// a bell, fetch a remote API or send a text.
+			signals : [
+				{
+					name			: "Some signal",				// A name that identifies the signal
+					enabled			: true,							// Toggle signal on or off
+					onEvent			: Signals.START_RECORDING,		// When to run signal
+					minInterval		: 10000,						// Minimum time that needs to pass before triggering signal again
+					maxInstances	: 1,							// How many instances of this signal can run simultaneously
+					maxErrors		: 0,							// How many times it is allowed to crash before it is ignored
+					maxRunTime		: 5000,							// Signal cannot run for longer than this
+					cwd				: path.resolve("../scripts/signals"),	// Current working directory when executing external script
+					execute			: StandardSignals.FETCH,		// Execute a shell command/script or the constant of a default signal
+					args			: "http://localhost:8080/test",	// Comma separated arguments to pass to the signal being executed (see docs elsewhere)
+				}
+			],
 
 			//
-			// Advanced settings
+			// Advanced/debug/test settings
 			//
 
 			// Cluster definition
@@ -242,6 +259,10 @@ const settingsFile = path.resolve("../mintymint.config");
 		if(serviceAnnouncer) {
 			serviceAnnouncer.stop();
 		}
+
+		if(motionSignaller) {
+			motionSignaller.stop();
+		}
 	}
 
 
@@ -265,6 +286,9 @@ const settingsFile = path.resolve("../mintymint.config");
 			switch(eventType) {
 				case "start" :
 					logger.info("handleMotionEvent(): %s, %s", module, eventType);
+
+					motionSignaller.activity(Signals.START_RECORDING);
+
 					motionSender.broadcastMessage(
 						{
 							"event" : "startRecordingMotion",
@@ -276,6 +300,9 @@ const settingsFile = path.resolve("../mintymint.config");
 
 				case "stop" :
 					logger.info("handleMotionEvent(): %s, %s", module, eventType);
+
+					motionSignaller.activity(Signals.STOP_RECORDING);
+
 					motionSender.broadcastMessage(
 						{
 							"event" : "stopRecordingMotion",
@@ -294,6 +321,8 @@ const settingsFile = path.resolve("../mintymint.config");
 
 				case "activity" :
 					videoSender.setActive();
+
+					motionSignaller.activity(Signals.ACTIVE_FRAME);
 					break;
 
 				default :
