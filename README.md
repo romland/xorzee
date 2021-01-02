@@ -2,26 +2,33 @@
 A fast, high quality streamer and motion detector. The goal is that it must run on (the) one core of a Raspberry Pi Zero[1].
 
 ## Elaboration
-- High quality stream meaning: 1920x1080 @ 30 FPS.
-- ...able to stream live camera feed to dozens of web-clients simultaneously
-- ...not have a stream delay higher than 0.2 seconds
-- ...ability to only stream video when there is activity
-- ...configurable sensitivity of motion detection
-- ...set areas of interest for motion detection
-- ...save motion-sequences (video) to disk
-- ...make thumbnails of of motion sequences
-- ...discover all other cameras on the network
-- ...signal external programs on activity
-- ...highly configurable (but sane out of the box)
-- ...zero-configuration (that is, image card, connect to network and off we go)
-- ...connect to any camera on the network and the others are available
-- ...client which can deal with multiple cameras
-- ...modern web-client that can handle multiple cameras
+- [x] High quality stream meaning: 1920x1080 @ 30 FPS.
+- [x] ...able to stream live camera feed to dozens of web-clients simultaneously
+- [x] ...not have a stream delay higher than 0.2 seconds
+- [x] ...ability to only stream video when there is activity
+- [x] ...configurable sensitivity of motion detection
+- [x] ...set areas of interest for motion detection
+- [x] ...save motion-sequences (video) to disk
+- [x] ...make thumbnails of of motion sequences
+- [x] ...discover all other cameras on the network
+- [x] ...signal external programs on activity
+- [x] ...highly configurable (but sane out of the box)
+- [ ] ...connect to any camera on the network and the others are available
+- [ ] ...modern web-client that can handle multiple cameras
+- [ ] ...zero-configuration (that is, image card, connect to network and off we go)
 
 [1] If it can run on that, it will run on any other (whoop).
 
 
+## working on
+- something is amiss with StopRecording (we do not stop when we should)
+
+
 ## Quick do's
+- a few default signals:
+	- play a sound
+	- send 'event' to remote URL (must include secret below)
+	- add "signalSecret" setting -- used so that signals cannot be (as) easily spoofed
 - be able to ignore motion processing (just use as 'real time' streamer)
 - rename all config options to use camelCase
 - Need better name: call it Aufero?
@@ -35,6 +42,7 @@ A fast, high quality streamer and motion detector. The goal is that it must run 
 - Write a small script to install ffmpeg
 - test if we still need 'reducing' on lots of motion points (with recent optimization, maybe reducing cost more than it gives)
 - be able to _not record_ but remember event (a time-stamp will suffice?)
+
 
 ## TODO
 - 'filtervectors' takes like 40ms on Raspi Zero and 7ms on Raspi3B (need to get that down to sub-20 on the Zero)
@@ -143,3 +151,4 @@ A fast, high quality streamer and motion detector. The goal is that it must run 
 	  optimize before continuing with features.
 	- need a good reproducable(-ish) way to measure improvements (easy way: just measure 1k frames
 	  and avg. cost?)
+- lib/MotionSignaller.js
