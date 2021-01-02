@@ -74,8 +74,8 @@ class MotionSignaller
 		let attemptedExecutes = 0;
 
 		let s;
-		for(let i = 0; this.signals.length; i++) {
-			s = signals[i];
+		for(let i = 0; i < this.signals.length; i++) {
+			s = this.signals[i];
 
 			if(s.onEvent !== type) {
 				continue;
@@ -89,20 +89,24 @@ class MotionSignaller
 				case StandardSignals.FETCH :
 					// TODO
 					attemptedExecutes++;
+					logger.debug("StandardSignal.FETCH triggered");
 					break;
 
 				case StandardSignals.SOUND :
 					// TODO
 					attemptedExecutes++;
+					logger.debug("StandardSignal.SOUND triggered");
 					break;
 
 				case StandardSignals.EMAIL :
 					// TODO
 					attemptedExecutes++;
+					logger.debug("StandardSignal.EMAIL triggered");
 					break;
 
 				default :
 					attemptedExecutes++;
+					logger.debug("Script signal triggered");
 					this.executeScript(s);
 					break;
 			}
@@ -154,8 +158,8 @@ class MotionSignaller
 		let killed = 0;
 
 		for(let i = 0; i < this.running.length; i++) {
-			if(this.running[i].kill > Date.now()) {
-				logger.debug("Signal running longer than allowed: %o", xxx
+			if(Date.now() > this.running[i].kill) {
+				logger.debug("Signal running longer than allowed: %o", this.running[i].signal.name);
 				this.kill(this.running[i]);
 				killed++;
 			}
@@ -170,12 +174,13 @@ class MotionSignaller
 	{
 		let len = this.running.length;
 
-		for(let i = len; i >= 0; i--) {
+		for(let i = len - 1; i >= 0; i--) {
 			if(!this.running[i].killed) {
 				continue;
 			}
 
 			logger.debug("Purging killed [%d] %s", this.running[i].process.pid, this.running[i].signal.name);
+
 			this.running.splice(i, 1);
 		}
 	}
@@ -197,7 +202,7 @@ class MotionSignaller
 	{
 		let proc;
 
-		logger.debug("Executing signal script %o", signal);
+		logger.info("Executing signal script: %s", signal.name);
 
 		if(this.scriptInstances[signal.name]) {
 			this.scriptInstances[signal.name] = 0;
@@ -210,7 +215,6 @@ class MotionSignaller
 				signal.execute,
 				signal.args.trim().split(","),
 				{
-					stdio : [ 'ignore', logger.info, logger.info ],
 					detached : true,
 					cwd : signal.cwd,
 					shell : true
@@ -222,14 +226,22 @@ class MotionSignaller
 			proc.unref();
 
 			const onProcessDied = (e) => {
-				logger.info("Signal '%s' is done. Exit reason: %o", signal.name, e);
+				logger.info("Signal script '%s' is done. Exit reason: %o", signal.name, e);
 				this.scriptInstances[signal.name]--;
 				runObject.killed = true;
 				this.purgeKilled();
 			};
 
-			proc.addListener('close', onProcessDied);
-			proc.addListener('error', onProcessDied);
+			const onProcessMessage = (d) => {
+				logger.info("[Signal script '%s']: %s", signal.name, d);
+			};
+
+			if(signal.log) {
+				proc.stdout.on('data', onProcessMessage)
+				proc.stderr.on('data', onProcessMessage)
+			}
+			proc.on('close', onProcessDied);
+			proc.on('error', onProcessDied);
 
 		} catch(ex) {
 			this.scriptInstances[signal.name]--;
@@ -248,7 +260,7 @@ class MotionSignaller
 		}
 
 		let runObject = {
-			"signal" : signal.name,
+			"signal" : signal,
 			"kill" : Date.now() + signal.maxRunTime,
 			"process" : proc,
 			"killed" : false
@@ -264,16 +276,16 @@ class MotionSignaller
 
 	kill(runningObject)
 	{
-		let proc = runningObject.proc;
+		let proc = runningObject.process;
 
-		logger.debug("Killing process PID %d. Signal: %s", proc.pid, runningObject.signal.name);
+		logger.info("Forcefully killing process PID %d. Signal: %s", proc.pid, runningObject.signal.name);
 
 		proc.stdin.pause();
-		tkill(runningObject.proc.pid);
+		tkill(proc.pid);
 
 		runningObject.killed = true;
 
-		this.scriptInstances[signal.name]--;
+		this.scriptInstances[runningObject.signal.name]--;
 
 		// Well, we don't know. Do a check if it really is dead? Fine for now. Revisit if needed.
 		return true;
