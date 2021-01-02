@@ -11,7 +11,7 @@ export function outlineAll(context, rs, clusters)
 	}
 }
 
-function outline(context, rs, points)
+export function outline(context, rs, points)
 {
 	if(points.length < 2) {
 		return;
@@ -24,12 +24,12 @@ function outline(context, rs, points)
 	}
 
 	context.beginPath();
-	context.moveTo((outline[0].x+1) * rs, outline[0].y * rs);		// XXX: 1 off fix here too (see below)
+	// XXX: Re:x+1 in _three_ cases below: At some point we have a one-off error in visualization. We fix it here :(
+	context.moveTo((outline[0].x+1) * rs, outline[0].y * rs);
 	for (var i = 0; i < outline.length; i++) {
-		outline[i].x += 1;		// XXX: At some point we have a one-off error in visualization. We fix it here :(
-		context.lineTo(outline[i].x * rs, outline[i].y * rs);
+		context.lineTo((outline[i].x+1) * rs, outline[i].y * rs);
 	}
-	context.lineTo(outline[0].x * rs, outline[0].y * rs);
+	context.lineTo((outline[0].x+1) * rs, outline[0].y * rs);
 
 	context.strokeStyle = "#FFFF00ff";
 	context.stroke();

@@ -1,7 +1,5 @@
 # Better Motion (current name is: MintyMint)
-A fast, high quality streamer and motion detector. It must run on the one core of a Raspberry Pi Zero [1].
-
-[1] If it can run on that, it will run on any other (whoop).
+A fast, high quality streamer and motion detector. The goal is that it must run on (the) one core of a Raspberry Pi Zero[1].
 
 ## Elaboration
 - High quality stream meaning: 1920x1080 @ 30 FPS.
@@ -20,11 +18,13 @@ A fast, high quality streamer and motion detector. It must run on the one core o
 - ...client which can deal with multiple cameras
 - ...modern web-client that can handle multiple cameras
 
+[1] If it can run on that, it will run on any other (whoop).
+
+
 ## Quick do's
-- Write a small script to install ffmpeg
-- Write a small script to configure basics (just set a unique name should do it?) -- allow this in client too
-- get rid of 'bl'
-- Need better name: call it aufero?
+- be able to ignore motion processing (just use as 'real time' streamer)
+- rename all config options to use camelCase
+- Need better name: call it Aufero?
 - make a '... | bash' script (host on github)
 - set up a service (service file)
 - Merge doc/notes.txt into README or another .md
@@ -32,14 +32,12 @@ A fast, high quality streamer and motion detector. It must run on the one core o
 	frame 1: [ points... ]
 	frame 2: ...
 	- also store magnitude / frame in the meta
+- Write a small script to install ffmpeg
+- test if we still need 'reducing' on lots of motion points (with recent optimization, maybe reducing cost more than it gives)
+- be able to _not record_ but remember event (a time-stamp will suffice?)
 
 ## TODO
-- biggest issue right now:
-	- filterVectors / clustering on busy frames take too long for a poor RaspiZero. Will need to 
-	  optimize before continuing with features.
-	- need a good reproducable(-ish) way to measure improvements (easy way: just measure 1k frames
-	  and avg. cost?)
-
+- 'filtervectors' takes like 40ms on Raspi Zero and 7ms on Raspi3B (need to get that down to sub-20 on the Zero)
 - Rewrite/ditch avahi-dbus
 - measure disk speed (to see if SD card) as to whether to record things by default
 - test ffmpeg encoding on gpu (for scaling downwards -- can we get away with it on multiple cores?)
@@ -62,13 +60,13 @@ A fast, high quality streamer and motion detector. It must run on the one core o
 - Actually write logs to disk? Or let something like PM2 handle that?
 - At high frame-rate, merge several motion frames into one to easier detect motion (?)
 - refactor/move all the motion processing from MotionListener to MotionSender
+- Write a script to configure basics (just set a unique name should do it?) -- allow this in client too
 
 ## TODO client
 - Be able to see recent/latest detected motion sequences in client
 - be able to put overlay (timestamp?) on saved stream (not sure how costly this would be)
 	(meh, best to just have the player add it as an overlay)
 - Stream instead of downloading recorded files...
-
 
 ## Maybe future stuff (and ideas)
 - nice optimization: make a lookup table for point-in-polygon in MvrProcessor
@@ -88,6 +86,18 @@ A fast, high quality streamer and motion detector. It must run on the one core o
 	(seems to be some node packages)
 	- primary concern for me is that I want to switch back to 'previous mode' (e.g. TV) after streaming a clip
 - Recording simulation should be moved into Recorder actually (realized this late as it propagated outside of MotionRuleEngine)
+- get rid of 'bl'?
+
+## Thoughts
+- I suppose one _could_ argue that there is no _real_ need to cluster on the server, as long as 
+  we can filter out noise and get an idea of whether something is moving (we do a bit more today).
+  But since entire h264 stream is sent to client, that one _could_ do clustering by plucking out
+  motion vectors in broadway. I do feel the client is burdened enough, already -- and having the
+  clusters on server side give some more opportunities.
+
+## Enclosure
+- for IR camera + RaspiZero: https://www.thingiverse.com/thing:3239931
+	-- well, basically: https://www.thingiverse.com/tag:raspberry_pi_zero_w/page:4 (this is page 4)
 
 ## Known bugs
 - when reconfiguring resolution, ignore-area does not scale (need to reload to get it shown correctly)
@@ -128,3 +138,8 @@ A fast, high quality streamer and motion detector. It must run on the one core o
 - test: maybe simply not stream video if there is no motion? How will Broadway handle that?
 - Remove 'http-server' dep on server
 - clear up misc directory
+- biggest issue right now:
+	- filterVectors / clustering on busy frames take too long for a poor RaspiZero. Will need to 
+	  optimize before continuing with features.
+	- need a good reproducable(-ish) way to measure improvements (easy way: just measure 1k frames
+	  and avg. cost?)

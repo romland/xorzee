@@ -35,6 +35,17 @@ export function start(motionCanvas, videoCanvas, wsUri, port, reconnectInterval,
 	setupWebSocket(wsUri, port, reconnectInterval);
 }
 
+export function stop()
+{
+	if(webSocket) {
+		webSocket.close();
+	}
+
+	if(motionRenderer) {
+		motionRenderer.stop();
+	}
+}
+
 function configureCanvas(motionCanvas, videoCanvas)
 {
 	let vsRect = videoCanvas.getBoundingClientRect();
@@ -72,13 +83,13 @@ function handleMessage(dataType, data)
 			return;
 		}
 
-		motionRenderer.render(dataType, parsed);
+		motionRenderer.update(dataType, parsed);
 
 	} else {
 		if(document.hidden) {
 			return;
 		}
-		motionRenderer.render(dataType, data);
+		motionRenderer.update(dataType, data);
 	}
 }
 

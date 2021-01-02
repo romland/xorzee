@@ -1,7 +1,7 @@
 "use strict";
 
 import { MotionFrame } from "./motionframe";
-import { outlineAll } from "./convex-hull";
+import { outline, outlineAll } from "./convex-hull";
 
 const RBT_RECTANGLE = 1;
 const RBT_CONVEX = 2;
@@ -18,8 +18,17 @@ export class MotionRenderer
 	constructor(motionCanvas)
 	{
 		this.motionCanvas = motionCanvas;
+		this.animFrame = null;
+		this.lastData = {};
+		this.lastDataType = null;
+
+		this.render();		
 	}
 
+	stop()
+	{
+		// TODO: Stop animframe
+	}
 
 	configure(videoWidth, videoHeight)
 	{
@@ -70,38 +79,73 @@ export class MotionRenderer
 		this.initialized = true;
 	}
 
-	render(dataType, data)
+	renderOutlines(clusters)
+	{
+		this.context.font = '8px Titillium Web';
+		this.context.fillStyle = "#ffffffff";
+
+		for(let i = 0; i < clusters.length; i++) {
+			if(clusters[i].within) {
+				continue;
+			}
+
+			if(clusters[i].id && clusters[i].age < 2000) {
+				continue;
+			}
+
+			outline(this.context, this.reverseCvRatio, clusters[i].points);
+/*
+			this.context.fillText(
+				clusters[i].id + ': '  + Math.round(clusters[i].dir),
+				this.rs(clusters[i].box[3]),
+				this.rs(clusters[i].box[0]) - 2
+			);
+*/
+		}
+	}
+
+	// Expects this.lastData, this.lastDataType to be updated when data 
+	// comes in, this is then called every frame. Expecting to redraw,
+	// which could be optimized by rendered frames in a bytebuffer.
+	// Maybe.
+	render()
+	{
+		this.animFrame = requestAnimationFrame(() => { this.render() });
+
+		if(!this.context || !this.lastData || !this.lastDataType)  {
+			return;
+		}
+
+		if(!RENDER_RAW) {
+			this.clearContext();
+		}
+
+		if(this.lastDataType === "string") {
+			if(this.lastData.clusters) {
+				if(RENDER_BOUND_TYPE === RBT_CONVEX) {
+					// this.renderOutlines( this.lastData.history );
+					this.renderOutlines( this.lastData.clusters );
+
+				} else if(RENDER_BOUND_TYPE === RBT_RECTANGLE) {
+					this.renderShapes( this.lastData );
+				}
+			}
+		}
+
+		if(this.lastDataType === "object" && RENDER_RAW) {
+			this.renderVectors( new Uint8Array(this.lastData) );
+		}
+	}
+
+
+	update(dataType, data)
 	{
 		if(!this.initialized) {
 			return;
 		}
 
-		if(dataType === "string") {
-			if(data.clusters) {
-				if(!RENDER_RAW) {
-					this.clearContext();
-				}
-
-				if(RENDER_BOUND_TYPE === RBT_CONVEX) {
-					outlineAll(
-						 this.context,
-						 this.reverseCvRatio,
-						 data.clusters
-					);
-
-				} else if(RENDER_BOUND_TYPE === RBT_RECTANGLE) {
-					this.renderShapes(
-						data
-					);
-				}
-			}
-
-		} else if(dataType === "object" && RENDER_RAW) {
-			this.renderVectors(
-				new Uint8Array(data)
-			);
-		}
-
+		this.lastDataType = dataType;
+		this.lastData = data;
 	}
 
 	clearContext()

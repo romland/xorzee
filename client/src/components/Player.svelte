@@ -1,15 +1,18 @@
 <script lang="ts">
 	import { createEventDispatcher, onMount, onDestroy } from 'svelte';
-	import { copyGeography } from "../lib/utils.js";
+	import { fade } from 'svelte/transition';
 
+	import { copyGeography } from "../lib/utils.js";
 	import BroadwayStats, { onNALunit } from "./BroadwayStats.svelte";
 	import Fullscreen from "./Fullscreen.svelte";
 	import PolyDraw from "./PolyDraw.svelte";
 	import PolyShow from "./PolyShow.svelte";
 	import ScreenshotList from "./ScreenshotList.svelte";
+	import Configuration from "./Configuration.svelte";
 	import { start as startVideoStream } from "../lib/stream-video";
 	import {
 		start as startMotionStream,
+		stop as stopMotionStream,
 		onResize as resizeMotionStream,
 		getWebSocket as getMotionWebSocket,
 		sendMessage,
@@ -34,6 +37,7 @@
 
 	let settings = null;
 	let lastRecordings = [];
+	let recording = false;
 
 	let remoteUrl = "";
 	if(remoteServer && window.location.hostname === "localhost") {
@@ -70,6 +74,10 @@
 				}, 2000);
 			}
 		}, false);
+
+		return () => {
+			stopMotionStream();
+		};
 	});
 
 	function handleServerMessage(msg)
@@ -77,15 +85,39 @@
 		if(msg.settings) {
 			console.log("Got settings from server");
 			settings = msg.settings;
-
 		}
 
+		if(msg.event) {
+			handleServerEvent(msg);
+		}
+
+		// This can also be in the root of an object (not just an event)
 		if(msg.lastRecordings) {
 			console.log("Got lastRecordings from server");
 			lastRecordings = msg.lastRecordings;
 		}
 
-		console.log("handleServerMessage()", msg);
+		if(!msg.event) {
+			console.log("handleServerMessage()", msg);
+		}
+	}
+
+
+	function handleServerEvent(e)
+	{
+		console.log("Got event from server", e);
+
+		switch(e.event) {
+			case "startRecordingMotion":
+				recording = true;
+				break;
+			case "stopRecordingMotion":
+				recording = false;
+				break;
+			case "lastRecordings":
+				lastRecordings = e.data;
+				break;
+		}
 	}
 
 	function reconfigureStream()
@@ -188,6 +220,16 @@
 				{:else if settings}
 					<PolyShow bind:width={settings.width} bind:height={settings.height} points={settings.ignoreArea}></PolyShow>
 				{/if}
+
+				<div class="recordingStatus">
+					{#if recording}
+						<span in:fade out:fade>⬤ REC</span>
+					{/if}
+				</div>
+
+				{#if settings}
+					<Configuration {sendMessage} {settings} pos="bottom-left"></Configuration>
+				{/if}
 			</div>
 		</div>
 	</Fullscreen>
@@ -212,5 +254,13 @@
 		border: 1px solid #eee;
 		margin-bottom: 20px;
 		width: 100%;
+	}
+
+	.recordingStatus {
+		position: absolute;
+		top: 0;
+		right: 15px;
+		font-size: 30px;
+		color: #ff0000;
 	}
 </style>

@@ -1,4 +1,6 @@
 <script>
+	import Loading from "./Loading.svelte";
+
 	export let server = "";
 	export let dir = "";
 	export let items = [];
@@ -8,6 +10,7 @@
 
 
 <div class="cards">
+<Loading></Loading>
 	{#each items as item}
 		<div class="card">
 			<div class="content">
