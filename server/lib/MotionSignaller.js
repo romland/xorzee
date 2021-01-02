@@ -1,11 +1,14 @@
 "use strict";
 
+const path = require("path");
 const cp = require('child_process');
 const tkill = require('tree-kill');
 const pino = require('pino');
 const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 
 const Fetch = require("./signals/Fetch").default;
+const Email = require("./signals/Email").default;
+const EmailSes = require("./signals/EmailSes").default;
 
 const Signals = {
 	ACTIVE_FRAME	: 1,
@@ -19,7 +22,8 @@ const Signals = {
 const StandardSignals = {
 	FETCH			: 1,
 	SOUND			: 2,
-	EMAIL			: 3
+	EMAIL			: 3,
+	EMAIL_SES		: 4
 };
 
 class MotionSignaller
@@ -89,6 +93,8 @@ class MotionSignaller
 				continue;
 			}
 
+			this.scriptLastExecutions[s.name] = Date.now();
+
 			switch(s.execute) {
 				case StandardSignals.FETCH :
 					attemptedExecutes++;
@@ -113,19 +119,64 @@ class MotionSignaller
 					f.start(type, this.recorder.getRecordingMeta());
 					break;
 
-				case StandardSignals.SOUND :
-					// TODO
+				case StandardSignals.EMAIL_SES :
 					attemptedExecutes++;
-					logger.debug("StandardSignal.SOUND triggered");
+					logger.debug("StandardSignal.EMAIL_SES triggered");
+
+					let es = new EmailSes(s,
+						(startData) => {
+							logger.info("Email start: %s", startData);
+						},
+						(doneData) => {
+							if(s.log) {
+								logger.info("Email done: %s", doneData);
+							} else {
+								logger.info("Email done: %s", s.name);
+							}
+						},
+						(errorData) => {
+							logger.error("Email error: %o", errorData);
+						},
+						this.conf
+					);
+
+					es.start(type, this.recorder.getRecordingMeta());
 					break;
 
 				case StandardSignals.EMAIL :
-					// TODO
 					attemptedExecutes++;
 					logger.debug("StandardSignal.EMAIL triggered");
+
+					let e = new Email(s,
+						(startData) => {
+							logger.info("Email start: %s", startData);
+						},
+						(doneData) => {
+							if(s.log) {
+								logger.info("Email done: %s", doneData);
+							} else {
+								logger.info("Email done: %s", s.name);
+							}
+						},
+						(errorData) => {
+							logger.error("Email error: %o", errorData);
+						},
+						this.conf
+					);
+
+					e.start(type, this.recorder.getRecordingMeta());
+					break;
+
+				case StandardSignals.SOUND :
+					attemptedExecutes++;
+					logger.debug("StandardSignal.SOUND triggered");
+					let sc = { ...s };
+					sc.execute = path.resolve("../scripts/signals/playsound.sh");
+					this.executeScript(sc);
 					break;
 
 				default :
+					// Not a number / StandardSignal? Execute script.
 					attemptedExecutes++;
 					logger.debug("Script signal triggered");
 					this.executeScript(s);
@@ -242,7 +293,6 @@ class MotionSignaller
 				}
 			);
 
-			this.scriptLastExecutions[signal.name] = Date.now();
 
 			proc.unref();
 
@@ -272,6 +322,9 @@ class MotionSignaller
 			}
 
 			this.scriptErrors[signal.name]++;
+			if(signal.log) {
+				console.log(ex);
+			}
 			logger.error("Exception #%d running external script '%s': %o", this.scriptErrors[signal.name], signal.name, ex);
 			return null;
 		}

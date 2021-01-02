@@ -17,7 +17,9 @@
     "express": "^4.15.2",
     "nconf": "^0.8.4",
     "node-fetch": "^2.6.1",
+    "node-ses": "^3.0.3",
     "pino": "^6.8.0",
+    "sendmail": "^1.6.1",
     "stream-split": "^1.1.0",
     "systemd": "^0.2.6",
     "tree-kill": "^1.2.2"

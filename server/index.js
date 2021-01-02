@@ -189,8 +189,55 @@ const settingsFile = path.resolve("../mintymint.config");
 			// a bell, fetch a remote API or send a text.
 			signals : [
 				{
+					name			: "Some SES email",				// A name that identifies the signal
+					enabled			: false,						// Toggle signal on or off
+					log				: true,							// Whether to log script's std-out/err
+					onEvent			: Signals.START_RECORDING,		// When to run signal
+					minInterval		: 30000,						// Minimum time that needs to pass before triggering signal again
+					maxInstances	: 1,							// How many instances of this signal can run simultaneously
+					maxErrors		: 0,							// How many times it is allowed to crash before it is ignored
+					maxRunTime		: 5000,							// Signal cannot run for longer than this
+					cwd				: null,							// Current working directory when executing external script
+					execute			: StandardSignals.EMAIL_SES,	// Execute a shell command/script or the constant of a default signal
+					args			: {								// Arguments to pass to the signal being executed (see docs elsewhere)
+						subject	: "Camera activity",
+						from	: null,
+						to		: null,
+					}
+				},
+				{
+					name			: "Some email",					// A name that identifies the signal
+					enabled			: false,						// Toggle signal on or off
+					log				: true,							// Whether to log script's std-out/err
+					onEvent			: Signals.START_RECORDING,		// When to run signal
+					minInterval		: 30000,						// Minimum time that needs to pass before triggering signal again
+					maxInstances	: 1,							// How many instances of this signal can run simultaneously
+					maxErrors		: 0,							// How many times it is allowed to crash before it is ignored
+					maxRunTime		: 5000,							// Signal cannot run for longer than this
+					cwd				: null,							// Current working directory when executing external script
+					execute			: StandardSignals.EMAIL,		// Execute a shell command/script or the constant of a default signal
+					args			: {								// Arguments to pass to the signal being executed (see docs elsewhere)
+						subject	: "Camera activity",
+						from	: null,
+						to		: null,
+					}
+				},
+				{
+					name			: "Some sound",					// A name that identifies the signal
+					enabled			: false,						// Toggle signal on or off
+					log				: true,							// Whether to log script's std-out/err
+					onEvent			: Signals.START_RECORDING,		// When to run signal
+					minInterval		: 10000,						// Minimum time that needs to pass before triggering signal again
+					maxInstances	: 1,							// How many instances of this signal can run simultaneously
+					maxErrors		: 0,							// How many times it is allowed to crash before it is ignored
+					maxRunTime		: 5000,							// Signal cannot run for longer than this
+					cwd				: path.resolve("../scripts/signals"),	// Current working directory when executing external script
+					execute			: StandardSignals.SOUND,		// Execute a shell command/script or the constant of a default signal
+					args			: path.resolve("../scripts/signals/media/doorbell.wav"),			// Comma separated arguments to pass to the signal being executed (see docs elsewhere)
+				},
+				{
 					name			: "Some fetch",					// A name that identifies the signal
-					enabled			: true,							// Toggle signal on or off
+					enabled			: false,						// Toggle signal on or off
 					log				: true,							// Whether to log script's std-out/err
 					onEvent			: Signals.START_RECORDING,		// When to run signal
 					minInterval		: 10000,						// Minimum time that needs to pass before triggering signal again
@@ -215,6 +262,40 @@ const settingsFile = path.resolve("../mintymint.config");
 					args			: "http://localhost:8080/test",	// Comma separated arguments to pass to the signal being executed (see docs elsewhere)
 				}
 			],
+
+			//
+			// These settings is for if you are using the signal
+			// StandardSignals.EMAIL_SES.
+			//
+			// For further doc see: https://github.com/aheckmann/node-ses
+			//
+			sendMailSES : {
+				"key"		: null,		// your AWS SES key. Defaults to checking `process.env.AWS_ACCESS_KEY_ID` and `process.env.AWS_ACCESS_KEY`
+				"secret"	: null,		// your AWS SES secret. Defaults to `process.env.AWS_SECRET_ACCESS_KEY` and `process.env.AWS_SECRET_KEY`
+				"amazon"	: null,		// [optional] the amazon end-point uri. defaults to `https://email.us-east-1.amazonaws.com`
+			},
+
+			//
+			// Mail settings (only needed if you are using the
+			// standard signal email. The options specified are
+			// fed right into https://github.com/guileen/node-sendmail
+			// as-is. So, everything possible there, is possible.
+			//
+			// This is not really recommended as your home IP is 
+			// probably blocked by big email providers (like gmail,
+			// etc). Set up this to use an external mailserver or
+			// simply use the 'sendMailSES' standard signal instead.
+			//
+			sendMail : {
+				logger: {
+					debug: logger.debug,
+					info: logger.info,
+					warn: logger.warn,
+					error: logger.error
+				},
+				silent: false,
+				smtpPort: 25,
+			},
 
 			//
 			// Advanced/debug/test settings
