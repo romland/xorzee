@@ -317,7 +317,7 @@ class MotionRuleEngine
 		}
 
 		// maxFrameMagnitude
-		if(this.startReq.maxFrameMagnitude > 0 && fi.totalMagnitude >= this.startReq.maxFrameMagnitude) {
+		if(this.stopReq.maxFrameMagnitude > 0 && fi.totalMagnitude >= this.stopReq.maxFrameMagnitude) {
 			// Deem this frame 'active'
 			this.lastActivity = Date.now();
 
