@@ -1,10 +1,10 @@
 # Better Motion (current name is: MintyMint)
-A fast, high quality streamer and motion detector. The goal is that it must run on (the) one core of a Raspberry Pi Zero[1].
+A low-latency, high quality streamer and motion detector. The goal is that it must run on (the) one core of a Raspberry Pi Zero[1].
 
 ## Elaboration
-- [x] High quality stream meaning: 1920x1080 @ 30 FPS.
+- [x] High quality stream meaning: HD (1920x1080) @ 30 FPS.
+- [x] ...low-latency meaning: video stream should have delay no higher than 200 milliseconds
 - [x] ...able to stream live camera feed to dozens of web-clients simultaneously
-- [x] ...not have a stream delay higher than 0.2 seconds
 - [x] ...ability to only stream video when there is activity
 - [x] ...configurable sensitivity of motion detection
 - [x] ...set areas of interest for motion detection
@@ -19,7 +19,7 @@ A fast, high quality streamer and motion detector. The goal is that it must run 
 - [ ] ...connect to any camera on the network to access _all_ cameras on network
 - [ ] ...zero-configuration (that is, image card, connect to network and off we go)
 
-[1] If it can run on that, it will run on any other (whoop).
+[1] If it can run on that, it will run on any other.
 
 
 ## working on
@@ -41,7 +41,7 @@ A fast, high quality streamer and motion detector. The goal is that it must run 
 - Write a small script to install ffmpeg
 - test if we still need 'reducing' on lots of motion points (with recent optimization, maybe reducing cost more than it gives)
 - be able to _not record_ but remember event (a time-stamp will suffice?)
-
+- support strings for signal constants (to be able to make sense of JSON configs): START_RECORDING, EMAIL_SES etc
 
 ## TODO
 - ability to set an 'on' schedule (for signals and recording)
@@ -55,7 +55,6 @@ A fast, high quality streamer and motion detector. The goal is that it must run 
 - Rewrite/ditch avahi-dbus
 - measure disk speed (to see if SD card) as to whether to record things by default
 - test ffmpeg encoding on gpu (for scaling downwards -- can we get away with it on multiple cores?)
-- render overlay every frame (to facilitate animations)
 - add additional 'signals': telegram
 - biggest dilemma: CPU useage on client, need to minimize that somehow since I will want multiple cameras.
 	- Reducing resolution is no good as it gives us fewer macro blocks
@@ -67,7 +66,6 @@ A fast, high quality streamer and motion detector. The goal is that it must run 
 		- In java, but seems pretty clear:
 			https://github.com/Andymann/tcpSyphonServer_Java/blob/26b8c21916067d1ac3cd8ead16ce307a5e701360/_externalJar/avahi/avahi4j/src/avahi4j/examples/TestServicePublish.java
 	- For 'stream only when activity', use motion-stream for that ... or possibly bonjour?
-- Option to not stream video (and only stream when there is activity) -- can still stream motion
 - Auth: Protect websockets? / also: to be able to change server settings
 - Be able to say how much disk-space can bse used for recordings (delete oldest)
 	- Delete oldest videos if running out of disk-space
@@ -83,9 +81,10 @@ A fast, high quality streamer and motion detector. The goal is that it must run 
 - be able to put overlay (timestamp?) on saved stream (not sure how costly this would be)
 	(meh, best to just have the player add it as an overlay)
 - Stream instead of downloading recorded files...
+- view log
 
 ## Maybe future stuff (and ideas)
-- nice optimization: make a lookup table for point-in-polygon in MvrProcessor
+- test if client works on my LG TV (I have my doubts!)
 - be able to specify overlay over a camera (top-left, top-right, bottom-left, bottom-right)
 - telegram support:
 	https://gist.github.com/Sinequanonh/f5625a2807f89ce4f6634cd3b1ab65a0
@@ -103,6 +102,7 @@ A fast, high quality streamer and motion detector. The goal is that it must run 
 	- primary concern for me is that I want to switch back to 'previous mode' (e.g. TV) after streaming a clip
 - Recording simulation should be moved into Recorder actually (realized this late as it propagated outside of MotionRuleEngine)
 - get rid of 'bl'?
+- screenshots / videos on github (ugh)
 
 ## Thoughts
 - I suppose one _could_ argue that there is no _real_ need to cluster on the server, as long as 
@@ -132,7 +132,7 @@ A fast, high quality streamer and motion detector. The goal is that it must run 
 
 - Note to self: Stop Vidensi recorder on my test device (or camera is booked!)
 - Note: Uses broadway: https://github.com/mbebenita/Broadway
-- support UDB for camera (pipe through socat?)
+- support USB for camera (pipe through socat?)
 - to stream a video, pipe in e.g.: ffmpeg -re -i foo.mp4 -c:v copy -f h264 udp://localhost:8000 (tcp in our case atm)
 - Broadway only supports h264 baseline, no audio (don't go fancy)
 
@@ -140,6 +140,7 @@ A fast, high quality streamer and motion detector. The goal is that it must run 
 - The stream is h264, that is sent to broadway (i.e. we offload work to client when it comes to the video)
 
 ## Misc notes for others
+- USB cameras are NOT supported (I don't own any, so cannot test)
 - A firewall needs to (by default) open 8080-8082 (TCP)
 - install ffmpeg (not in raspbian repositories), binaries available from https://ffmpeg.org/. Choose download / linux / Linux Static Builds. Download the armhf build for newer raspberry pi's. Unarchive and move the created directory somewhere: like to /usr/local. So you will have e.g.: /usr/local/ffmpeg-3.3.2-armhf-32bit-static/.
 - create symlinks for /usr/local/ffmpeg-/bin/ffmpeg, ffmpeg-10bit and ffserver into /usr/local/bin.
@@ -164,3 +165,6 @@ A fast, high quality streamer and motion detector. The goal is that it must run 
 - a few default signals:
 	- play a sound
 	- mail an address
+- nice optimization: make a lookup table for point-in-polygon in MvrProcessor
+- render overlay every frame (to facilitate animations)
+- Option to not stream video (and only stream when there is activity) -- can still stream motion
