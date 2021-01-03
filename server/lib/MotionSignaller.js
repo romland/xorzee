@@ -350,7 +350,7 @@ class MotionSignaller
 	{
 		let proc = runningObject.process;
 
-		logger.info("Forcefully killing process PID %d. Signal: %s", proc.pid, runningObject.signal.name);
+		logger.info("Forcefully killing PID %d, signal: '%s'", proc.pid, runningObject.signal.name);
 
 		proc.stdin.pause();
 		tkill(proc.pid);

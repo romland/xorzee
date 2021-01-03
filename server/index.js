@@ -45,9 +45,9 @@ const settingsFile = settingsDir + "/mintymint.config";
 	 */
 	function main()
 	{
+		logger.info("=== New run === %s. Logging level %s", new Date(), logger.level);
 		configure();
 
-		console.log("=== New run ===", Date(), `MintyMint @ "${conf.get("name")}". Logging level`, logger.level);
 
 		initProcess();
 
@@ -159,6 +159,22 @@ const settingsFile = settingsDir + "/mintymint.config";
 			width			: 1920,									// Video stream width (the higher resolution, the more exact motion tracking)
 			height			: 1080,									// Video stream height
 			startupIgnore	: 600,									// How long we should ignore data from camera after starting up (ms)
+			streamOverlay : {
+				enabled         : true,								// Enable overlay
+				showName        : true,								// Show name of camera
+				// Time
+				// %Y = year, %m = month, %d = day of month,
+				// %Z = timezone name, %z = timezone offset, %p = AM/PM,
+				// %X = current time with seconds (hh:mm:ss)
+				// see also: https://man7.org/linux/man-pages/man3/strftime.3.html
+				text            : "\n %Y-%m-%d %X",					// Misc text, can contain a few \n and date/time substitutions
+				fontSize        : 32,								// font-size
+				textLuminance   : "auto",							// null/auto = auto, otherwise a value between 0 and 255
+				justify         : 2,								// 0=center, 1=left, 2=right
+				top             : 990,								// pixels from the top
+				left            : 0,								// pixels from the left
+				backgroundColor : "0000ff"							// 'transparent' or rgb (e.g. ff00ff)
+			},
 
 			// Ignore
 			ignoreArea		: [],									// If setting manually, remember resolution should be 1920x1088.
@@ -364,7 +380,7 @@ const settingsFile = settingsDir + "/mintymint.config";
 
 			switch(eventType) {
 				case "start" :
-					logger.info("handleMotionEvent(): %s, %s", module, eventType);
+					logger.debug("handleMotionEvent(): %s, %s", module, eventType);
 
 					motionSignaller.activity(Signals.START_RECORDING);
 
@@ -378,7 +394,7 @@ const settingsFile = settingsDir + "/mintymint.config";
 					break;
 
 				case "stop" :
-					logger.info("handleMotionEvent(): %s, %s", module, eventType);
+					logger.debug("handleMotionEvent(): %s, %s", module, eventType);
 
 					motionSignaller.activity(Signals.STOP_RECORDING);
 
