@@ -107,13 +107,15 @@ class Recorder
 
 	stop()
 	{
-		logger.info("Stopping recording...");
 		this.recording = false;
 
 		if(this.ffmpegProc) {
 			this.ffmpegProc.stdin.end();
 
 			this.recordingMeta["stopped"] = Date.now();
+
+			logger.debug("Stopping recording (after %d sec)...", (this.recordingMeta["stopped"] - this.recordingMeta["started"]) / 1000);
+
 			this.recordingMeta["size"] = this.recordLen;
 			fs.writeFileSync(
 				this.conf.get("recordpath") + "/" + this.recordingToId + ".json",

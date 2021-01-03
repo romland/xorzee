@@ -95,7 +95,7 @@ class MotionRuleEngine
 			throw new Error("Attempted to stop recording while not recording");
 		}
 
-		logger.info("Stop recording");
+		logger.info("Stop recording (%d sec)", (Date.now() - this.lastRecordingStarted) / 1000);
 
 		if(SIMULATE_RECORDING) {
 			this._simulatedRecordStatus = false;
