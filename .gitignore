@@ -43,3 +43,4 @@ jspm_packages
 #*/clips/*.json
 
 client/public/clips/*
+conf/enabled-signals/*.config
