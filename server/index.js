@@ -1,8 +1,10 @@
 "use strict";
 
+const fs = require("fs");
 const path = require("path");
 const conf = require('nconf');
 const Util = require("./lib/util");
+const Hjson = require('hjson');
 const Camera = require("./lib/Camera").default;
 const WebServer = require("./lib/WebServer").default;
 const VideoSender = require("./lib/VideoSender").default;
@@ -21,7 +23,8 @@ const StandardSignals = motsig.StandardSignals;
 const pino = require('pino');
 const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 
-const settingsFile = path.resolve("../conf/mintymint.config");
+const settingsDir = path.resolve("../conf");
+const settingsFile = settingsDir + "/mintymint.config";
 
 	var camera;
 	var webServer;
@@ -116,14 +119,14 @@ const settingsFile = path.resolve("../conf/mintymint.config");
 	 */
 	function configure()
 	{
-		/**
-		 * Let a config file override defaults...
-		 */
+		//
+		// Let a config file override defaults...
+		//
 		conf.file( { file: settingsFile, format: require('hjson') });
 
-		/**
-		 * Command line arguments / options
-		 */
+		//
+		// Command line arguments / options
+		//
 		conf.argv().defaults({
 			// General
 			name			: "Camera at default location",			// A name of your choice identifying this camera
@@ -188,79 +191,10 @@ const settingsFile = path.resolve("../conf/mintymint.config");
 			// Used to trigger external programs, such as sound
 			// a bell, fetch a remote API or send a text.
 			signals : [
-				{
-					name			: "Some SES email",				// A name that identifies the signal
-					enabled			: false,						// Toggle signal on or off
-					log				: true,							// Whether to log script's std-out/err
-					onEvent			: Signals.START_RECORDING,		// When to run signal
-					minInterval		: 30000,						// Minimum time that needs to pass before triggering signal again
-					maxInstances	: 1,							// How many instances of this signal can run simultaneously
-					maxErrors		: 0,							// How many times it is allowed to crash before it is ignored
-					maxRunTime		: 5000,							// Signal cannot run for longer than this
-					cwd				: null,							// Current working directory when executing external script
-					execute			: StandardSignals.EMAIL_SES,	// Execute a shell command/script or the constant of a default signal
-					args			: {								// Arguments to pass to the signal being executed (see docs elsewhere)
-						subject	: "Camera activity",
-						from	: null,
-						to		: null,
-					}
-				},
-				{
-					name			: "Some email",					// A name that identifies the signal
-					enabled			: false,						// Toggle signal on or off
-					log				: true,							// Whether to log script's std-out/err
-					onEvent			: Signals.START_RECORDING,		// When to run signal
-					minInterval		: 30000,						// Minimum time that needs to pass before triggering signal again
-					maxInstances	: 1,							// How many instances of this signal can run simultaneously
-					maxErrors		: 0,							// How many times it is allowed to crash before it is ignored
-					maxRunTime		: 5000,							// Signal cannot run for longer than this
-					cwd				: null,							// Current working directory when executing external script
-					execute			: StandardSignals.EMAIL,		// Execute a shell command/script or the constant of a default signal
-					args			: {								// Arguments to pass to the signal being executed (see docs elsewhere)
-						subject	: "Camera activity",
-						from	: null,
-						to		: null,
-					}
-				},
-				{
-					name			: "Some sound",					// A name that identifies the signal
-					enabled			: false,						// Toggle signal on or off
-					log				: true,							// Whether to log script's std-out/err
-					onEvent			: Signals.START_RECORDING,		// When to run signal
-					minInterval		: 10000,						// Minimum time that needs to pass before triggering signal again
-					maxInstances	: 1,							// How many instances of this signal can run simultaneously
-					maxErrors		: 0,							// How many times it is allowed to crash before it is ignored
-					maxRunTime		: 5000,							// Signal cannot run for longer than this
-					cwd				: path.resolve("../scripts/signals"),	// Current working directory when executing external script
-					execute			: StandardSignals.SOUND,		// Execute a shell command/script or the constant of a default signal
-					args			: path.resolve("../scripts/signals/media/doorbell.wav"),			// Comma separated arguments to pass to the signal being executed (see docs elsewhere)
-				},
-				{
-					name			: "Some fetch",					// A name that identifies the signal
-					enabled			: false,						// Toggle signal on or off
-					log				: true,							// Whether to log script's std-out/err
-					onEvent			: Signals.START_RECORDING,		// When to run signal
-					minInterval		: 10000,						// Minimum time that needs to pass before triggering signal again
-					maxInstances	: 1,							// How many instances of this signal can run simultaneously
-					maxErrors		: 0,							// How many times it is allowed to crash before it is ignored
-					maxRunTime		: 5000,							// Signal cannot run for longer than this
-					cwd				: path.resolve("../scripts/signals"),	// Current working directory when executing external script
-					execute			: StandardSignals.FETCH,		// Execute a shell command/script or the constant of a default signal
-					args			: "http://localhost:8080",	// Comma separated arguments to pass to the signal being executed (see docs elsewhere)
-				},
-				{
-					name			: "Some script",				// A name that identifies the signal
-					enabled			: false,							// Toggle signal on or off
-					log				: true,							// Whether to log script's std-out/err
-					onEvent			: Signals.START_RECORDING,		// When to run signal
-					minInterval		: 10000,						// Minimum time that needs to pass before triggering signal again
-					maxInstances	: 1,							// How many instances of this signal can run simultaneously
-					maxErrors		: 0,							// How many times it is allowed to crash before it is ignored
-					maxRunTime		: 5000,							// Signal cannot run for longer than this
-					cwd				: path.resolve("../scripts/signals"),	// Current working directory when executing external script
-					execute			: "./echo.sh",					// Execute a shell command/script or the constant of a default signal
-					args			: "http://localhost:8080/test",	// Comma separated arguments to pass to the signal being executed (see docs elsewhere)
-				}
+				// This array is populated automatically with all
+				// files in the conf/available-signals/*.conf.
+				// The code doing this is below this blob of config
+				// options.
 			],
 
 			//
@@ -318,8 +252,58 @@ const settingsFile = path.resolve("../conf/mintymint.config");
 			outputMotionCost		: 0,							// Output motion performance averages every N frames (0 = disabled)
 		});
 
-
 		conf.use('memory');
+
+		//
+		// Read in all enabled signals
+		//
+		loadEnabledSignals();
+
+	}
+
+	function loadEnabledSignals()
+	{
+		let files = fs.readdirSync(settingsDir + "/enabled-signals");
+
+		files = files.filter((file) => {
+			return path.extname(file).toLowerCase() === ".config";
+		});
+
+		// Load in external signals and place them in 'conf.signals'!
+		let json, parsed;
+		for(let i = 0; i < files.length; i++) {
+			json = fs.readFileSync(settingsDir + "/enabled-signals/" + files[i], "utf8");
+			parsed = Hjson.parse(json);
+
+			// add their filename to collection so we know which file to change
+			parsed._fileName_ = files[i];
+
+			// need support for knowing when to path.resolve() (does not start with / ?)
+			if(parsed.cwd && parsed.cwd.startsWith("/") === false) {
+				parsed.cwd = path.resolve(parsed.cwd);
+			}
+
+			if(parsed.execute && parsed.execute.startsWith("/") === false) {
+				parsed.execute = path.resolve(parsed.cwd + "/" + parsed.execute);
+			}
+
+			// Need support for string constants
+			if(Signals[parsed.onEvent]) {
+				parsed.onEvent = Signals[parsed.onEvent];
+			} else {
+				throw new Error("Unknown event in configuration: " + parsed.onEvent);
+			}
+
+			if(StandardSignals[parsed.execute]) {
+				parsed.execute = StandardSignals[parsed.execute];
+			}
+
+			// Make sure any signals already in the 'signals' array is left intact (they can sit in the config-file)
+			conf.get("signals").push(parsed);
+			logger.info("Loaded enabled signal: %s", files[i]);
+		}
+
+		logger.debug("Loaded in enabled signals %o", conf.get("signals"));
 	}
 
 
