@@ -5,7 +5,7 @@ A low-latency, high quality streamer and motion detector. The goal is that it mu
 - [x] High quality stream meaning: HD (1920x1080) @ 30 FPS.
 - [x] ...low-latency meaning: video stream should have delay no higher than 200 milliseconds
 - [x] ...able to stream live camera feed to dozens of web-clients simultaneously
-- [x] ...stream directly from device to multiple client (no intermediaries)
+- [x] ...stream directly from device to multiple clients (no intermediaries)
 - [x] ...ability to only stream video when there is activity
 - [x] ...configurable sensitivity of motion detection
 - [x] ...set areas of interest for motion detection
