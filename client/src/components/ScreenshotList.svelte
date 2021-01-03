@@ -1,28 +1,48 @@
 <script>
+	import { fade } from 'svelte/transition';
 	import Loading from "./Loading.svelte";
 
 	export let server = "";
 	export let dir = "";
 	export let items = [];
+	export let visible = false;
 
 	const baseUrl = server + dir;
+
+	function open()
+	{
+		visible = !visible;
+	}
+
 </script>
 
+{#if visible}
+	<div class="overlay" in:fade out:fade>
+		<div class="cards">
+			<Loading></Loading>
 
-<div class="cards">
-<Loading></Loading>
-	{#each items as item}
-		<div class="card">
-			<div class="content">
-				<img alt="" src="{baseUrl}{item.screenshot}"/>
-				<p>text</p>
-			</div>
-			<footer>Card footer</footer>
+			{#each items as item}
+				<div class="card">
+					<div class="content">
+						<img alt="" src="{baseUrl}{item.screenshot}"/>
+						<p>text</p>
+					</div>
+					<footer>Card footer</footer>
+				</div>
+			{/each}
 		</div>
-	{/each}
-</div>
+	</div>
+{/if}
+	<div class="overlay" on:click={open}>
+		📹 Recordings
+	</div>
 
 <style>
+	.overlay {
+		position: absolute;
+		bottom: 0;
+	}
+
 	.cards {
 		display: grid;
 		grid-template-columns: repeat(auto-fill,minmax(200px,1fr));

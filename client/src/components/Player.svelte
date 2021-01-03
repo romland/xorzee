@@ -28,6 +28,11 @@
 	const motionStreamPort = 8082;
 	const reconnectInterval = 0;// 2000;		// set to 0 for no auto-reconnect
 
+	let overlay = {
+		"Configuration" : false,
+		"ScreenshotList" : false,
+	};
+
 	let wsUrl;
 	let container;
 	let videoPlayer;
@@ -228,11 +233,14 @@
 				</div>
 
 				{#if settings}
-					<Configuration {sendMessage} {settings} pos="bottom-left"></Configuration>
+					<Configuration pos="bottom-left"  bind:visible={overlay["screenshots"]} {sendMessage} {settings}></Configuration>
+					<ScreenshotList pos="bottom-left" bind:visible={overlay["screenshots"]} server={remoteUrl} bind:dir={settings.recordpathwww} bind:items={lastRecordings}></ScreenshotList>
 				{/if}
 			</div>
 		</div>
 	</Fullscreen>
+
+Controls | Statistics
 
 	{#if videoPlayer}
 		<BroadwayStats player={videoPlayer}></BroadwayStats>
@@ -244,9 +252,6 @@
 	<button on:click={() => drawingIgnoreArea = !drawingIgnoreArea}>Toggle adding ignore area</button>
 	<input type="checkbox" on:change={toggleNotifications}/>Notifications
 
-	{#if settings}
-		<ScreenshotList server={remoteUrl} bind:dir={settings.recordpathwww} bind:items={lastRecordings}></ScreenshotList>
-	{/if}
 
 
 <style>

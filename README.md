@@ -5,6 +5,7 @@ A low-latency, high quality streamer and motion detector. The goal is that it mu
 - [x] High quality stream meaning: HD (1920x1080) @ 30 FPS.
 - [x] ...low-latency meaning: video stream should have delay no higher than 200 milliseconds
 - [x] ...able to stream live camera feed to dozens of web-clients simultaneously
+- [x] ...stream directly from device to multiple client (no intermediaries)
 - [x] ...ability to only stream video when there is activity
 - [x] ...configurable sensitivity of motion detection
 - [x] ...set areas of interest for motion detection
@@ -13,11 +14,12 @@ A low-latency, high quality streamer and motion detector. The goal is that it mu
 - [x] ...discover all other cameras on the network
 - [x] ...optionally play audio, invoke remote URL or send mail on activity
 - [x] ...optionally signal external programs on activity (or end of)
-- [x] ...highly configurable (but sane out of the box)
+- [x] ...highly configurable (but sane defaults)
 - [x] ...user interface to draw ignored areas (think: masks in other programs)
-- [ ] ...store meta-data of amount of activity in period (graph)
+- [x] ...configurable stream overlays
 - [ ] ...modern web-client that can handle multiple cameras
 - [ ] ...connect to any camera on the network to access _all_ cameras on network
+- [ ] ...store meta-data of amount of activity in period (graph)
 - [ ] ...zero-configuration (that is, image card, connect to network and off we go)
 
 [1] If it can run on that, it will run on any other.
@@ -25,7 +27,7 @@ A low-latency, high quality streamer and motion detector. The goal is that it mu
 
 ## working on
 - take screenshots using dispmanx (in camera preview) -- check performance on Zero
-- object detection ... maybe
+- recording is a bit too sensitive in these current settings (at least in low-light/night)
 - something is amiss with StopRecording (we do not stop when we should)
 
 
@@ -51,6 +53,8 @@ A low-latency, high quality streamer and motion detector. The goal is that it mu
 
 
 ## TODO
+- client side simulation of camera annotations
+
 - run camera in preview (does that cost a lot? check) and incorporate dispmanx as screenshotter instead of ffmpeg (e.g. what https://github.com/AndrewFromMelbourne/raspi2png does)
 - ability to set an 'on' schedule (for signals and recording)
 - split 'signals' up into one signal per file (perhaps make signals-available and signals-enabled directories)
@@ -83,6 +87,15 @@ A low-latency, high quality streamer and motion detector. The goal is that it mu
 - Write a script to configure basics (just set a unique name should do it?) -- allow this in client too
 - Be able to upload files via http 
 - SMB should come for free, perhaps provide some configuration options for some common NAS(s)?
+- Store timestamps of h264 video (to help with mkvmerge later):
+	e.g.:	raspivid -w 1280 -h 1024 -fps 30 -t 10000 -o test.h264 -pts timestamps.txt
+			mkvmerge -o bb.mkv --timecodes 0:timestamps.txt test.h264
+- Check cost of going from h264 to WebRTC
+- when programmatically changing config file on disk, attempt to keep comments in place
+- package up server as single binary to minimize installation issues
+	e.g.: https://github.com/nexe/nexe
+	e.g.: https://dev.to/jochemstoel/bundle-your-node-app-to-a-single-executable-for-windows-linux-and-osx-2c89
+	google: https://www.google.com/search?q=package+node+application+to+single+binary
 
 ## TODO client
 - Be able to see recent/latest detected motion sequences in client
@@ -91,13 +104,25 @@ A low-latency, high quality streamer and motion detector. The goal is that it mu
 - Stream instead of downloading recorded files...
 - view log
 
-## Check out
+## Projects in same vein...
 - 02jan2020: https://github.com/silvanmelchior/RPi_Cam_Web_Interface (I actually only found out about 
   this one long into my own development -- it might just be what I need!)
 - motioneye, I knew about (which was what I _wish_ did what I wanted)
+- uv4l (ran into it many years ago for another project, ran into bugs and it was not open source so could not debug)
+- https://github.com/esiexata/rpisurv -- not what I had in mind. You'd need multiple machines (this is a server<->camera solution)
+- https://github.com/esiexata/iSpy -- no motion, only a server
+- https://github.com/esiexata/telepi -- no motion, requires mplayer on client (need web browser)
 
+
+## Interesting
+- https://github.com/esiexata/Camerafeed
+	This is interesting because I am curious what algorithm they use to 'keep track' of a person,
+	and how expensive it is. My experiences with OpenCV has always been rather underwhelming.
+- ditto here: https://github.com/LukashenkoEvgeniy/People-Counter/blob/master/PeopleCounterMain.py
+	Again, openCV.
 
 ## Maybe future stuff (and ideas)
+- support https://www.onvif.org/ (standard) (one implementation here: https://github.com/BreeeZe/rpos )
 - test if client works on my LG TV (I have my doubts!)
 - be able to specify overlay over a camera (top-left, top-right, bottom-left, bottom-right)
 - telegram support:
@@ -119,6 +144,7 @@ A low-latency, high quality streamer and motion detector. The goal is that it mu
 - get rid of 'bl'?
 - screenshots / videos on github (ugh)
 - timelapse? not too interested in it myself tbh
+- https://github.com/mpromonet/v4l2rtspserver (latency is main worry, investigate)
 
 ## Thoughts
 - I suppose one _could_ argue that there is no _real_ need to cluster on the server, as long as 
@@ -184,3 +210,4 @@ A low-latency, high quality streamer and motion detector. The goal is that it mu
 - nice optimization: make a lookup table for point-in-polygon in MvrProcessor
 - render overlay every frame (to facilitate animations)
 - Option to not stream video (and only stream when there is activity) -- can still stream motion
+- optionally add (hard) annotations on video stream (they go on recording as well)

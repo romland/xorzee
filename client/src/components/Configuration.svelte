@@ -1,4 +1,6 @@
 <script>
+	import { fade } from 'svelte/transition';
+
 	export let pos = "";
 	export let sendMessage = null;
 	export let settings = null;
