@@ -24,6 +24,8 @@ A low-latency, high quality streamer and motion detector. The goal is that it mu
 
 
 ## working on
+- take screenshots using dispmanx (in camera preview) -- check performance on Zero
+- object detection ... maybe
 - something is amiss with StopRecording (we do not stop when we should)
 
 
