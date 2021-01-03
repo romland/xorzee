@@ -1,4 +1,4 @@
-# Better Motion (current name is: MintyMint)
+# Better Motion (or MintyMint) (looking for a better name)
 A low-latency, high quality streamer and motion detector. The goal is that it must run on (the) one core of a Raspberry Pi Zero[1].
 
 ## Elaboration
@@ -24,38 +24,32 @@ A low-latency, high quality streamer and motion detector. The goal is that it mu
 
 [1] If it can run on that, it will run on any other.
 
-
-## working on
+## Working on now
 - take screenshots using dispmanx (in camera preview) -- check performance on Zero
-- recording is a bit too sensitive in these current settings (at least in low-light/night)
-- something is amiss with StopRecording (we do not stop when we should)
-
+	- run camera in preview (does that cost a lot? check) and incorporate dispmanx as screenshotter instead of ffmpeg (e.g. what https://github.com/AndrewFromMelbourne/raspi2png does)
 
 ## Quick do's
 - add "signalSecret" setting (used primarily for 'fetch') -- used so that signals cannot be (as) easily spoofed
 - be able to ignore motion processing (ie. just use as 'real time' streamer)
 - rename all config options to use camelCase
 - Need better name: call it Aufero?
-- make a '... | bash' script (host on github)
 - set up a service (service file)
 - Merge doc/notes.txt into README or another .md
 - recordings: store (in meta) where motion was during the recorded clip (the tricky thing is the pre-buffer here)
 	frame 1: [ points... ]
 	frame 2: ...
 	- also store magnitude / frame in the meta
-- Write a small script to install ffmpeg
+- Write a script to install ffmpeg (and other dependencies, node12?)
 - test if we still need 'reducing' on lots of motion points (with recent optimization, maybe reducing cost more than it gives)
 - be able to _not record_ but remember event (a time-stamp will suffice?)
 - support strings for signal constants (to be able to make sense of JSON configs): START_RECORDING, EMAIL_SES etc
 - make the camera flips configurable
 - make brightness, contrast, etc configurable
-- can definitely increase requirements for 'send only activity' (it sends when there is virtuall no activity now)
-
+- can definitely increase requirements for 'send only activity' (it sends when there is virtually no activity now)
 
 ## TODO
+- recording is a bit too sensitive in these current settings (at least in low-light/night)
 - client side simulation of camera annotations
-
-- run camera in preview (does that cost a lot? check) and incorporate dispmanx as screenshotter instead of ffmpeg (e.g. what https://github.com/AndrewFromMelbourne/raspi2png does)
 - ability to set an 'on' schedule (for signals and recording)
 - split 'signals' up into one signal per file (perhaps make signals-available and signals-enabled directories)
 - flesh out 'activity mails':
@@ -96,23 +90,34 @@ A low-latency, high quality streamer and motion detector. The goal is that it mu
 	e.g.: https://github.com/nexe/nexe
 	e.g.: https://dev.to/jochemstoel/bundle-your-node-app-to-a-single-executable-for-windows-linux-and-osx-2c89
 	google: https://www.google.com/search?q=package+node+application+to+single+binary
+- be able to set motion-sensitivity depending on hour of day (think: when it gets dark, we get more noise)
+- make logging to disk configurable
+- make a '... | bash' installation script (host on github)
 
 ## TODO client
 - Be able to see recent/latest detected motion sequences in client
 - be able to put overlay (timestamp?) on saved stream (not sure how costly this would be)
 	(meh, best to just have the player add it as an overlay)
 - Stream instead of downloading recorded files...
-- view log
+- view log (if there is one)
+- have a slider for sensitivity of motion (this is a bit arbitrary, but I don't really expect everyone to understand all settings)
+
+## Known bugs (client)
+- when reconfiguring resolution, ignore-area does not scale (need to reload to get it shown correctly)
+
+## Known bugs (server)
+- something is amiss with StopRecording (we do not stop when we should)
+- reconfiguring sometimes fail to restart camera (I'm probably too fast?)
 
 ## Projects in same vein...
-- 02jan2020: https://github.com/silvanmelchior/RPi_Cam_Web_Interface (I actually only found out about 
-  this one long into my own development -- it might just be what I need!)
+- https://github.com/Motion-Project/motion Motion :/ -- the project that made me start this project
+- https://github.com/silvanmelchior/RPi_Cam_Web_Interface (I actually only found out about 
+  this one long into my own development (02jan2020) -- it might just be what I need!)
 - motioneye, I knew about (which was what I _wish_ did what I wanted)
 - uv4l (ran into it many years ago for another project, ran into bugs and it was not open source so could not debug)
 - https://github.com/esiexata/rpisurv -- not what I had in mind. You'd need multiple machines (this is a server<->camera solution)
 - https://github.com/esiexata/iSpy -- no motion, only a server
 - https://github.com/esiexata/telepi -- no motion, requires mplayer on client (need web browser)
-
 
 ## Interesting
 - https://github.com/esiexata/Camerafeed
@@ -156,10 +161,6 @@ A low-latency, high quality streamer and motion detector. The goal is that it mu
 ## Enclosure
 - for IR camera + RaspiZero: https://www.thingiverse.com/thing:3239931
 	-- well, basically: https://www.thingiverse.com/tag:raspberry_pi_zero_w/page:4 (this is page 4)
-
-## Known bugs
-- when reconfiguring resolution, ignore-area does not scale (need to reload to get it shown correctly)
-- reconfiguring sometimes fail to restart camera (I'm probably too fast?)
 
 ## Misc notes for myself now
 - For Avahi DBUS API:
