@@ -4,6 +4,7 @@ const pino = require('pino');
 const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 const cp = require('child_process');
 const kill = require('tree-kill');
+const Util = require('./util');
 
 
 class Camera
@@ -14,79 +15,6 @@ class Camera
 		this.camProc = null;
 	}
 
-
-	// string or array rgb
-	rgbToYuv(rgb)
-	{
-		if(typeof rgb === "string") {
-			rgb = this.hexStrToArr(rgb);
-		}
-
-		return [
-			0.257 * rgb[0] + 0.504 * rgb[1] + 0.098 * rgb[2] + 16,   // Y
-			-0.148 * rgb[0] - 0.291 * rgb[1] + 0.439 * rgb[2] + 128, // U
-			0.439 * rgb[0] - 0.368 * rgb[1] - 0.071 * rgb[2] + 128   // V
-		];
-	}
-
-	// string or array rgb
-	rgbToVuy(rgb)
-	{
-		if(typeof rgb === "string") {
-			rgb = this.hexStrToArr(rgb);
-		}
-
-		return [
-			0.439 * rgb[0] - 0.368 * rgb[1] - 0.071 * rgb[2] + 128,   // V
-			-0.148 * rgb[0] - 0.291 * rgb[1] + 0.439 * rgb[2] + 128,  // U
-			0.257 * rgb[0] + 0.504 * rgb[1] + 0.098 * rgb[2] + 16,    // Y
-		];
-	}
-
-	arrToHexStr(arr)
-	{
-		return "0x" + Buffer.from(arr).toString("hex").toUpperCase();
-	}
-
-	// rgb str e.g.: ff00ff
-	hexStrToArr(str)
-	{
-		if(str.length !== 6) {
-			logger.error("Invalid hex str %s", str);
-			return [0,0,0];
-		}
-
-		let arr = [];
-		for(let c = 0; c < str.length; c += 2) {
-			arr.push(
-				parseInt(str.substr(c, 2), 16)
-			);
-		}
-
-		return arr;
-	}
-
-	// string or array rgb
-	isBright(rgb)
-	{
-		if(typeof rgb === "string") {
-			rgb = this.hexStrToArr(rgb);
-		}
-
-		return this.getLuminance(rgb) > 125;
-	}
-
-	// string or array rgb
-	getLuminance(rgb)
-	{
-		if(typeof rgb === "string") {
-			rgb = this.hexStrToArr(rgb);
-		}
-
-		return Math.round(((parseInt(rgb[0]) * 299) +
-			(parseInt(rgb[1]) * 587) +
-			(parseInt(rgb[2]) * 114)) / 1000);
-	}
 
 	start(altConf)
 	{
@@ -129,15 +57,15 @@ class Camera
 				annotation += ' " ';
 			}
 
-			let bg = this.arrToHexStr(this.rgbToVuy(so.backgroundColor));
-			let bright = this.isBright(so.backgroundColor);
+			let bg = Util.arrToHexStr(Util.rgbToVuy(so.backgroundColor));
+			let bright = Util.isBright(so.backgroundColor);
 			let fg;
 
 			if(!so.textLuminance || so.textLuminance === "auto" || typeof so.textLuminance !== "number" ) {
 				fg = (bright ? "0x00" : "0xFF");
 				logger.debug("Auto text luminance to %s", fg);
 			} else {
-				fg = this.arrToHexStr( [ so.textLuminance ] );
+				fg = Util.arrToHexStr( [ so.textLuminance ] );
 				logger.debug("Manual text luminance to %s", fg);
 			}
 
@@ -146,7 +74,7 @@ class Camera
 				bg,
 				(bright ? "bright" : "dark"),
 				bright,
-				this.getLuminance(so.backgroundColor),
+				Util.getLuminance(so.backgroundColor),
 				fg
 			);
 
@@ -212,7 +140,7 @@ class Camera
 
 		this.camProc.stdin.pause();
 		logger.debug("Killing camera PID %d", this.camProc.pid);
-//		this.camProc.kill();
+
 		await kill(this.camProc.pid);
 		this.camProc = null;
 

@@ -59,14 +59,14 @@ class MotionListener
 
 	stopSending()
 	{
-		logger.info("Stop transmitting motion data");
+		logger.debug("Stop transmitting motion data");
 		this.stop = true;
 	}
 
 
 	resumeSending()
 	{
-		logger.info("Resume transmitting motion data");
+		logger.debug("Resume transmitting motion data");
 		this.stop = false;
 	}
 
@@ -88,10 +88,10 @@ class MotionListener
 	start()
 	{
         const tcpServer = net.createServer((socket) => {
-            logger.info('Motion streamer connected');
+            logger.debug('Motion streamer connected');
 
             socket.on('end', () => {
-                logger.info('Motion streamer disconnected');
+                logger.debug('Motion streamer disconnected');
             });
 
             let bl = new BufferListStream();
@@ -189,11 +189,11 @@ class MotionListener
         tcpServer.listen(this.conf.get('motionport'));
 
         if (this.conf.get('motionport') == 'systemd') {
-            logger.info('Motion TCP server listening on systemd socket');
+            logger.debug('Motion TCP server listening on systemd socket');
         } else {
             var address = tcpServer.address();
             if (address) {
-                logger.info(`Motion TCP server listening on %s:%d`, address.address, address.port);
+                logger.debug(`Motion TCP server listening on %s:%d`, address.address, address.port);
             }
         }
 	} // start()

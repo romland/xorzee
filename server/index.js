@@ -168,12 +168,12 @@ const settingsFile = settingsDir + "/mintymint.config";
 				// %X = current time with seconds (hh:mm:ss)
 				// see also: https://man7.org/linux/man-pages/man3/strftime.3.html
 				text            : "\n %Y-%m-%d %X",					// Misc text, can contain a few \n and date/time substitutions
-				fontSize        : 32,								// font-size
+				fontSize        : 16,								// font-size
 				textLuminance   : "auto",							// null/auto = auto, otherwise a value between 0 and 255
 				justify         : 2,								// 0=center, 1=left, 2=right
 				top             : 990,								// pixels from the top
 				left            : 0,								// pixels from the left
-				backgroundColor : "0000ff"							// 'transparent' or rgb (e.g. ff00ff)
+				backgroundColor : "68dce9"							// 'transparent' or rgb (e.g. ff00ff)
 			},
 
 			// Ignore

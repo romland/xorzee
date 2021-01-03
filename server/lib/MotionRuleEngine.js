@@ -52,9 +52,9 @@ class MotionRuleEngine
 		SIMULATE_RECORDING = conf.get("simulateRecord");
 
 		if(SIMULATE_RECORDING) {
-			logger.info("Simulating recording. Nothing will be written to disk.");
+			logger.warn("Simulating recording. Nothing will be written to disk.");
 		} else {
-			logger.info("Recordings will be written to disk.");
+			logger.debug("Recordings will be written to disk.");
 		}
 	}
 
@@ -75,7 +75,7 @@ class MotionRuleEngine
 			throw new Error("Attempted to start recording while recording");
 		}
 
-		logger.info("Start recording!");
+		logger.info("Start recording");
 
 		if(SIMULATE_RECORDING) {
 			this._simulatedRecordStatus = true;
@@ -95,7 +95,7 @@ class MotionRuleEngine
 			throw new Error("Attempted to stop recording while not recording");
 		}
 
-		logger.info("Stop recording!");
+		logger.info("Stop recording");
 
 		if(SIMULATE_RECORDING) {
 			this._simulatedRecordStatus = false;
@@ -118,7 +118,7 @@ class MotionRuleEngine
 
 	start()
 	{
-		logger.info("Motion rule engine started...");
+		logger.debug("Motion rule engine started...");
 	}
 
 

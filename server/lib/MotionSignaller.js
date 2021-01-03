@@ -102,13 +102,13 @@ class MotionSignaller
 
 					let f = new Fetch(s,
 						(startData) => {
-							logger.info("Fetch start: %s", startData);
+							logger.debug("Fetch start: %s", startData);
 						},
 						(doneData) => {
 							if(s.log) {
 								logger.info("Fetch done: %s", doneData);
 							} else {
-								logger.info("Fetch done: %s", s.name);
+								logger.debug("Fetch done: %s", s.name);
 							}
 						},
 						(errorData) => {
@@ -125,13 +125,13 @@ class MotionSignaller
 
 					let es = new EmailSes(s,
 						(startData) => {
-							logger.info("Email start: %s", startData);
+							logger.debug("Email start: %s", startData);
 						},
 						(doneData) => {
 							if(s.log) {
 								logger.info("Email done: %s", doneData);
 							} else {
-								logger.info("Email done: %s", s.name);
+								logger.debug("Email done: %s", s.name);
 							}
 						},
 						(errorData) => {
@@ -149,13 +149,13 @@ class MotionSignaller
 
 					let e = new Email(s,
 						(startData) => {
-							logger.info("Email start: %s", startData);
+							logger.debug("Email start: %s", startData);
 						},
 						(doneData) => {
 							if(s.log) {
 								logger.info("Email done: %s", doneData);
 							} else {
-								logger.info("Email done: %s", s.name);
+								logger.debug("Email done: %s", s.name);
 							}
 						},
 						(errorData) => {
@@ -274,7 +274,7 @@ class MotionSignaller
 	{
 		let proc;
 
-		logger.info("Executing signal script: %s", signal.name);
+		logger.debug("Executing signal script: %s", signal.name);
 
 		if(this.scriptInstances[signal.name]) {
 			this.scriptInstances[signal.name] = 0;
@@ -297,14 +297,18 @@ class MotionSignaller
 			proc.unref();
 
 			const onProcessDied = (e) => {
-				logger.info("Signal script '%s' is done. Exit reason: %o", signal.name, e);
+				if(signal.log) {
+					logger.info("Signal script '%s' is done. Exit reason: %o", signal.name, e);
+				}
 				this.scriptInstances[signal.name]--;
 				runObject.killed = true;
 				this.purgeKilled();
 			};
 
 			const onProcessMessage = (d) => {
-				logger.info("[Signal script '%s']: %s", signal.name, d);
+				if(signal.log) {
+					logger.info("[Signal script '%s']: %s", signal.name, d);
+				}
 			};
 
 			if(signal.log) {
@@ -350,7 +354,7 @@ class MotionSignaller
 	{
 		let proc = runningObject.process;
 
-		logger.info("Forcefully killing PID %d, signal: '%s'", proc.pid, runningObject.signal.name);
+		logger.warn("Forcefully killing PID %d, signal: '%s'", proc.pid, runningObject.signal.name);
 
 		proc.stdin.pause();
 		tkill(proc.pid);

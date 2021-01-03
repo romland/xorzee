@@ -48,9 +48,9 @@ class VideoListener
 	start()
 	{
         const tcpServer = net.createServer((socket) => {
-            logger.info('Video streamer connected');
+            logger.debug('Video streamer connected');
             socket.on('end', () => {
-                logger.info('Video streamer disconnected');
+                logger.debug('Video streamer disconnected');
             })
 
             const NALSplitter = new Split(NALSeparator);
@@ -86,11 +86,11 @@ class VideoListener
 		this.videoSender.setHeaders(this.headers);
 
         if (this.conf.get('videoport') == 'systemd') {
-            logger.info('Video TCP server listening on systemd socket');
+            logger.debug('Video TCP server listening on systemd socket');
         } else {
             var address = tcpServer.address();
             if (address) {
-                logger.info(`Video TCP server listening on ${address.address}:${address.port}`);
+                logger.debug(`Video TCP server listening on ${address.address}:${address.port}`);
             }
         }
 	}

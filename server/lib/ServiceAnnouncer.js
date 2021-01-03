@@ -75,7 +75,7 @@ class ServiceAnnouncer
 				logger.error("ServiceAnnouncer.done() error: %o", err);
 			}
 
-			logger.info("Announcing service");
+			logger.debug("Announcing service");
 		}
 
 		// Get hostname, then invoke announcing the service.
@@ -90,7 +90,7 @@ class ServiceAnnouncer
 			}
 
 			this.hostname = hostname;
-			logger.info("Hostname is %s", this.hostname);
+			logger.debug("Hostname is %s", this.hostname);
 
 			this.bus.getInterface('org.freedesktop.Avahi', '/', 'org.freedesktop.Avahi.Server', gotInterface)
 		});
@@ -99,7 +99,7 @@ class ServiceAnnouncer
 
 	stop()
 	{
-		logger.info("Stopping announcement");
+		logger.debug("Stopping announcement");
 		this.bus.connection.end();
 	}
 
