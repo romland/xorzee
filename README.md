@@ -14,6 +14,7 @@ A low-latency, high quality streamer and motion detector. The goal is that it mu
 - [x] ...optionally play audio, invoke remote URL or send mail on activity
 - [x] ...optionally signal external programs on activity (or end of)
 - [x] ...highly configurable (but sane out of the box)
+- [x] ...user interface to draw ignored areas (think: masks in other programs)
 - [ ] ...store meta-data of amount of activity in period (graph)
 - [ ] ...modern web-client that can handle multiple cameras
 - [ ] ...connect to any camera on the network to access _all_ cameras on network
@@ -42,8 +43,13 @@ A low-latency, high quality streamer and motion detector. The goal is that it mu
 - test if we still need 'reducing' on lots of motion points (with recent optimization, maybe reducing cost more than it gives)
 - be able to _not record_ but remember event (a time-stamp will suffice?)
 - support strings for signal constants (to be able to make sense of JSON configs): START_RECORDING, EMAIL_SES etc
+- make the camera flips configurable
+- make brightness, contrast, etc configurable
+- can definitely increase requirements for 'send only activity' (it sends when there is virtuall no activity now)
+
 
 ## TODO
+- run camera in preview (does that cost a lot? check) and incorporate dispmanx as screenshotter instead of ffmpeg (e.g. what https://github.com/AndrewFromMelbourne/raspi2png does)
 - ability to set an 'on' schedule (for signals and recording)
 - split 'signals' up into one signal per file (perhaps make signals-available and signals-enabled directories)
 - flesh out 'activity mails':
@@ -83,6 +89,12 @@ A low-latency, high quality streamer and motion detector. The goal is that it mu
 - Stream instead of downloading recorded files...
 - view log
 
+## Check out
+- 02jan2020: https://github.com/silvanmelchior/RPi_Cam_Web_Interface (I actually only found out about 
+  this one long into my own development -- it might just be what I need!)
+- motioneye, I knew about (which was what I _wish_ did what I wanted)
+
+
 ## Maybe future stuff (and ideas)
 - test if client works on my LG TV (I have my doubts!)
 - be able to specify overlay over a camera (top-left, top-right, bottom-left, bottom-right)
@@ -94,6 +106,7 @@ A low-latency, high quality streamer and motion detector. The goal is that it mu
 - I'd like object-identification _without extra hardware_ (we will only identify _moving_ objects -- e.g. human/cat/dog)
   (google: does yolo use motion vectors) A: is no, but seems like other thought of the same (no surprise)
 - Would be nice to be able to use 'down-time' to containerize the h264 files (too much to ask for perhaps?)
+	see: https://github.com/gpac/gpac/wiki/MP4Box
 - Change: Curently using deprecated @clusterws/cws (testing on 32bit arm72 -- no prebuilt uWs there)
 - Would be nice to remap fisheye live (it should be somewhat parallellizable and could go on GPU?)
 - "Beam" to TV:
@@ -103,6 +116,7 @@ A low-latency, high quality streamer and motion detector. The goal is that it mu
 - Recording simulation should be moved into Recorder actually (realized this late as it propagated outside of MotionRuleEngine)
 - get rid of 'bl'?
 - screenshots / videos on github (ugh)
+- timelapse? not too interested in it myself tbh
 
 ## Thoughts
 - I suppose one _could_ argue that there is no _real_ need to cluster on the server, as long as 
