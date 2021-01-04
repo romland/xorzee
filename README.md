@@ -27,6 +27,7 @@ A low-latency, high quality streamer and motion detector. The goal is that it mu
 
 ## Working on now
 - fixing controls in client
+- exiting fullscreen will forget previous size of videoplayer (and thus all elements are of wrong size
 
 ## Quick do's
 - make configurable:
@@ -276,3 +277,4 @@ A low-latency, high quality streamer and motion detector. The goal is that it mu
 - making 'ignore area' does not work correctly with multiple clients
 - support strings for signal constants (to be able to make sense of JSON configs): START_RECORDING, EMAIL_SES etc
 - don't render motion if we are hidden
+- refreshing while scrolled will misplace some elements

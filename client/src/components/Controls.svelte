@@ -1,5 +1,5 @@
 <script>
-	import { scale } from "svelte/transition";
+	import OverlayToggler from "./OverlayToggler.svelte";
 
 	export let showButton = true;
 	export let sendMessage = null;
@@ -70,55 +70,16 @@
 		}
 	}
 
-	let label, content, contentPos;
-	function open()
-	{
-		if(!visible) {
-			const rect = label.getBoundingClientRect();
-			contentPos = `position: absolute; left: ${rect.left}px; top: ${rect.height}px;`;
-		}
-
-		visible = !visible;
-	}
-
 </script>
 
-{#if showButton}
-	<div bind:this={label} on:click={open}>
-		✓ Controls
-	</div>
+	<OverlayToggler name="✓ Controls" {visible} showButton={showButton} position="below">
 
-	<div bind:this={content} style={contentPos}>
-		{#if visible}
-			<div transition:scale="{{start:0.25}}">
-				<button on:click={btnToggleVideoStream}>Toggle video stream</button>
-				<button on:click={btnRecordStart}>Start recording</button>
-				<button on:click={btnRecordStop}>Stop recording</button>
-				<button on:click={reconfigureStream}>Reconfigure</button>
-				<button on:click={() => drawingIgnoreArea = !drawingIgnoreArea}>Toggle adding ignore area</button>
-				<input type="checkbox" on:change={toggleNotifications}/>Notifications
-			</div>
-		{/if}
-	</div>
-{/if}
+		<button on:click={btnToggleVideoStream}>Toggle video stream</button>
+		<button on:click={btnRecordStart}>Start recording</button>
+		<button on:click={btnRecordStop}>Stop recording</button>
+		<button on:click={reconfigureStream}>Reconfigure</button>
+		<button on:click={() => drawingIgnoreArea = !drawingIgnoreArea}>Toggle adding ignore area</button>
+		<input type="checkbox" on:change={toggleNotifications}/>Notifications
 
-<style>
-	.box {
-		
-		background-color: blue;
-		
-		animation-name: spin;
-		animation-duration: 4000ms;
-	}
-	
-	@keyframes spin {
-		from {
-			transform: rotate(0);
-		}
-		
-		to {
-			transform: rotate(360deg);
-		}
-	}
+	</OverlayToggler>
 
-</style>

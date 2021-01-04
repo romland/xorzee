@@ -1,6 +1,7 @@
 "use strict";
 
 import  { MotionRenderer } from "./motionrenderer";
+import { copyGeography } from "../lib/utils.js";
 
 
 export default class MotionStreamer
@@ -64,14 +65,18 @@ export default class MotionStreamer
 			return;
 		}
 
+		copyGeography(videoCanvas, motionCanvas);
+/*
 		let vsRect = videoCanvas.getBoundingClientRect();
 	
 		let totBorderSize = 2;
 		let styles = {
 			position	: "absolute",
 			zIndex		: 10,
-			left		: vsRect.left + "px",
-			top			: vsRect.top + "px",
+			// left		: vsRect.left + "px",
+			// top			: vsRect.top + "px",
+			left		: (vsRect.left - window.pageXOffset) + "px",
+			top			: (vsRect.top - window.pageYOffset) + "px",
 			width		: vsRect.width - totBorderSize + "px",
 			height		: vsRect.height - totBorderSize + "px"
 		};
@@ -79,6 +84,7 @@ export default class MotionStreamer
 		for(let s in styles) {
 			motionCanvas.style[s] = styles[s];
 		}
+*/
 	}
 	
 	handleMessage(dataType, data)

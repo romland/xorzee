@@ -1,4 +1,5 @@
 <script>
+	import OverlayToggler from "./OverlayToggler.svelte";
 	import { fade } from 'svelte/transition';
 	import Loading from "./Loading.svelte";
 
@@ -10,36 +11,26 @@
 
 	const baseUrl = server + dir;
 
-	function open()
-	{
-		visible = !visible;
-	}
-
 </script>
 
-{#if visible}
-	<div class="overlay" in:fade out:fade>
-		<div class="cards">
-			<Loading></Loading>
+	<OverlayToggler name="📹 Recordings" {visible} showButton={showButton} position="above">
+		<div class="overlay" in:fade out:fade>
+			<div class="cards">
+				<Loading></Loading>
 
-			{#each items as item}
-				<div class="card">
-					<div class="content">
-						<img alt="" src="{baseUrl}{item.screenshot}"/>
-						<p>text</p>
+				{#each items as item}
+					<div class="card">
+						<div class="content">
+							<img alt="" src="{baseUrl}{item.screenshot}"/>
+							<p>text</p>
+						</div>
+						<footer>Card footer</footer>
 					</div>
-					<footer>Card footer</footer>
-				</div>
-			{/each}
+				{/each}
+			</div>
 		</div>
-	</div>
-{/if}
+	</OverlayToggler>
 
-{#if showButton}
-	<div class="overlay" on:click={open}>
-		📹 Recordings
-	</div>
-{/if}
 
 <style>
 

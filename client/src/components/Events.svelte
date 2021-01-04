@@ -1,4 +1,6 @@
 <script>
+	import OverlayToggler from "./OverlayToggler.svelte";
+
 	export let showButton = true;
 	export let visible = false;
 	export let settings = null;
@@ -16,24 +18,11 @@
 		eventCache.push(e);
 		eventCache = eventCache;
 	}
-
-	function open()
-	{
-		visible = !visible;
-	}
 </script>
 
-{#if visible}
-	<div>
+	<OverlayToggler name="☀ Events" {visible} showButton={showButton} position="above">
 		Recent events
 		{#each eventCache as e}
 			{e.event}<br/>
 		{/each}
-	</div>
-{/if}
-
-{#if showButton}
-	<div on:click={open}>
-		☀ Events
-	</div>
-{/if}
+	</OverlayToggler>

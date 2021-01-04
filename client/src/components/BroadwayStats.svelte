@@ -11,6 +11,8 @@
 </script>
 
 <script>
+	import OverlayToggler from "./OverlayToggler.svelte";
+
 	export let showButton = true;
 	export let player;
 	export let visible;
@@ -47,22 +49,9 @@
 		elapsed = date.toISOString().substr(11, 8);
 	}, 1000);
 
-
-	function open()
-	{
-		visible = !visible;
-	}
-
 </script>
 
-{#if showButton}
-	<div on:click={open}>
-		🗠 Statistics
-	</div>
-{/if}
-
-{#if visible}
-	<div>
+	<OverlayToggler name="🗠 Statistics" {visible} showButton={showButton} position="below">
 		<span>{playerWidth}x{playerHeight}</span>,
 		<span>{lastSecondFrames} fps</span>,
 		<span>{(lastSecondBytes/1024).toFixed(2)} KiB/s</span>,
@@ -70,5 +59,4 @@
 		<span>total {(totalBytes/1048576).toFixed(2)} MiB</span>,
 		<span>{totalNALs} NAL units</span>,
 		<span>{totalFrames} frames in {elapsed}</span>
-	</div>
-{/if}
+	</OverlayToggler>

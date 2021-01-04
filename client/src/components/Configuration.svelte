@@ -1,5 +1,5 @@
 <script>
-	import { fade } from 'svelte/transition';
+	import OverlayToggler from "./OverlayToggler.svelte";
 
 	export let showButton = true;
 	export let sendMessage = null;
@@ -22,24 +22,8 @@
 	}
 	console.log(doc);
 */
-
-	function open()
-	{
-		visible = !visible;
-	}
 </script>
 
-{#if showButton}
-	<div on:click={open}>
-		⚙ Settings
-	</div>
-{/if}
-
-{#if visible}
-	<div>
+	<OverlayToggler name="⚙ Settings" {visible} showButton={showButton} position="below">
 		Ability to change all settings
-	</div>
-{/if}
-
-<style>
-</style>
+	</OverlayToggler>
