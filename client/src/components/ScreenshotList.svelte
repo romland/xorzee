@@ -38,10 +38,6 @@
 	</div>
 
 <style>
-	.overlay {
-		position: absolute;
-		bottom: 0;
-	}
 
 	.cards {
 		display: grid;

@@ -1,11 +1,11 @@
 <script>
 	import { fade } from 'svelte/transition';
 
-	export let pos = "";
 	export let sendMessage = null;
 	export let settings = null;
+	export let visible = false;
 
-	console.log(pos, sendMessage, settings);
+	console.log(sendMessage, settings);
 
 /*
 	let o = {};
@@ -313,13 +313,10 @@
 
 </script>
 
-<div class="container">⚙ Settings</div>
+<div class="container">
+	⚙ Settings
+</div>
 
 
 <style>
-	.container {
-		position: absolute;
-		top: 0;
-		left: 0;
-	}
 </style>

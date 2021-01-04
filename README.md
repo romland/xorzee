@@ -27,6 +27,7 @@ A low-latency, high quality streamer and motion detector. The goal is that it mu
 ## Working on now
 - take screenshots using dispmanx (in camera preview) -- check performance on Zero
 	- run camera in preview (does that cost a lot? check) and incorporate dispmanx as screenshotter instead of ffmpeg (e.g. what https://github.com/AndrewFromMelbourne/raspi2png does)
+	note: this adds a dependency on libpng: sudo apt-get install libpng12-dev
 
 ## Quick do's
 - add "signalSecret" setting (used primarily for 'fetch') -- used so that signals cannot be (as) easily spoofed
@@ -46,6 +47,7 @@ A low-latency, high quality streamer and motion detector. The goal is that it mu
 - make the camera flips configurable
 - make brightness, contrast, etc configurable
 - can definitely increase requirements for 'send only activity' (it sends when there is virtually no activity now)
+- option to only stream motion (and occasional screenshot in place of video? -- click to start video, on demand?)
 
 ## TODO
 - recording is a bit too sensitive in these current settings (at least in low-light/night)
@@ -93,6 +95,7 @@ A low-latency, high quality streamer and motion detector. The goal is that it mu
 - be able to set motion-sensitivity depending on hour of day (think: when it gets dark, we get more noise)
 - make logging to disk configurable
 - make a '... | bash' installation script (host on github)
+- when reconfiguring camera settings, make sure the cached NAL headers are cleared (otherwise startup time might be really long!)
 
 ## TODO client
 - Be able to see recent/latest detected motion sequences in client
@@ -101,6 +104,7 @@ A low-latency, high quality streamer and motion detector. The goal is that it mu
 - Stream instead of downloading recorded files...
 - view log (if there is one)
 - have a slider for sensitivity of motion (this is a bit arbitrary, but I don't really expect everyone to understand all settings)
+- output how many clusters and blocks/vectors are currenty active (to be able to easier set sensitivity)
 
 ## Known bugs (client)
 - when reconfiguring resolution, ignore-area does not scale (need to reload to get it shown correctly)

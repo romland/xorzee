@@ -9,6 +9,8 @@
 	import PolyShow from "./PolyShow.svelte";
 	import ScreenshotList from "./ScreenshotList.svelte";
 	import Configuration from "./Configuration.svelte";
+	import Controls from "./Controls.svelte";
+	import Events from "./Events.svelte";
 	import { start as startVideoStream } from "../lib/stream-video";
 	import {
 		start as startMotionStream,
@@ -31,6 +33,8 @@
 	let overlay = {
 		"Configuration" : false,
 		"ScreenshotList" : false,
+		"BroadwayStats" : false,
+		"Controls" : false,
 	};
 
 	let wsUrl;
@@ -39,6 +43,7 @@
 	let videoCanvas;
 	let motionCanvas;
 	let fullScreenState;
+	let eventsComponent;
 
 	let settings = null;
 	let lastRecordings = [];
@@ -112,6 +117,8 @@
 	{
 		console.log("Got event from server", e);
 
+		eventsComponent.newEvent(e);
+
 		switch(e.event) {
 			case "startRecordingMotion":
 				recording = true;
@@ -123,45 +130,6 @@
 				lastRecordings = e.data;
 				break;
 		}
-	}
-
-	function reconfigureStream()
-	{
-		sendMessage(
-			{
-				scope	: "general",
-				verb	: "reconfigure",
-				data : {
-                	"width"				: 1280,
-                	"height"			: 720,
-                	"framerate"			: 24,
-					"bitrate"			: 1700000 / 4,
-					"clusterEpsilon"	: 3,
-					"clusterMinPoints"	: 2,
-					"vectorMinMagnitude": 1,
-				}
-			}
-		);
-	}
-
-	function btnRecordStart()
-	{
-		sendMessage(
-			{
-				scope	: "record",
-				verb	: "start",
-			}
-		);
-	}
-	
-	function btnRecordStop()
-	{
-		sendMessage(
-			{
-				scope	: "record",
-				verb	: "stop",
-			}
-		);
 	}
 
 	function windowResized()
@@ -183,18 +151,7 @@
 		fullScreenState = !fullScreenState;
 	}
 
-
-	function toggleNotifications()
-	{
-		if(this.checked) {
-			Notification.requestPermission().then(function(result) {
-				console.log(result);
-			});
-		} else {
-			// Stop notifications (make a state for this)
-		}
-	}
-
+	let drawingIgnoreArea = false;
 	function setIgnoreArea(e)
 	{
 		console.log("Got ignore area, passing to server:", e.detail.data);
@@ -208,7 +165,6 @@
 		);
 	}
 
-	let drawingIgnoreArea = false;
 
 </script>
 
@@ -220,6 +176,24 @@
 			<canvas bind:this={motionCanvas}/>
 
 			<div on:dblclick={ () => toggleFullScreen(onRequest, onExit) } id="polydrawContainer" style="width: 1280px; height: 720px; z-index: 10; position: absolute;">
+				{#if settings}
+					<div class="topLeft">
+						<Configuration bind:visible={overlay["Configuration"]} {sendMessage} {settings}></Configuration>
+						|
+						<Controls bind:visible={overlay["Controls"]} bind:drawingIgnoreArea={drawingIgnoreArea} {sendMessage} {settings}></Controls>
+						|
+						{#if videoPlayer}
+							<BroadwayStats bind:visible={overlay["BroadwayStats"]} player={videoPlayer}></BroadwayStats>
+						{/if}
+					</div>
+
+					<div class="bottomLeft">
+						<ScreenshotList bind:visible={overlay["ScreenshotList"]} server={remoteUrl} bind:dir={settings.recordpathwww} bind:items={lastRecordings}></ScreenshotList>
+						|
+						<Events bind:this={eventsComponent} bind:visible={overlay["Events"]} {settings}></Events>
+					</div>
+				{/if}
+
 				{#if drawingIgnoreArea}
 					<PolyDraw placeOn={videoCanvas} on:complete={setIgnoreArea}></PolyDraw>
 				{:else if settings}
@@ -231,27 +205,9 @@
 						<span in:fade out:fade>⬤ REC</span>
 					{/if}
 				</div>
-
-				{#if settings}
-					<Configuration pos="bottom-left"  bind:visible={overlay["screenshots"]} {sendMessage} {settings}></Configuration>
-					<ScreenshotList pos="bottom-left" bind:visible={overlay["screenshots"]} server={remoteUrl} bind:dir={settings.recordpathwww} bind:items={lastRecordings}></ScreenshotList>
-				{/if}
 			</div>
 		</div>
 	</Fullscreen>
-
-Controls | Statistics
-
-	{#if videoPlayer}
-		<BroadwayStats player={videoPlayer}></BroadwayStats>
-	{/if}
-
-	<button on:click={btnRecordStart}>Start recording</button>
-	<button on:click={btnRecordStop}>Stop recording</button>
-	<button on:click={reconfigureStream}>Reconfigure</button>
-	<button on:click={() => drawingIgnoreArea = !drawingIgnoreArea}>Toggle adding ignore area</button>
-	<input type="checkbox" on:change={toggleNotifications}/>Notifications
-
 
 
 <style>
@@ -261,6 +217,20 @@ Controls | Statistics
 		width: 100%;
 	}
 
+	.topLeft {
+		position: absolute;
+		top: 0;
+		left: 0;
+		display: flex;
+	}
+
+	.bottomLeft {
+		position: absolute;
+		bottom: 0;
+		display: flex;
+	}
+
+	/* essentially topRight */
 	.recordingStatus {
 		position: absolute;
 		top: 0;
