@@ -17,11 +17,12 @@ A low-latency, high quality streamer and motion detector. The goal is that it mu
 - [x] ...highly configurable (but sane defaults)
 - [x] ...user interface to draw ignored areas (think: masks in other programs)
 - [x] ...configurable stream overlays
+- [x] ...multiple cameras in web-clients
+- [x] ...connect to any camera on the network to automatically view _all_ cameras on network
 - [ ] ...modern web-client (Svelte)
-- [ ] ...multiple cameras in web-clients
-- [ ] ...connect to any camera on the network to automatically view _all_ cameras on network
 - [ ] ...store meta-data of amount of activity in period (graph)
 - [ ] ...zero-configuration (that is, image card, connect to network and off we go)
+- [x] ...and quite a bit more
 
 [1] If it can run on that, it will run on any other.
 
