@@ -47,6 +47,7 @@
 
 	let settings = null;
 	let lastRecordings = [];
+	let neighbours = [];
 	let recording = false;
 	let showOverlayButtons = true;
 
@@ -108,6 +109,12 @@
 			lastRecordings = msg.lastRecordings;
 		}
 
+		// This is mostly in the root of the object coming from server
+		if(msg.neighbours) {
+			console.log("Got new neighbour list from server");
+			neighbours = msg.neighbours;
+		}
+
 		if(!msg.event) {
 			console.log("handleServerMessage()", msg);
 		}
@@ -118,7 +125,9 @@
 	{
 		console.log("Got event from server", e);
 
-		eventsComponent.newEvent(e);
+		if(eventsComponent) {
+			eventsComponent.newEvent(e);
+		}
 
 		switch(e.event) {
 			case "startRecordingMotion":
@@ -210,6 +219,8 @@
 	<div on:click={()=> {showOverlayButtons = !showOverlayButtons}}>
 		Toggle controls
 	</div>
+
+{JSON.stringify(neighbours)}
 
 <style>
 	:global(canvas) {

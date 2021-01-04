@@ -25,11 +25,13 @@ A low-latency, high quality streamer and motion detector. The goal is that it mu
 [1] If it can run on that, it will run on any other.
 
 ## Working on now
+- button to reconnect websockets
 - take screenshots using dispmanx (in camera preview) -- check performance on Zero
 	- run camera in preview (does that cost a lot? check) and incorporate dispmanx as screenshotter instead of ffmpeg (e.g. what https://github.com/AndrewFromMelbourne/raspi2png does)
 	note: this adds a dependency on libpng: sudo apt-get install libpng12-dev
 
 ## Quick do's
+- Bonjour: cameras should hand out the 'motionStream' port, not the www port (from motionStream we can get to all other ports)
 - add "signalSecret" setting (used primarily for 'fetch') -- used so that signals cannot be (as) easily spoofed
 - be able to ignore motion processing (ie. just use as 'real time' streamer)
 - rename all config options to use camelCase
@@ -216,3 +218,8 @@ A low-latency, high quality streamer and motion detector. The goal is that it mu
 - render overlay every frame (to facilitate animations)
 - Option to not stream video (and only stream when there is activity) -- can still stream motion
 - optionally add (hard) annotations on video stream (they go on recording as well)
+- why doesn't *.67 (the dev one) pick up neighbour *.194 (zero) -- (vice versa works) ... huh!
+	It is not my code, I think. The announcements from 194 does not show up in avahi-browse either. Weird.
+	- So, either avahi is failing me on *.67, or announcing is failing on *.194
+	- OK. So this might be because of name collision:
+		Received conflicting record [Vidensi\032Jr\.._MintyMint._tcp.local      IN      SRV 0 0 8080 p19dev05.local ; ttl=120] with local record to be. Withdrawing.
