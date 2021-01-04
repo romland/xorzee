@@ -26,34 +26,67 @@ A low-latency, high quality streamer and motion detector. The goal is that it mu
 [1] If it can run on that, it will run on any other.
 
 ## Working on now
-- button to reconnect websockets
+- fixing controls in client
+
+## Quick do's
+- make configurable:
+	- toggle whether to reduce busy frames
+- start on boot
+- add "signalSecret" setting (used primarily for 'fetch') -- used so that signals cannot be (as) easily spoofed
+- be able to ignore motion processing (ie. just use as 'real time' streamer)
+- rename all config options to use camelCase (note, some option names are used on client too!)
+- Need better name: call it Aufero?
+- set up a service (service file)
+- set up a default pm2 file
+- test if we still need 'reducing' on lots of motion points (with recent optimization, maybe reducing cost more than it gives)
+- be able to _not record_ but remember event (a time-stamp will suffice?)
+- can definitely increase requirements for 'send only activity' (it sends when there is virtually no activity now)
+- report memory and CPU useage to clients
 - take screenshots using dispmanx (in camera preview) -- check performance on Zero
 	- run camera in preview (does that cost a lot? check) and incorporate dispmanx as screenshotter instead of ffmpeg (e.g. what https://github.com/AndrewFromMelbourne/raspi2png does)
 	note: this adds a dependency on libpng: sudo apt-get install libpng12-dev
-- start on boot
 
-## Quick do's
-- add "signalSecret" setting (used primarily for 'fetch') -- used so that signals cannot be (as) easily spoofed
-- be able to ignore motion processing (ie. just use as 'real time' streamer)
-- rename all config options to use camelCase
-- Need better name: call it Aufero?
-- set up a service (service file)
-- Merge doc/notes.txt into README or another .md
+## TODO
+- make camera configurable further 
+	--qp	quantisation : 0,		// (0) https://www.raspberrypi.org/forums/viewtopic.php?t=175716
+			flush : false,			// (false) Flush buffers in order to decrease latency
+			slices : 1,				// Horizontal slices per frame
+			sharpness				// -100 - 100
+			contrast				// -100 to 100
+			brightness				// 0 to 100
+			saturation				// -100 to 100
+			ISO						// ISO
+			vstab : false			// video stabilisation
+	--ev	evCompoensation			// EV compensation - steps of 1/6 stop
+			exposure				// Set exposure mode:
+									// off,auto,night,nightpreview,backlight,spotlight,sports,snow,beach,verylong,fixedfps,
+									// antishake,fireworks
+			flicker					// Set flicker avoid mode:
+									// off,auto,50hz,60hz
+			awb						// Set AWB mode
+									// off,auto,sun,cloud,shade,tungsten,fluorescent,incandescent,flash,horizon,greyworld
+	--imxfx	imageEffect				// Set image effect:
+									// none,negative,solarise,sketch,denoise,emboss,oilpaint,hatch,gpen,pastel,watercolour,film,
+									// blur,saturation,colourswap,washedout,posterise,colourpoint,colourbalance,cartoon
+	--colfx	colorEffect				// Set colour effect (U:V)
+			metering				// Set metering mode:
+									// average,spot,backlit,matrix
+			rotation				// Set image rotation (0-359)
+	--hflip	horizontalFlip			// Set horizontal flip
+	--vflip	verticalFlip			// Set vertical flip
+	--roi	regionOfInterest		// Set region of interest (x,y,w,d as normalised coordinates [0.0-1.0])
+			shutter					// Set shutter speed in microseconds
+	--drc	drcLevel				// Set DRC Level:
+									// off,low,med,high
+	--analoggain	analogGain		// Set the analog gain (floating point)
+	--digitalgain	digitalGain		// Set the digital gain (floating point)
+- when streaming only motion, optional config to send an occasional screenshot in place of video? -- click to start video, on demand?
+- Write a script to install ffmpeg (and other dependencies, node12?)
+- zero is currently slow as a dog -- need some serious optimization work again
 - recordings: store (in meta) where motion was during the recorded clip (the tricky thing is the pre-buffer here)
 	frame 1: [ points... ]
 	frame 2: ...
 	- also store magnitude / frame in the meta
-- Write a script to install ffmpeg (and other dependencies, node12?)
-- test if we still need 'reducing' on lots of motion points (with recent optimization, maybe reducing cost more than it gives)
-- be able to _not record_ but remember event (a time-stamp will suffice?)
-- support strings for signal constants (to be able to make sense of JSON configs): START_RECORDING, EMAIL_SES etc
-- make the camera flips configurable
-- make brightness, contrast, etc configurable
-- can definitely increase requirements for 'send only activity' (it sends when there is virtually no activity now)
-- option to only stream motion (and occasional screenshot in place of video? -- click to start video, on demand?)
-- report memory and CPU useage to clients
-
-## TODO
 - config-option: stream motion only on activity
 - if using mp4box -- do I need ffmpeg at all? (or is that a dep of mp4box?)
 - recording is a bit too sensitive in these current settings (at least in low-light/night)
@@ -102,8 +135,11 @@ A low-latency, high quality streamer and motion detector. The goal is that it mu
 - make logging to disk configurable
 - make a '... | bash' installation script (host on github)
 - when reconfiguring camera settings, make sure the cached NAL headers are cleared (otherwise startup time might be really long!)
+- Merge doc/notes.txt into README or another .md
 
 ## TODO client
+- Send SAD with raw vectors (want to experiment how much SAD differ between frames. 
+  Just plot _difference_ as grayscale on raw vector canvas)
 - Be able to see recent/latest detected motion sequences in client
 - be able to put overlay (timestamp?) on saved stream (not sure how costly this would be)
 	(meh, best to just have the player add it as an overlay)
@@ -111,6 +147,10 @@ A low-latency, high quality streamer and motion detector. The goal is that it mu
 - view log (if there is one)
 - have a slider for sensitivity of motion (this is a bit arbitrary, but I don't really expect everyone to understand all settings)
 - output how many clusters and blocks/vectors are currenty active (to be able to easier set sensitivity)
+- make 'don't render video/motion when hidden' configurable in client
+- button to reconnect websockets
+- make configuragle: reconnect sockets on disconnect (just a matter of setting a timeout to non-0)
+- be able to specify _no_ ignore area
 
 ## Known bugs (client)
 - when reconfiguring resolution, ignore-area does not scale (need to reload to get it shown correctly)
@@ -159,6 +199,8 @@ A low-latency, high quality streamer and motion detector. The goal is that it mu
 - get rid of 'bl'?
 - screenshots / videos on github (ugh)
 - timelapse? not too interested in it myself tbh
+	raspivid: -td, --timed    : Cycle between capture and pause. -cycle on,off where on is record time and off is pause time in ms
+	alternatively: just grab from dispmanx (that way we can still detect motion)
 - https://github.com/mpromonet/v4l2rtspserver (latency is main worry, investigate)
 
 ## Thoughts
@@ -232,3 +274,5 @@ A low-latency, high quality streamer and motion detector. The goal is that it mu
 - on 'secondary' servers, we do not connect to video stream...
 - output 'server name' on all log statements in Player
 - making 'ignore area' does not work correctly with multiple clients
+- support strings for signal constants (to be able to make sense of JSON configs): START_RECORDING, EMAIL_SES etc
+- don't render motion if we are hidden

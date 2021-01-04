@@ -112,6 +112,10 @@ export class MotionRenderer
 	{
 		this.animFrame = requestAnimationFrame(() => { this.render() });
 
+		if(document.hidden) {
+			return;
+		}
+
 		if(!this.context || !this.lastData || !this.lastDataType)  {
 			return;
 		}
