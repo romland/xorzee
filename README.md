@@ -25,13 +25,14 @@ A low-latency, high quality streamer and motion detector. The goal is that it mu
 [1] If it can run on that, it will run on any other.
 
 ## Working on now
+- output 'server name' on all log statements in Player
 - button to reconnect websockets
 - take screenshots using dispmanx (in camera preview) -- check performance on Zero
 	- run camera in preview (does that cost a lot? check) and incorporate dispmanx as screenshotter instead of ffmpeg (e.g. what https://github.com/AndrewFromMelbourne/raspi2png does)
 	note: this adds a dependency on libpng: sudo apt-get install libpng12-dev
+- start on boot
 
 ## Quick do's
-- Bonjour: cameras should hand out the 'motionStream' port, not the www port (from motionStream we can get to all other ports)
 - add "signalSecret" setting (used primarily for 'fetch') -- used so that signals cannot be (as) easily spoofed
 - be able to ignore motion processing (ie. just use as 'real time' streamer)
 - rename all config options to use camelCase
@@ -52,6 +53,7 @@ A low-latency, high quality streamer and motion detector. The goal is that it mu
 - option to only stream motion (and occasional screenshot in place of video? -- click to start video, on demand?)
 
 ## TODO
+- if using mp4box -- do I need ffmpeg at all? (or is that a dep of mp4box?)
 - recording is a bit too sensitive in these current settings (at least in low-light/night)
 - client side simulation of camera annotations
 - ability to set an 'on' schedule (for signals and recording)
@@ -223,3 +225,5 @@ A low-latency, high quality streamer and motion detector. The goal is that it mu
 	- So, either avahi is failing me on *.67, or announcing is failing on *.194
 	- OK. So this might be because of name collision:
 		Received conflicting record [Vidensi\032Jr\.._MintyMint._tcp.local      IN      SRV 0 0 8080 p19dev05.local ; ttl=120] with local record to be. Withdrawing.
+- Bonjour: cameras should hand out the 'motionStream' port, not the www port (from motionStream we can get to all other ports)
+- make 'Player' component's connection points configurable externally (ground work for multiple servers in one client)

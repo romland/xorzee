@@ -5,7 +5,12 @@ const NAL_SEPARATOR = new Uint8Array([0, 0, 0, 1]);
 var webSocket;
 var player;
 
-export function start(wsUri, port, reconnectInterval = 2000, useWebWorkers = true, useWebGL = "auto", onNALunit = null)
+export function getWebSocket()
+{
+	return webSocket;
+}
+
+export function setup(useWebWorkers = true, useWebGL = "auto")
 {
 	if(!player) {
 		player = new Player({
@@ -20,8 +25,12 @@ export function start(wsUri, port, reconnectInterval = 2000, useWebWorkers = tru
 		});
 	}
 
-	setupWebSocket(wsUri, port, reconnectInterval, onNALunit);
 	return player;
+}
+
+export function start(wsUri, port, reconnectInterval = 2000, onNALunit = null)
+{
+	setupWebSocket(wsUri, port, reconnectInterval, onNALunit);
 }
 
 

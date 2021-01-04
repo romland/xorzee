@@ -11,7 +11,11 @@
 	import Configuration from "./Configuration.svelte";
 	import Controls from "./Controls.svelte";
 	import Events from "./Events.svelte";
-	import { start as startVideoStream } from "../lib/stream-video";
+	import {
+		setup as setupVideoStream,
+		start as startVideoStream,
+		getWebSocket as getVideoWebSocket
+	} from "../lib/stream-video";
 	import {
 		start as startMotionStream,
 		stop as stopMotionStream,
@@ -21,14 +25,20 @@
 	} from "../lib/stream-motion";
 
 	// Set to true if client (the Svelte app) is hosted by localhost but streaming server (Raspi) is not.
-	const remoteServer = true;
+	export let remoteServer = null;
+
 	// This only needs to be set to an address if above is true.
-	const remoteAddress = "192.168.178.67";
-	// const remoteAddress = "192.168.178.194";
-	const wwwPort = 8080;
-	const videoStreamPort = 8081;
-	const motionStreamPort = 8082;
+	export let remoteAddress = null;
+
+	// The client needs to get motionStreamPort from the _first_ server it connects to
+	export let wwwPort = null;
+
+	export let motionStreamPort = null;
+
+
 	const reconnectInterval = 0;// 2000;		// set to 0 for no auto-reconnect
+
+	const dispatch = createEventDispatcher();
 
 	let overlay = {
 		"Configuration" : false,
@@ -44,6 +54,7 @@
 	let motionCanvas;
 	let fullScreenState;
 	let eventsComponent;
+	let videoStreamPort;
 
 	let settings = null;
 	let lastRecordings = [];
@@ -52,15 +63,60 @@
 	let showOverlayButtons = true;
 
 	let remoteUrl = "";
-	if(remoteServer && window.location.hostname === "localhost") {
-		wsUrl = `ws://${remoteAddress}:`;
-		remoteUrl = window.location.protocol + "//" + remoteAddress + ":" + wwwPort;
-	} else {
-		wsUrl = window.location.protocol.replace(/http/, 'ws') + '//' + window.location.hostname + ':';
+
+	// yeah yeah, rename this... it's for development only
+	function fiddleWithUrl()
+	{
+		if(remoteServer && window.location.hostname === "localhost") {
+			wsUrl = `ws://${remoteAddress}:`;
+			remoteUrl = window.location.protocol + "//" + remoteAddress + ":" + wwwPort;
+		} else {
+			wsUrl = window.location.protocol.replace(/http/, 'ws') + '//' + window.location.hostname + ':';
+		}
+	}
+
+	fiddleWithUrl();
+
+
+	// Server name, used for debugging
+	function sn()
+	{
+		// They all have the same name atm (pulled from git)
+		// return `[${(settings ? settings.name : remoteUrl)}]`;
+		return `[${remoteUrl}]`;
+	}
+
+	function reconfigure(newSettings)
+	{
+		console.log(sn(), "Got settings from server");
+		settings = newSettings;
+
+		wwwPort = settings.wwwport;
+
+		if(motionStreamPort && motionStreamPort !== settings.motionwsport) {
+			// motionStreamPort = settings.motionwsport;
+			console.error(sn(), "Changing live port of motion stream is not supported");
+		}
+
+		fiddleWithUrl();
+
+		if(!getVideoWebSocket() || (videoStreamPort && videoStreamPort !== settings.videowsport)) {
+			videoStreamPort = settings.videowsport;
+
+			if(getVideoWebSocket()) {
+				console.error(sn(), "Reconnect video stream (TODO: disconnect here!)");
+				// TODO: Already connected; disconnect video stream
+			} else {
+				console.log(sn(), "Connect video stream");
+			}
+
+			// We start videoStream _after_ motion stream -- since that is where we get the port from.
+			startVideoStream(wsUrl, videoStreamPort, reconnectInterval, onNALunit);
+		}
 	}
 
 	onMount(() => {
-		videoPlayer = startVideoStream(wsUrl, videoStreamPort, reconnectInterval, true, 'auto', onNALunit);
+		videoPlayer = setupVideoStream(true, 'auto');
 		videoCanvas = videoPlayer.canvas;
 		container.prepend(videoCanvas);
 
@@ -72,7 +128,7 @@
 		}).observe(videoCanvas);
 
 		document.addEventListener("visibilitychange", function() {
-			console.log("document.hidden", document.hidden)
+			console.log(sn(), "document.hidden", document.hidden)
 			if(document.hidden) {
 				var notification = new Notification(
 					'MintyMint',
@@ -95,8 +151,7 @@
 	function handleServerMessage(msg)
 	{
 		if(msg.settings) {
-			console.log("Got settings from server");
-			settings = msg.settings;
+			reconfigure(msg.settings);
 		}
 
 		if(msg.event) {
@@ -105,25 +160,29 @@
 
 		// This can also be in the root of an object (not just an event)
 		if(msg.lastRecordings) {
-			console.log("Got lastRecordings from server");
+			console.log(sn(), "Got lastRecordings from server");
 			lastRecordings = msg.lastRecordings;
 		}
 
 		// This is mostly in the root of the object coming from server
 		if(msg.neighbours) {
-			console.log("Got new neighbour list from server");
+			console.log(sn(), "Got new neighbour list from server");
 			neighbours = msg.neighbours;
+
+			dispatch('neighbourChange', {
+				data : neighbours
+			});
 		}
 
 		if(!msg.event) {
-			console.log("handleServerMessage()", msg);
+			console.log(sn(), "handleServerMessage()", msg);
 		}
 	}
 
 
 	function handleServerEvent(e)
 	{
-		console.log("Got event from server", e);
+		console.log(sn(), "Got event from server", e);
 
 		if(eventsComponent) {
 			eventsComponent.newEvent(e);
@@ -164,7 +223,7 @@
 	let drawingIgnoreArea = false;
 	function setIgnoreArea(e)
 	{
-		console.log("Got ignore area, passing to server:", e.detail.data);
+		console.log(sn(), "Got ignore area, passing to server:", e.detail.data);
 
 		sendMessage(
 			{

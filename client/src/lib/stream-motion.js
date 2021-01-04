@@ -95,6 +95,8 @@ function handleMessage(dataType, data)
 
 function setupWebSocket(wsUri, port, reconnectInterval)
 {
+	console.log("Attempting to connect to: ", wsUri + port);
+
 	webSocket = new WebSocket(wsUri + port);
 	webSocket.binaryType = 'arraybuffer';
 	webSocket.onopen = function (e) {
