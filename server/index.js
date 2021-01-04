@@ -26,6 +26,12 @@ const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 const settingsDir = path.resolve("../conf");
 const settingsFile = settingsDir + "/mintymint.config";
 
+// Settings that require a restart of camera
+const cameraSettings = [
+	"videoport", "motionport", "bitrate", "framerate", "width", "height",
+	"streamOverlay",
+];
+
 	var camera;
 	var webServer;
 	var videoSender;
@@ -144,16 +150,11 @@ const settingsFile = settingsDir + "/mintymint.config";
 			videowsport		: 8081,									// (public) for client (stream)
 			motionwsport	: 8082,									// (public) for client (motion stream)
 			wsclientlimit	: 100,									// max number clients allowed
-			onlyActivity	: true,									// Stream only _video_ when there is 'valid' activity (experimental!)
-																	// You will want to set 'minActiveBlocks' to 20 or so, depending on i
-																	// lighting conditions (there's always some noise).
-
-			// Discovery settings
-			servicename		: "MintyMint",							// You want to have this the same on ALL your devices (unless you want to group them)
-			discovery		: true,									// Whether to discover neighbouring cameras (TODO: Rename to 'discover')
-			announce		: true,									// Whther to announce presence to neighbouring cameras
 
 			// Video settings
+			// NOTE: If new settings are added to camera, make sure
+			//       they are also flagged as 'requires restart' in
+			//       'reconfigure' (a const called 'cameraSettings').
 			bitrate			: 1700000,								// Bitrate of video stream
 			framerate		: 24,									// 30 FPS seems to be a bit high for single core - let's go for Hollywood standard!
 			width			: 1920,									// Video stream width (the higher resolution, the more exact motion tracking)
@@ -175,6 +176,12 @@ const settingsFile = settingsDir + "/mintymint.config";
 				left            : 0,								// pixels from the left
 				backgroundColor : "68dce9"							// 'transparent' or rgb (e.g. ff00ff)
 			},
+
+			// Video streaming settings
+			streamVideo		: false,								// Toggle streaming of video (can be changed runtime)
+			onlyActivity	: true,									// Stream only _video_ when there is 'valid' activity (experimental!)
+																	// You will want to set 'minActiveBlocks' to 20 or so, depending on i
+																	// lighting conditions (there's always some noise).
 
 			// Ignore
 			ignoreArea		: [],									// If setting manually, remember resolution should be 1920x1088.
@@ -246,6 +253,11 @@ const settingsFile = settingsDir + "/mintymint.config";
 				silent: false,
 				smtpPort: 25,
 			},
+
+			// Discovery settings
+			servicename		: "MintyMint",							// You want to have this the same on ALL your devices (unless you want to group them)
+			discovery		: true,									// Whether to discover neighbouring cameras (TODO: Rename to 'discover')
+			announce		: true,									// Whther to announce presence to neighbouring cameras
 
 			//
 			// Advanced/debug/test settings
@@ -363,7 +375,6 @@ const settingsFile = settingsDir + "/mintymint.config";
 
 	function handleMotionEvent(module, eventType, eventData, simulation = false)
 	{
-
 		if(module === "MotionRuleEngine") {
 			let meta;
 
@@ -416,7 +427,6 @@ const settingsFile = settingsDir + "/mintymint.config";
 
 				case "activity" :
 					videoSender.setActive();
-
 					motionSignaller.activity(Signals.ACTIVE_FRAME);
 					break;
 
@@ -462,35 +472,53 @@ const settingsFile = settingsDir + "/mintymint.config";
 	}
 
 
+	function requiresCameraRestart(newSettings)
+	{
+		for(let i = 0; i < cameraSettings.length; i++) {
+			if(newSettings[cameraSettings[i]]) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+
 	function handleGeneralCommands(cmd, data)
 	{
 		let fn;
 
 		switch(cmd) {
 			case "reconfigure" :
-				logger.info("Resizing stream...");
+				logger.info("Reconfiguring server...");
 
-				motionListener.stopSending();
+				let restartCamera = requiresCameraRestart(data);
+
+				if(restartCamera) {
+					logger.info("Reconfiguring requires camera restart");
+					motionListener.stopSending();
+				}
 
 				for(let s in data) {
 					logger.info("Changing setting %s to %s", s, data[s]);
 					conf.set(s, data[s]);
 				}
 
-				motionListener.reconfigure(conf.get("width"), conf.get("height"));
-
-				fn = camera.restart(conf);
+				if(restartCamera) {
+					motionListener.reconfigure(conf.get("width"), conf.get("height"));
+					fn = camera.restart(conf);
+					motionListener.resumeSending();
+				}
 
 				motionSender.broadcastMessage(
 					{
-						"event" : "resize",
-						"data" : "todo-give-new-values",
+						"event" : "reconfigure",
+						"data" : "is-in-settings",
 						"settings" : conf.get()
 					}
 				);
-				logger.info("Resized stream...");
 
-				motionListener.resumeSending();
+				logger.debug("Reconfigured server...");
 				break;
 
 			default :
