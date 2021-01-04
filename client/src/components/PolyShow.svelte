@@ -5,12 +5,12 @@
 
 	let strPoints = "";
 
-	console.log("PolyShow (original)", points);
+	// console.log("PolyShow (original)", points);
 
 	// scale polygon to current resolution
 	points = scalePolygon(points, {width:1920,height:1088}, {width: width, height: height}, 16, true)
 
-	console.log("PolyShow (scaled)", points);
+	// console.log("PolyShow (scaled)", points);
 
 	for(let i = 0; i < points.length; i++) {
 		if(strPoints.length > 0) {

@@ -48,6 +48,7 @@
 	let settings = null;
 	let lastRecordings = [];
 	let recording = false;
+	let showOverlayButtons = true;
 
 	let remoteUrl = "";
 	if(remoteServer && window.location.hostname === "localhost") {
@@ -178,19 +179,16 @@
 			<div on:dblclick={ () => toggleFullScreen(onRequest, onExit) } id="polydrawContainer" style="width: 1280px; height: 720px; z-index: 10; position: absolute;">
 				{#if settings}
 					<div class="topLeft">
-						<Configuration bind:visible={overlay["Configuration"]} {sendMessage} {settings}></Configuration>
-						|
-						<Controls bind:visible={overlay["Controls"]} bind:drawingIgnoreArea={drawingIgnoreArea} {sendMessage} {settings}></Controls>
-						|
+						<Configuration bind:showButton={showOverlayButtons} bind:visible={overlay["Configuration"]} {sendMessage} {settings}></Configuration>
+						<Controls bind:showButton={showOverlayButtons} bind:visible={overlay["Controls"]} bind:drawingIgnoreArea={drawingIgnoreArea} {sendMessage} {settings}></Controls>
 						{#if videoPlayer}
-							<BroadwayStats bind:visible={overlay["BroadwayStats"]} player={videoPlayer}></BroadwayStats>
+							<BroadwayStats bind:showButton={showOverlayButtons} bind:visible={overlay["BroadwayStats"]} player={videoPlayer}></BroadwayStats>
 						{/if}
 					</div>
 
 					<div class="bottomLeft">
-						<ScreenshotList bind:visible={overlay["ScreenshotList"]} server={remoteUrl} bind:dir={settings.recordpathwww} bind:items={lastRecordings}></ScreenshotList>
-						|
-						<Events bind:this={eventsComponent} bind:visible={overlay["Events"]} {settings}></Events>
+						<ScreenshotList bind:showButton={showOverlayButtons} bind:visible={overlay["ScreenshotList"]} server={remoteUrl} bind:dir={settings.recordpathwww} bind:items={lastRecordings}></ScreenshotList>
+						<Events bind:showButton={showOverlayButtons} bind:this={eventsComponent} bind:visible={overlay["Events"]} {settings}></Events>
 					</div>
 				{/if}
 
@@ -209,6 +207,9 @@
 		</div>
 	</Fullscreen>
 
+	<div on:click={()=> {showOverlayButtons = !showOverlayButtons}}>
+		Toggle controls
+	</div>
 
 <style>
 	:global(canvas) {

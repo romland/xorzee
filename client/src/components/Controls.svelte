@@ -1,4 +1,5 @@
 <script>
+	export let showButton = true;
 	export let sendMessage = null;
 	export let settings = null;
 	export let visible = false;
@@ -74,9 +75,12 @@
 
 </script>
 
-<div on:click={open}>
-	✓ Controls
-</div>
+{#if showButton}
+	<div on:click={open}>
+		✓ Controls
+	</div>
+{/if}
+
 {#if visible}
 	<div>
 		<button on:click={btnToggleVideoStream}>Toggle video stream</button>

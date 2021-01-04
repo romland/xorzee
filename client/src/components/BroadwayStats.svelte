@@ -11,6 +11,7 @@
 </script>
 
 <script>
+	export let showButton = true;
 	export let player;
 	export let visible;
 
@@ -54,9 +55,12 @@
 
 </script>
 
-<div on:click={open}>
-	🗠 Statistics
-</div>
+{#if showButton}
+	<div on:click={open}>
+		🗠 Statistics
+	</div>
+{/if}
+
 {#if visible}
 	<div>
 		<span>{playerWidth}x{playerHeight}</span>,

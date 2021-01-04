@@ -2,6 +2,7 @@
 	import { fade } from 'svelte/transition';
 	import Loading from "./Loading.svelte";
 
+	export let showButton = true;
 	export let server = "";
 	export let dir = "";
 	export let items = [];
@@ -33,9 +34,12 @@
 		</div>
 	</div>
 {/if}
+
+{#if showButton}
 	<div class="overlay" on:click={open}>
 		📹 Recordings
 	</div>
+{/if}
 
 <style>
 
