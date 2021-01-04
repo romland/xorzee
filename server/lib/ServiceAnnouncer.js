@@ -1,5 +1,6 @@
 "use strict";
 
+const fs = require("fs");
 const dbus = require('dbus-native');
 const avahi= require('avahi-dbus');
 const pino = require('pino');
@@ -11,7 +12,28 @@ class ServiceAnnouncer
 	{
 		this.conf = conf;
 		this.hostname = null;
+		this.serialNumber = this.getSerialNumber();
 		this.bus =  dbus.systemBus();
+
+		logger.info("Serial number is %s", this.serialNumber);
+	}
+
+	getSerialNumber()
+	{
+		let cpuInfo = fs.readFileSync("/proc/cpuinfo", "utf8").split("\n");
+
+		for(let i = 0; i < cpuInfo.length; i++) {
+			if(cpuInfo[i].startsWith("Serial")) {
+				let tuples = cpuInfo[i].split(": ");
+				return tuples[1].trim();
+			}
+		}
+
+		logger.error(
+			"Failed to get serial number. This will likely mean service announcements will fail if there are multiple cameras"
+		);
+
+		return "";
 	}
 
 	start() 
@@ -44,7 +66,7 @@ class ServiceAnnouncer
 					avahi.IF_UNSPEC,								// interface
 					avahi.PROTO_UNSPEC,								// protocol
 					0,												// flags
-					"Vidensi Jr.",									// name
+					"VidensiJr-" + this.serialNumber,				// name
 					"_" + this.conf.get("servicename") + "._tcp",	// type
 					"local",										// domain
 					this.hostname + ".local",						// host -- not sure what this should be
