@@ -113,6 +113,7 @@ const cameraSettings = [
 	{
 		return {
 			message : "Welcome",
+			event : "init",
 			settings : conf.get(),
 			neighbours : neighbours,
 			lastRecordings : videoListener.getRecorder().getLatestRecordings()
@@ -633,14 +634,15 @@ const cameraSettings = [
 			logger.info("Added neighbour");
 			logger.debug("Neighbour's object: %o", ob);
 
+			neighbours.push(ob);
+
 			motionSender.broadcastMessage(
 				{
 					"event" : "addNeighbour",
-					"data" : ob
+					"data" : ob,
+					"neighbours" : neighbours
 				}
 			);
-
-			neighbours.push(ob);
 		};
 
 		let onRemove = (ob) => {
@@ -648,10 +650,12 @@ const cameraSettings = [
 			logger.debug("Neighbour's object: %o", ob);
 
 			// TODO: Remove from array
+
 			motionSender.broadcastMessage(
 				{
 					"event" : "removeNeighbour",
-					"data" : ob
+					"data" : ob,
+					"neighbours" : neighbours
 				}
 			);
 		}
