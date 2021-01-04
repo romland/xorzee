@@ -631,10 +631,15 @@ const cameraSettings = [
 		neighbours = [];
 
 		let onAdd = (ob) => {
-			logger.info("Added neighbour");
-			logger.debug("Neighbour's object: %o", ob);
+			// Add neighbour
+			if(neighbours.includes(ob.name)) {
+				logger.info("We already knew about this neighbour: %s", ob.name)
+				return;
+			}
 
 			neighbours.push(ob);
+
+			logger.info("Added neighbour: %s", ob.name);
 
 			motionSender.broadcastMessage(
 				{
@@ -646,10 +651,14 @@ const cameraSettings = [
 		};
 
 		let onRemove = (ob) => {
-			logger.info("Removed neighbour");
-			logger.debug("Neighbour's object: %o", ob);
-
-			// TODO: Remove from array
+			// Remove neighbour
+			let len = neighbours.length;
+			for(let i = len - 1; i >= 0; i--) {
+				if(neighbours[i].name === ob.name) {
+					logger.info("Removed neighbour: %s", ob.name);
+					neighbours.splice(i, 1);
+				}
+			}
 
 			motionSender.broadcastMessage(
 				{
