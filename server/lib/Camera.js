@@ -128,7 +128,7 @@ class Camera
         });
 
         this.camProc.on('close', function(code) {
-            logger.debug('Cam-close code: %s', code);
+            logger.warn('Camera closed: %s', code);
         });
 
 		logger.debug("Started camera with PID %d", this.camProc.pid);
