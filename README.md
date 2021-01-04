@@ -17,15 +17,15 @@ A low-latency, high quality streamer and motion detector. The goal is that it mu
 - [x] ...highly configurable (but sane defaults)
 - [x] ...user interface to draw ignored areas (think: masks in other programs)
 - [x] ...configurable stream overlays
-- [ ] ...modern web-client that can handle multiple cameras
-- [ ] ...connect to any camera on the network to access _all_ cameras on network
+- [ ] ...modern web-client (Svelte)
+- [ ] ...multiple cameras in web-clients
+- [ ] ...connect to any camera on the network to automatically view _all_ cameras on network
 - [ ] ...store meta-data of amount of activity in period (graph)
 - [ ] ...zero-configuration (that is, image card, connect to network and off we go)
 
 [1] If it can run on that, it will run on any other.
 
 ## Working on now
-- output 'server name' on all log statements in Player
 - button to reconnect websockets
 - take screenshots using dispmanx (in camera preview) -- check performance on Zero
 	- run camera in preview (does that cost a lot? check) and incorporate dispmanx as screenshotter instead of ffmpeg (e.g. what https://github.com/AndrewFromMelbourne/raspi2png does)
@@ -51,8 +51,10 @@ A low-latency, high quality streamer and motion detector. The goal is that it mu
 - make brightness, contrast, etc configurable
 - can definitely increase requirements for 'send only activity' (it sends when there is virtually no activity now)
 - option to only stream motion (and occasional screenshot in place of video? -- click to start video, on demand?)
+- report memory and CPU useage to clients
 
 ## TODO
+- config-option: stream motion only on activity
 - if using mp4box -- do I need ffmpeg at all? (or is that a dep of mp4box?)
 - recording is a bit too sensitive in these current settings (at least in low-light/night)
 - client side simulation of camera annotations
@@ -227,3 +229,6 @@ A low-latency, high quality streamer and motion detector. The goal is that it mu
 		Received conflicting record [Vidensi\032Jr\.._MintyMint._tcp.local      IN      SRV 0 0 8080 p19dev05.local ; ttl=120] with local record to be. Withdrawing.
 - Bonjour: cameras should hand out the 'motionStream' port, not the www port (from motionStream we can get to all other ports)
 - make 'Player' component's connection points configurable externally (ground work for multiple servers in one client)
+- on 'secondary' servers, we do not connect to video stream...
+- output 'server name' on all log statements in Player
+- making 'ignore area' does not work correctly with multiple clients

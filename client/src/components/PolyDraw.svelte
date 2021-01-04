@@ -13,6 +13,7 @@
 	const dispatch = createEventDispatcher();
 
 	let scrollLeft, scrollTop;
+	let svg, polyline, templine;
 
 	function getMousePosition(e)
 	{
@@ -177,7 +178,7 @@
 
 <svelte:window bind:scrollX={scrollLeft} bind:scrollY={scrollTop}></svelte:window>
 
-	<svg id="svg"
+	<svg bind:this={svg}
 			on:contextmenu={(e)=>{ return false}}
 			on:mousemove={mouseMove}
 			on:mousedown|preventDefault|stopPropagation={mouseDown}
@@ -194,7 +195,7 @@
 			</pattern>
 		</defs>
 	
-		<polyline id="polyline"
+		<polyline bind:this={polyline}
 			style="
 				fill: #33333350;
 				stroke: black;
@@ -202,7 +203,7 @@
 			"
 		/>
 
-		<line id="templine" style="
+		<line bind:this={templine} style="
 			fill:yellow;
 			stroke:black;
 			stroke-width:1;

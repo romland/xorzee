@@ -11,32 +11,15 @@
 	import Configuration from "./Configuration.svelte";
 	import Controls from "./Controls.svelte";
 	import Events from "./Events.svelte";
-	import {
-		setup as setupVideoStream,
-		start as startVideoStream,
-		getWebSocket as getVideoWebSocket
-	} from "../lib/stream-video";
-	import {
-		start as startMotionStream,
-		stop as stopMotionStream,
-		onResize as resizeMotionStream,
-		getWebSocket as getMotionWebSocket,
-		sendMessage,
-	} from "../lib/stream-motion";
+	import VideoStreamer from "../lib/videostreamer";
+	import MotionStreamer from "../lib/motionstreamer";
 
-	// Set to true if client (the Svelte app) is hosted by localhost but streaming server (Raspi) is not.
-	export let remoteServer = null;
+	export let remoteServer = null;			// Set to true if the client (the Svelte app) is not hosted by this server.
+	export let remoteAddress = null;		// This only needs to be set to an address if above is true.
+	export let motionStreamPort = null;		// The client needs to get motionStreamPort from the _first_ server it connects to
+	export let showOverlayButtons = true;
 
-	// This only needs to be set to an address if above is true.
-	export let remoteAddress = null;
-
-	// The client needs to get motionStreamPort from the _first_ server it connects to
-	export let wwwPort = null;
-
-	export let motionStreamPort = null;
-
-
-	const reconnectInterval = 0;// 2000;		// set to 0 for no auto-reconnect
+	const reconnectInterval = 0;// 2000;	// set to 0 for no auto-reconnect
 
 	const dispatch = createEventDispatcher();
 
@@ -48,6 +31,7 @@
 	};
 
 	let wsUrl;
+	let wwwPort = null;
 	let container;
 	let videoPlayer;
 	let videoCanvas;
@@ -55,12 +39,14 @@
 	let fullScreenState;
 	let eventsComponent;
 	let videoStreamPort;
+	let videoStreamer;
+	let motionStreamer;
+	let polydrawContainer;
 
 	let settings = null;
 	let lastRecordings = [];
 	let neighbours = [];
 	let recording = false;
-	let showOverlayButtons = true;
 
 	let remoteUrl = "";
 
@@ -100,10 +86,10 @@
 
 		fiddleWithUrl();
 
-		if(!getVideoWebSocket() || (videoStreamPort && videoStreamPort !== settings.videowsport)) {
+		if(!videoStreamer.getWebSocket() || (videoStreamPort && videoStreamPort !== settings.videowsport)) {
 			videoStreamPort = settings.videowsport;
 
-			if(getVideoWebSocket()) {
+			if(videoStreamer.getWebSocket()) {
 				console.error(sn(), "Reconnect video stream (TODO: disconnect here!)");
 				// TODO: Already connected; disconnect video stream
 			} else {
@@ -111,40 +97,26 @@
 			}
 
 			// We start videoStream _after_ motion stream -- since that is where we get the port from.
-			startVideoStream(wsUrl, videoStreamPort, reconnectInterval, onNALunit);
+			videoStreamer.start(wsUrl, videoStreamPort, reconnectInterval, onNALunit, settings.width, settings.height);
 		}
 	}
 
 	onMount(() => {
-		videoPlayer = setupVideoStream(true, 'auto');
+		videoStreamer = new VideoStreamer(true, 'auto');
+		videoPlayer = videoStreamer.getPlayer();
 		videoCanvas = videoPlayer.canvas;
 		container.prepend(videoCanvas);
 
-		startMotionStream(motionCanvas, videoCanvas, wsUrl, motionStreamPort, reconnectInterval, handleServerMessage);
+		motionStreamer = new MotionStreamer();
+		motionStreamer.start(motionCanvas, videoCanvas, wsUrl, motionStreamPort, reconnectInterval, handleServerMessage);
 
 		new ResizeObserver((elt) => {
-			resizeMotionStream(motionCanvas, elt[0].target);
+			motionStreamer.onResize(motionCanvas, elt[0].target);
 			copyGeography(elt[0].target, polydrawContainer);
 		}).observe(videoCanvas);
 
-		document.addEventListener("visibilitychange", function() {
-			console.log(sn(), "document.hidden", document.hidden)
-			if(document.hidden) {
-				var notification = new Notification(
-					'MintyMint',
-					{
-						body: "Pausing rendering",
-						icon: null
-					}
-				);
-				setTimeout(() => {
-					notification.close();
-				}, 2000);
-			}
-		}, false);
-
 		return () => {
-			stopMotionStream();
+			motionStreamer.stop();
 		};
 	});
 
@@ -201,9 +173,14 @@
 		}
 	}
 
+	function sendMessage(message)
+	{
+		motionStreamer.sendMessage(message);
+	}
+
 	function windowResized()
 	{
-		resizeMotionStream(motionCanvas, videoCanvas);
+		motionStreamer.onResize(motionCanvas, videoCanvas);
 		copyGeography(videoCanvas, polydrawContainer);
 	}
 
@@ -240,15 +217,16 @@
 	<svelte:window on:resize={windowResized}/>
 
 	<Fullscreen let:onRequest let:onExit>
-		<div bind:this={container}>
+		<div class="container" bind:this={container}>
 			<!-- videoCanvas will be inserted above by Broadway -->
 			<canvas bind:this={motionCanvas}/>
 
-			<div on:dblclick={ () => toggleFullScreen(onRequest, onExit) } id="polydrawContainer" style="width: 1280px; height: 720px; z-index: 10; position: absolute;">
+			<div on:dblclick={ () => toggleFullScreen(onRequest, onExit) } bind:this={polydrawContainer} style="width: 1280px; height: 720px; z-index: 10; position: absolute;">
 				{#if settings}
 					<div class="topLeft">
-						<Configuration bind:showButton={showOverlayButtons} bind:visible={overlay["Configuration"]} {sendMessage} {settings}></Configuration>
-						<Controls bind:showButton={showOverlayButtons} bind:visible={overlay["Controls"]} bind:drawingIgnoreArea={drawingIgnoreArea} {sendMessage} {settings}></Controls>
+						{wsUrl.replace("ws://192.168.178", "")}
+						<Configuration bind:showButton={showOverlayButtons} bind:visible={overlay["Configuration"]} sendMessage={sendMessage} {settings}></Configuration>
+						<Controls bind:showButton={showOverlayButtons} bind:visible={overlay["Controls"]} bind:drawingIgnoreArea={drawingIgnoreArea} sendMessage={sendMessage} {settings}></Controls>
 						{#if videoPlayer}
 							<BroadwayStats bind:showButton={showOverlayButtons} bind:visible={overlay["BroadwayStats"]} player={videoPlayer}></BroadwayStats>
 						{/if}
@@ -275,13 +253,11 @@
 		</div>
 	</Fullscreen>
 
-	<div on:click={()=> {showOverlayButtons = !showOverlayButtons}}>
-		Toggle controls
-	</div>
-
-{JSON.stringify(neighbours)}
-
 <style>
+	.container {
+		user-select: none;
+	}
+
 	:global(canvas) {
 		border: 1px solid #eee;
 		margin-bottom: 20px;
