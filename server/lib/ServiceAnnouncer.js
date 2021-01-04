@@ -70,7 +70,7 @@ class ServiceAnnouncer
 					"_" + this.conf.get("servicename") + "._tcp",	// type
 					"local",										// domain
 					this.hostname + ".local",						// host -- not sure what this should be
-					8080,											// port
+					this.conf.get("motionwsport"),					// port for getting settings
 					[],												// txt
 				],
 				signature: 'iiussssqaay'
