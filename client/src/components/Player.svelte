@@ -222,6 +222,9 @@
 			<canvas bind:this={motionCanvas}/>
 
 			<div on:dblclick={ () => toggleFullScreen(onRequest, onExit) } bind:this={polydrawContainer} style="width: 1280px; height: 720px; z-index: 10; position: absolute;">
+<!--
+				<Controls bind:showButton={showOverlayButtons} bind:visible={overlay["Controls"]} bind:drawingIgnoreArea={drawingIgnoreArea} sendMessage={sendMessage} {settings}></Controls>
+-->
 				{#if settings}
 					<div class="topLeft">
 						{wsUrl.replace("ws://192.168.178", "")}
