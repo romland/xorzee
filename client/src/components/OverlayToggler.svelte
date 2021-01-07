@@ -33,8 +33,9 @@
 		visible = !visible;
 	}
 
+
 	// Speed is per character,
-	// Bug: We do not print last character/node
+	// Bug: When transitioning an element out, we throw error  (even though out is not declared for the elt)
 	function typewriter(node, { speed = 50 })
 	{
 		const nodeMeta = [];
@@ -70,61 +71,63 @@
 
 				if(c.childNodes.length > 0) {
 					getNodes(c);
-					// XXX: Do I want this check -before- the node-type check?
 				}
-
 			}
 		}
 
 		getNodes(node);
+
+		/*
+			Sigh. Well. This was discouraging.
+			Clearing a <slot> with innerHTML makes Svelte barf when transitioning _out_.
+
+			Error: Uncaught TypeError: node.parentNode is null
+			Trace: transition_out() -> destroy() -> destroy() -> detach_dev() -> detach()
+
+			Work-arounds tested:
+			- removing nodes with removeNode() instead
+			- backing up nodes to keep references around
+
+			To try:
+			- When animation done, re-insert original nodes (don't see why this would help
+			  since no nodes are actually _destroyed_)
+		*/
+		node.innerHTML = "";
+
 		console.log("nodeMeta", nodeMeta, nodeMeta.length, contentLength);
 
+		var currStart = 0, prevPos = -1;
 		const duration = contentLength * speed;
-
-		var currIndex = 0;
-		var currStart = 0;
-		var prevPos = -1;
-
-		node.innerHTML = "";
 
 		return {
 			duration,
 			tick: (t) => {
-				var pos = ~~(contentLength * t);
-				var guard = 0;
+				var pos = ~~(contentLength * t), guard = 0, meta;
 
-				if(prevPos === pos) {
-					return;
-				}
-
-				// while((pos - prevPos) >= 0 && guard++ < 500) {
 				while(prevPos < pos && guard++ < 500) {
-					if(!nodeMeta[currIndex]) {
-						console.log("Reached last node?");
+					meta = nodeMeta[0];
+					if(!meta) {
 						break;
 					}
 
-					if(nodeMeta[currIndex].text !== null) {
-						let char = document.createTextNode(
-							nodeMeta[currIndex].text.slice((prevPos - currStart), ((prevPos+1) - currStart))
-						);
-						// console.log("slice", (prevPos - currStart), "-", ((prevPos+1) - currStart), ":", char);
-						nodeMeta[currIndex].parent.appendChild(char);
+					if(meta.text !== null) {
+						meta.parent.appendChild(document.createTextNode(
+							meta.text.slice(prevPos - currStart, prevPos+1 - currStart)
+						));
 					} else {
-						// HTML node
-						nodeMeta[currIndex].parent.appendChild(nodeMeta[currIndex].node);
-					}
-
-					if(prevPos === (nodeMeta[currIndex].start + nodeMeta[currIndex].length)) {
-						currIndex++;
-						currStart = prevPos + 1;
+						meta.parent.appendChild(meta.node);
 					}
 
 					prevPos++;
+
+					if(prevPos === (meta.start + meta.length)) {
+						nodeMeta.shift();
+						currStart = prevPos;
+					}
 				}
 
 				if(guard >= 499) {
-					throw new Error("HIT GUARD");
+					throw new Error("500 iterations in one step. Bug or not. Let's be sensible; give it more time.");
 				}
 
 				prevPos = pos;
@@ -163,7 +166,7 @@
 	<div bind:this={content} style={contentPos}>
 		{#if visible}
 			<!--div class="content" transition:scale="{{start:0.25}}" -->
-			<div class="content" in:typewriter="{{speed: 4}}">
+			<div class="content" in:typewriter="{{speed: 4}}" out:fade>
 				<slot></slot>
 			</div>
 		{/if}
