@@ -34,12 +34,37 @@
 	}
 
 
-	// Speed is per character,
-	// Bug: When transitioning an element out, we throw error  (even though out is not declared for the elt)
+	/**
+	 * Speed is per character,
+	 * 
+	 * Note: Due to bug in Svelte: the container passed into typewriter must have 
+	 *       one node -- and _that_ node is animated (not the actual node passed in).
+	 */
 	function typewriter(node, { speed = 50 })
 	{
 		const nodeMeta = [];
 		var contentLength = 0;
+
+		/*
+			Sigh. Well. This was discouraging.
+			Clearing a <slot> with innerHTML makes Svelte barf when transitioning _out_.
+
+			Error: Uncaught TypeError: node.parentNode is null
+			Trace: transition_out() -> destroy() -> destroy() -> detach_dev() -> detach()
+
+			Work-arounds tested:
+			- removing nodes with removeNode() instead
+			- backing up nodes to keep references around
+
+			To try:
+			- When animation done, re-insert original nodes (don't see why this would help
+			  since no nodes are actually _destroyed_)
+		*/
+		if(node.childNodes.length > 1) {
+			throw new Error("Due to bug in Svelte, passed in node can only have one child that gets animated.");
+		}
+
+		node = node.childNodes[0];
 
 		const getNodes = (n) =>
 		{
@@ -77,21 +102,6 @@
 
 		getNodes(node);
 
-		/*
-			Sigh. Well. This was discouraging.
-			Clearing a <slot> with innerHTML makes Svelte barf when transitioning _out_.
-
-			Error: Uncaught TypeError: node.parentNode is null
-			Trace: transition_out() -> destroy() -> destroy() -> detach_dev() -> detach()
-
-			Work-arounds tested:
-			- removing nodes with removeNode() instead
-			- backing up nodes to keep references around
-
-			To try:
-			- When animation done, re-insert original nodes (don't see why this would help
-			  since no nodes are actually _destroyed_)
-		*/
 		node.innerHTML = "";
 
 		console.log("nodeMeta", nodeMeta, nodeMeta.length, contentLength);
