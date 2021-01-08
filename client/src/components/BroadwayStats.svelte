@@ -51,12 +51,14 @@
 
 </script>
 
-	<OverlayToggler name="🗠 Statistics" {visible} showButton={showButton} position="below">
-		<span>{playerWidth}x{playerHeight}</span>,
-		<span>{lastSecondFrames} fps</span>,
-		<span>{(lastSecondBytes/1024).toFixed(2)} KiB/s</span>,
-		<span>{(lastSecondBytes/1024/125).toFixed(2)} Mbit/s</span>,
-		<span>total {(totalBytes/1048576).toFixed(2)} MiB</span>,
-		<span>{totalNALs} NAL units</span>,
-		<span>{totalFrames} frames in {elapsed}</span>
+	<OverlayToggler on:message bind:visible={visible} name="🗠 Statistics" showButton={showButton} position="below">
+		<div>
+			<span>{playerWidth}x{playerHeight}</span>,
+			<span>{lastSecondFrames} fps</span>,
+			<span>{(lastSecondBytes/1024).toFixed(2)} KiB/s</span>,
+			<span>{(lastSecondBytes/1024/125).toFixed(2)} Mbit/s</span>,
+			<span>total {(totalBytes/1048576).toFixed(2)} MiB</span>,
+			<span>{totalNALs} NAL units</span>,
+			<span>{totalFrames} frames in {elapsed}</span>
+		</div>
 	</OverlayToggler>

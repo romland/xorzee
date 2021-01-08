@@ -1,27 +1,26 @@
 <script>
-	import { scale } from "svelte/transition";
-	import { fade } from 'svelte/transition';
+	import { createEventDispatcher, onMount, onDestroy } from 'svelte';
+	import { scale, fade, fly } from "svelte/transition";
 	import { elasticOut, quadOut } from 'svelte/easing';
 
 	export let name, visible, showButton, position = "below";
 
 	let label, content, contentPos;
 
-	let unique = {};
+	const dispatch = createEventDispatcher();
+
 	function open()
 	{
-		unique = {};
-		
 		if(!visible) {
 			const rect = label.getBoundingClientRect();
 
 			switch(position) {
 				case "below" :
-					contentPos = `position: absolute; left: ${rect.left}px; top: ${rect.height}px;`;
+					contentPos = `position: absolute; left: ${rect.left}px; top: ${rect.height + 10}px;`;
 					break;
 
 				case "above" :
-					contentPos = `position: absolute; left: ${rect.left}px; bottom: ${rect.height}px;`;
+					contentPos = `position: absolute; left: ${rect.left}px; bottom: ${rect.height + 10}px;`;
 					break;
 
 				default :
@@ -31,6 +30,11 @@
 		}
 
 		visible = !visible;
+
+		dispatch('message', {
+			type : visible ? "open" : "close",
+			label : label
+		});
 	}
 
 
@@ -52,18 +56,15 @@
 			Error: Uncaught TypeError: node.parentNode is null
 			Trace: transition_out() -> destroy() -> destroy() -> detach_dev() -> detach()
 
-			Work-arounds tested:
-			- removing nodes with removeNode() instead
-			- backing up nodes to keep references around
-
-			To try:
-			- When animation done, re-insert original nodes (don't see why this would help
-			  since no nodes are actually _destroyed_)
+			The work-around I do is: In this case, where we _know_ it's a slot, it must have
+			a parent node that does not get animated.
 		*/
 		if(node.childNodes.length > 1) {
-			throw new Error("Due to bug in Svelte, passed in node can only have one child that gets animated.");
+			console.error("Due to bug in Svelte, passed in node (if a <slot>) can only have one child that gets animated.");
+			return;
 		}
 
+		// Get only child and animate that (see above).
 		node = node.childNodes[0];
 
 		const getNodes = (n) =>
@@ -167,16 +168,14 @@
 </script>
 
 {#if showButton}
-	{#key unique}
-		<div bind:this={label} on:click={open}>
-			{name}
-		</div>
-	{/key}
+	<div class="button" class:active={visible} bind:this={label} on:click={open}>
+		{name}
+	</div>
 
-	<div bind:this={content} style={contentPos}>
+	<div bind:this={content} style={contentPos} class="outer" out:fade>
 		{#if visible}
 			<!--div class="content" transition:scale="{{start:0.25}}" -->
-			<div class="content" in:typewriter="{{speed: 4}}" out:fade>
+			<div class="content" in:typewriter="{{speed: 6}}" out:scale>
 				<slot></slot>
 			</div>
 		{/if}
@@ -184,28 +183,45 @@
 {/if}
 
 <style>
-	.content {
-		width: 60vw;
-		height: 5vh;
-		background-color: rgba(3, 3, 3, 128);
+	.active {
+		border: 1px solid #bb0 !important;
+	}
+	.button {
+		padding: 5px;
+		background-color: rgba(0, 0, 0);
+		border-radius: 5px;
+		margin: 2px;
+		border: 1px solid #335;
 	}
 
-	.box {
-		
-		background-color: blue;
-		
-		animation-name: spin;
-		animation-duration: 4000ms;
+	.button:hover {
+		cursor: pointer;
+		color: #ddf;
 	}
-	
-	@keyframes spin {
-		from {
-			transform: rotate(0);
-		}
-		
-		to {
-			transform: rotate(360deg);
-		}
+
+	.content {
+		background-image:
+			url("https://arwes.dev/static/img/glow.png"),
+			url("https://arwes.dev/static/img/background.jpg")
+		;
+		background-repeat: repeat, auto;
+		background-position: center top, center top;
+		background-attachment: fixed, auto;
+		background-size: auto, cover;
+
+		width: 60vw;
+		height: auto;
+		background-color: rgba(3, 3, 3, 0.6);
+		padding: 25px;
+		border-radius: 12px;
+		overflow-y: auto;
+		max-height: 600px;
+		border: 1px solid rgba(104, 220, 233, 0.7);
+
+		opacity: 0.8;
+		/*
+		box-shadow: 0 0 5px rgba(0,0,0);
+		*/
 	}
 
 </style>

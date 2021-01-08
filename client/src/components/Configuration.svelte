@@ -24,7 +24,7 @@
 */
 </script>
 
-	<OverlayToggler name="⚙ Settings" {visible} showButton={showButton} position="below">
+	<OverlayToggler on:message bind:visible={visible} name="⚙ Settings" showButton={showButton} position="below">
 		<div>
 			<button>Foo 1</button>
 			<span style="color:#fff">
