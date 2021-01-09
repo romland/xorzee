@@ -212,6 +212,16 @@
 	}
 
 
+	function onLayerChange(componentName, e)
+	{
+		for(let k in overlay) {
+			if(k === componentName) {
+				continue;
+			}
+			overlay[k] = false;
+		}
+	}
+
 </script>
 
 	<svelte:window on:resize={windowResized}/>
@@ -224,17 +234,16 @@
 			<div on:dblclick={ () => toggleFullScreen(onRequest, onExit) } bind:this={polydrawContainer} style="width: 1280px; height: 720px; z-index: 10; position: absolute;">
 				{#if settings}
 					<div class="topLeft">
-						{wsUrl.replace("ws://192.168.178", "")}
-						<Configuration bind:showButton={showOverlayButtons} bind:visible={overlay["Configuration"]} sendMessage={sendMessage} {settings}></Configuration>
-						<Controls bind:showButton={showOverlayButtons} bind:visible={overlay["Controls"]} bind:drawingIgnoreArea={drawingIgnoreArea} sendMessage={sendMessage} {settings}></Controls>
+						<Configuration on:message={(e)=>onLayerChange("Configuration", e)} bind:showButton={showOverlayButtons} bind:visible={overlay["Configuration"]} sendMessage={sendMessage} {settings}></Configuration>
+						<Controls on:message={(e)=>onLayerChange("Controls", e)} bind:showButton={showOverlayButtons} bind:visible={overlay["Controls"]} bind:drawingIgnoreArea={drawingIgnoreArea} sendMessage={sendMessage} {settings}></Controls>
 						{#if videoPlayer}
-							<BroadwayStats bind:showButton={showOverlayButtons} bind:visible={overlay["BroadwayStats"]} player={videoPlayer}></BroadwayStats>
+							<BroadwayStats on:message={(e)=>onLayerChange("BroadwayStats", e)} bind:showButton={showOverlayButtons} bind:visible={overlay["BroadwayStats"]} player={videoPlayer}></BroadwayStats>
 						{/if}
 					</div>
 
 					<div class="bottomLeft">
-						<ScreenshotList bind:showButton={showOverlayButtons} bind:visible={overlay["ScreenshotList"]} server={remoteUrl} bind:dir={settings.recordpathwww} bind:items={lastRecordings}></ScreenshotList>
-						<Events bind:showButton={showOverlayButtons} bind:this={eventsComponent} bind:visible={overlay["Events"]} {settings}></Events>
+						<ScreenshotList on:message={(e)=>onLayerChange("ScreenshotList", e)} bind:showButton={showOverlayButtons} bind:visible={overlay["ScreenshotList"]} server={remoteUrl} bind:dir={settings.recordpathwww} bind:items={lastRecordings}></ScreenshotList>
+						<Events on:message={(e)=>onLayerChange("Events", e)} bind:showButton={showOverlayButtons} bind:this={eventsComponent} bind:visible={overlay["Events"]} {settings}></Events>
 					</div>
 				{/if}
 

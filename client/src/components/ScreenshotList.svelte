@@ -13,20 +13,22 @@
 
 </script>
 
-	<OverlayToggler name="📹 Recordings" {visible} showButton={showButton} position="above">
-		<div class="overlay" in:fade out:fade>
-			<div class="cards">
-				<Loading></Loading>
+	<OverlayToggler on:message bind:visible={visible} name="📹 Recordings" showButton={showButton} position="above">
+		<div>
+			<div class="overlay" in:fade out:fade>
+				<div class="cards">
+					<Loading></Loading>
 
-				{#each items as item}
-					<div class="card">
-						<div class="content">
-							<img alt="" src="{baseUrl}{item.screenshot}"/>
-							<p>text</p>
+					{#each items as item}
+						<div class="card">
+							<div class="content">
+								<img alt="" src="{baseUrl}{item.screenshot}"/>
+								<p>text</p>
+							</div>
+							<footer>Card footer</footer>
 						</div>
-						<footer>Card footer</footer>
-					</div>
-				{/each}
+					{/each}
+				</div>
 			</div>
 		</div>
 	</OverlayToggler>

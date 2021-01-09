@@ -20,9 +20,11 @@
 	}
 </script>
 
-	<OverlayToggler name="☀ Events" {visible} showButton={showButton} position="above">
-		Recent events
-		{#each eventCache as e}
-			{e.event}<br/>
-		{/each}
+	<OverlayToggler on:message bind:visible={visible} name="☀ Events" showButton={showButton} position="above">
+		<div>
+			Recent events
+			{#each eventCache as e}
+				{e.event}<br/>
+			{/each}
+		</div>
 	</OverlayToggler>

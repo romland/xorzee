@@ -17,11 +17,12 @@ A low-latency, high quality streamer and motion detector. The goal is that it mu
 - [x] ...highly configurable (but sane defaults)
 - [x] ...user interface to draw ignored areas (think: masks in other programs)
 - [x] ...configurable stream overlays
+- [x] ...multiple cameras in web-clients
+- [x] ...connect to any camera on the network to automatically view _all_ cameras on network
 - [ ] ...modern web-client (Svelte)
-- [ ] ...multiple cameras in web-clients
-- [ ] ...connect to any camera on the network to automatically view _all_ cameras on network
 - [ ] ...store meta-data of amount of activity in period (graph)
 - [ ] ...zero-configuration (that is, image card, connect to network and off we go)
+- [x] ...and quite a bit more
 
 [1] If it can run on that, it will run on any other.
 
@@ -48,6 +49,8 @@ A low-latency, high quality streamer and motion detector. The goal is that it mu
 	note: this adds a dependency on libpng: sudo apt-get install libpng12-dev
 
 ## TODO
+- want to have quick access to last few events (maybe a graph showing the last day too)
+- want to have statistics how many times signals went off per time-period
 - make camera configurable further 
 	--qp	quantisation : 0,		// (0) https://www.raspberrypi.org/forums/viewtopic.php?t=175716
 			flush : false,			// (false) Flush buffers in order to decrease latency
@@ -152,6 +155,9 @@ A low-latency, high quality streamer and motion detector. The goal is that it mu
 - button to reconnect websockets
 - make configuragle: reconnect sockets on disconnect (just a matter of setting a timeout to non-0)
 - be able to specify _no_ ignore area
+
+## Misc. Credits
+- Some styling elements and ideas borrowed from https://github.com/arwes/arwes by Romel Pérez
 
 ## Known bugs (client)
 - when reconfiguring resolution, ignore-area does not scale (need to reload to get it shown correctly)

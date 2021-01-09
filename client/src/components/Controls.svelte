@@ -72,14 +72,14 @@
 
 </script>
 
-	<OverlayToggler name="✓ Controls" {visible} showButton={showButton} position="below">
-
-		<button on:click={btnToggleVideoStream}>Toggle video stream</button>
-		<button on:click={btnRecordStart}>Start recording</button>
-		<button on:click={btnRecordStop}>Stop recording</button>
-		<button on:click={reconfigureStream}>Reconfigure</button>
-		<button on:click={() => drawingIgnoreArea = !drawingIgnoreArea}>Toggle adding ignore area</button>
-		<input type="checkbox" on:change={toggleNotifications}/>Notifications
-
+	<OverlayToggler on:message bind:visible={visible} name="✓ Controls" showButton={showButton} position="below">
+		<div>
+			<button on:click={btnToggleVideoStream}>Toggle video stream</button>
+			<button on:click={btnRecordStart}>Start recording</button>
+			<button on:click={btnRecordStop}>Stop recording</button>
+			<button on:click={reconfigureStream}>Reconfigure</button>
+			<button on:click={() => drawingIgnoreArea = !drawingIgnoreArea}>Toggle adding ignore area</button>
+			<input type="checkbox" on:change={toggleNotifications}/>Notifications
+		</div>
 	</OverlayToggler>
 
