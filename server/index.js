@@ -277,8 +277,23 @@ const cameraSettings = [
 			vectorMinMagnitude 		: 2,							// Minimum magnitude of a vector to be deemed moving
 			sendRaw					: false,						// Whether to pass raw vectors to client (debug -- enable RENDER_RAW on client too)
 
+			// Depending on implementation client-side, we are either using
+			// current clusters or _historical_ clusters. It's recommended
+			// to not send over both as JSON serialization gets pretty costly.
+			// In the future I may actually have to resort to some binary
+			// output of the MvrProcessor so that more data can be passed
+			// over the wire.
+			sendClusters			: true,							// These are clusters that happened _now_
+			sendHistory				: false,						// These are clusters that happened now _and_ clusters that are deemed important
+
 			// Performance output/tests
+			//
+			// also - https://nodejs.org/en/docs/guides/simple-profiling/ :
+			// $ node --prof index.js
+			// $ node --prof-process isolate-nnn > processed.txt
 			outputMotionCost		: 0,							// Output motion performance averages every N frames (0 = disabled)
+			motionCostThreshold		: 30,
+
 		});
 
 		conf.use('memory');

@@ -10,6 +10,8 @@
  */
 "use strict";
 
+const performance = require('perf_hooks').performance;
+
 class DbScan
 {
 	constructor()
@@ -57,6 +59,7 @@ class DbScan
 
 	run()
 	{
+//this.distanceCost = 0;
 		this.results = new Uint16Array(this.data.length).fill(0xffff);//[];
 		this.clusters = [];
 
@@ -78,6 +81,7 @@ class DbScan
 			}
 		}
 
+//console.log("Distance cost", this.distanceCost);
 		return this.results;
 	}
 
@@ -116,6 +120,8 @@ class DbScan
 		let i = 0;
 		let dlen = this.data.length;
 
+//let start = performance.now();
+
 		// This is a _very_ hot code path.
 		for(; i < dlen; i++) {
 			if(point_idx === i) {
@@ -132,6 +138,8 @@ class DbScan
 				neighbours.push(i);
 			}
 		}
+
+//this.distanceCost += (performance.now() - start);
 
 		return neighbours;
 	}

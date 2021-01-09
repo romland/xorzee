@@ -52,6 +52,11 @@ class MvrProcessor
 				reducing : 0,
 				maxClusteringCost : 0,
 				lastFrame : 0,
+			},
+			costLastFrame : {
+				filterVectors : 0,
+				clustering : 0,
+				reducing : 0,
 			}
 		};
 
@@ -307,13 +312,13 @@ class MvrProcessor
 	}
 
 
-	outputCost()
+	outputCost(force = false)
 	{
-		if(this.conf.get("outputMotionCost") === 0) {
+		if(!force && this.conf.get("outputMotionCost") === 0) {
 			return;
 		}
 
-		if(this.stats.frameCount > 0 && (this.stats.frameCount % this.conf.get("outputMotionCost")) === 0) {
+		if(force || (this.stats.frameCount > 0 && (this.stats.frameCount % this.conf.get("outputMotionCost"))) === 0) {
 			this.stats.averageCost = {
 				filterVectors : (this.stats.cost.filterVectors / this.stats.frameCount),
 				clustering : (this.stats.cost.clustering / this.stats.frameCount),
@@ -366,7 +371,7 @@ class MvrProcessor
 		this.resetFrameInfo();
 
 		// Default filter flags
-		if(!filterFlags) {
+		if(sendingRaw && !filterFlags) {
 			filterFlags = MvrFilterFlags.DX_DY_LT_2 | MvrFilterFlags.FRAME_MAGNITUDE_400_INCREASE | MvrFilterFlags.MAGNITUDE_LT_300;
 		}
 
@@ -420,6 +425,7 @@ class MvrProcessor
 
 		//console.timeEnd("filterVectors");
 		this.stats.cost.filterVectors += Date.now() - then;
+		this.stats.costLastFrame.filterVectors = Date.now() - then;
 
 
 		//console.time("filterFrame");
@@ -498,6 +504,7 @@ class MvrProcessor
 			}
 			//console.timeEnd("reducing");
 			this.stats.cost.reducing += Date.now() - then;
+			this.stats.costLastFrame.reducing = Date.now() - then;
 
 
 			//console.time("clustering");
@@ -514,6 +521,7 @@ class MvrProcessor
 
 			let cost = Date.now() - then;
 			this.stats.cost.clustering += cost;
+			this.stats.costLastFrame.clustering = cost;
 			this.stats.cost.lastFrame = cost;
 			if(cost > this.stats.cost.maxClusteringCost) {
 				this.stats.cost.maxClusteringCost = cost;
@@ -538,7 +546,7 @@ class MvrProcessor
 				id = results[i];
 
 				if(results[i] === 0) {
-					// cluster 0 is noise?
+					// cluster 0 is noise
 					continue;
 				}
 

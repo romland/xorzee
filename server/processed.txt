@@ -1,0 +1,649 @@
+Statistical profiling result from isolate-0x3c8a9f8-24003-v8.log, (202712 ticks, 210 unaccounted, 0 excluded).
+
+ [Shared libraries]:
+   ticks  total  nonlib   name
+  68133   33.6%          /usr/bin/node
+   1609    0.8%          /lib/arm-linux-gnueabihf/libc-2.28.so
+    110    0.1%          [vdso]
+     70    0.0%          [vectors]
+     68    0.0%          /usr/lib/arm-linux-gnueabihf/libstdc++.so.6.0.25
+      2    0.0%          /lib/arm-linux-gnueabihf/libgcc_s.so.1
+
+ [JavaScript]:
+   ticks  total  nonlib   name
+  75550   37.3%   56.9%  LazyCompile: *expand /home/dev/tmp/streamtest/bettermotion/server/lib/DbScan.js:88:8
+  25872   12.8%   19.5%  LazyCompile: *processFrame /home/dev/tmp/streamtest/bettermotion/server/lib/MvrProcessor.js:364:14
+   2036    1.0%    1.5%  LazyCompile: *<anonymous> /home/dev/tmp/streamtest/bettermotion/server/lib/VideoListener.js:58:36
+   1849    0.9%    1.4%  LazyCompile: *BinaryRingBuffer.write /home/dev/tmp/streamtest/bettermotion/server/node_modules/@cisl/binary-ring-buffer/index.js:91:49
+    702    0.3%    0.5%  LazyCompile: *run /home/dev/tmp/streamtest/bettermotion/server/lib/DbScan.js:60:5
+    257    0.1%    0.2%  LazyCompile: *Memory.get /home/dev/tmp/streamtest/bettermotion/server/node_modules/nconf/lib/nconf/stores/memory.js:37:33
+    213    0.1%    0.2%  LazyCompile: *<anonymous> /home/dev/tmp/streamtest/bettermotion/server/node_modules/nconf/lib/nconf/provider.js:565:25
+    154    0.1%    0.1%  LazyCompile: *Readable.read _stream_readable.js:368:35
+    147    0.1%    0.1%  LazyCompile: *<anonymous> /home/dev/tmp/streamtest/bettermotion/server/lib/MotionListener.js:106:31
+    114    0.1%    0.1%  LazyCompile: *readableAddChunk _stream_readable.js:217:26
+     99    0.0%    0.1%  LazyCompile: *readIntLE internal/buffer.js:328:19
+     78    0.0%    0.1%  LazyCompile: *readInt16LE internal/buffer.js:400:21
+     71    0.0%    0.1%  LazyCompile: *nextTick internal/process/task_queues.js:105:18
+     60    0.0%    0.0%  LazyCompile: *maybeReadMore_ _stream_readable.js:574:24
+     58    0.0%    0.0%  LazyCompile: *_copy buffer.js:202:15
+     52    0.0%    0.0%  LazyCompile: *consume /home/dev/tmp/streamtest/bettermotion/server/node_modules/bl/BufferList.js:194:49
+     51    0.0%    0.0%  LazyCompile: *processTicksAndRejections internal/process/task_queues.js:69:35
+     46    0.0%    0.0%  LazyCompile: *temporalExpiration /home/dev/tmp/streamtest/bettermotion/server/lib/MvrProcessor.js:677:20
+     44    0.0%    0.0%  LazyCompile: *copy /home/dev/tmp/streamtest/bettermotion/server/node_modules/bl/BufferList.js:78:43
+     41    0.0%    0.0%  LazyCompile: *_transform /home/dev/tmp/streamtest/bettermotion/server/node_modules/stream-split/index.js:22:13
+     35    0.0%    0.0%  LazyCompile: *processFrame /home/dev/tmp/streamtest/bettermotion/server/lib/MotionRuleEngine.js:125:14
+     31    0.0%    0.0%  LazyCompile: *Writable.write _stream_writable.js:291:36
+     30    0.0%    0.0%  LazyCompile: *_getBriefReasons /home/dev/tmp/streamtest/bettermotion/server/lib/MotionRuleEngine.js:228:18
+     28    0.0%    0.0%  LazyCompile: *trackTemporal /home/dev/tmp/streamtest/bettermotion/server/lib/MvrProcessor.js:638:15
+     22    0.0%    0.0%  LazyCompile: *processPromiseRejections internal/process/promises.js:171:34
+     21    0.0%    0.0%  LazyCompile: *onwrite _stream_writable.js:431:17
+     16    0.0%    0.0%  LazyCompile: *slice /home/dev/tmp/streamtest/bettermotion/server/node_modules/bl/BufferList.js:66:45
+     16    0.0%    0.0%  LazyCompile: *normalizeString path.js:52:25
+     16    0.0%    0.0%  LazyCompile: *afterWriteTick _stream_writable.js:475:24
+     14    0.0%    0.0%  LazyCompile: *dispatchSignal /home/dev/tmp/streamtest/bettermotion/server/lib/MotionSignaller.js:80:16
+     14    0.0%    0.0%  LazyCompile: *afterTransform _stream_transform.js:82:24
+     12    0.0%    0.0%  LazyCompile: *broadcastRaw /home/dev/tmp/streamtest/bettermotion/server/lib/MotionSender.js:19:17
+     11    0.0%    0.0%  LazyCompile: *ondata _stream_readable.js:693:18
+     11    0.0%    0.0%  LazyCompile: *getMotionVectorAt /home/dev/tmp/streamtest/bettermotion/server/lib/MvrProcessor.js:135:19
+     10    0.0%    0.0%  LazyCompile: *get clients /home/dev/tmp/streamtest/bettermotion/server/node_modules/@clusterws/cws/dist/server.js:67:16
+      9    0.0%    0.0%  LazyCompile: *get_region_neighbours /home/dev/tmp/streamtest/bettermotion/server/lib/DbScan.js:116:23
+      8    0.0%    0.0%  LazyCompile: *hidden internal/errors.js:281:25
+      7    0.0%    0.0%  LazyCompile: *<anonymous> internal/util/debuglog.js:61:18
+      6    0.0%    0.0%  LazyCompile: *Transform._write _stream_transform.js:169:38
+      5    0.0%    0.0%  LazyCompile: *asString /home/dev/tmp/streamtest/bettermotion/server/node_modules/pino/lib/tools.js:67:19
+      5    0.0%    0.0%  LazyCompile: *FastBuffer internal/buffer.js:945:1
+      4    0.0%    0.0%  RegExp: ^[a-zA-Z_][a-zA-Z_0-9]*$
+      4    0.0%    0.0%  RegExp: \u001b\[\d\d?m
+      4    0.0%    0.0%  LazyCompile: *hasActiveClusters /home/dev/tmp/streamtest/bettermotion/server/lib/MotionRuleEngine.js:292:19
+      4    0.0%    0.0%  LazyCompile: *_sendEvent /home/dev/tmp/streamtest/bettermotion/server/lib/MotionRuleEngine.js:111:12
+      4    0.0%    0.0%  LazyCompile: *Module._nodeModulePaths internal/modules/cjs/loader.js:740:37
+      3    0.0%    0.0%  LazyCompile: *slice buffer.js:1100:40
+      3    0.0%    0.0%  LazyCompile: *formatProperty internal/util/inspect.js:1572:24
+      3    0.0%    0.0%  LazyCompile: *createUnsafeBuffer buffer.js:144:28
+      3    0.0%    0.0%  LazyCompile: *adjustOffset buffer.js:1083:22
+      3    0.0%    0.0%  LazyCompile: *<anonymous> buffer.js:353:36
+      2    0.0%    0.0%  RegExp: ^(.*)[\\/]node_modules[\\/]
+      2    0.0%    0.0%  RegExp: [ ,]+
+      2    0.0%    0.0%  LazyCompile: *toInteger buffer.js:192:19
+      2    0.0%    0.0%  LazyCompile: *realpathSync fs.js:1458:22
+      2    0.0%    0.0%  LazyCompile: *push internal/fixed_queue.js:75:7
+      2    0.0%    0.0%  LazyCompile: *_addReason /home/dev/tmp/streamtest/bettermotion/server/lib/MotionRuleEngine.js:218:12
+      1    0.0%    0.0%  RegExp: ^(\*\.|\!)
+      1    0.0%    0.0%  RegExp: ^((?:@[^/\\%]+\/)?[^./\\%][^/\\%]*)(\/.*)?$
+      1    0.0%    0.0%  RegExp: \b(node|iojs)$
+      1    0.0%    0.0%  RegExp: (?:^|\/)\.?\.$
+      1    0.0%    0.0%  LazyCompile: *stat internal/modules/cjs/loader.js:140:14
+      1    0.0%    0.0%  LazyCompile: *pointIsInPoly /home/dev/tmp/streamtest/bettermotion/server/lib/util.js:43:22
+      1    0.0%    0.0%  LazyCompile: *overlapsAny /home/dev/tmp/streamtest/bettermotion/server/lib/MvrProcessor.js:689:13
+      1    0.0%    0.0%  LazyCompile: *get _stream_duplex.js:76:8
+      1    0.0%    0.0%  LazyCompile: *dirname path.js:1127:10
+      1    0.0%    0.0%  LazyCompile: *bidirectionalIndexOf buffer.js:901:30
+      1    0.0%    0.0%  LazyCompile: *<anonymous> internal/per_context/primordials.js:23:10
+
+ [C++]:
+   ticks  total  nonlib   name
+   9579    4.7%    7.2%  epoll_pwait
+   2970    1.5%    2.2%  __libc_read
+   2137    1.1%    1.6%  __pthread_mutex_unlock_usercnt
+   1596    0.8%    1.2%  __udivsi3
+    816    0.4%    0.6%  __pthread_cond_signal
+    628    0.3%    0.5%  __pthread_cond_timedwait
+    474    0.2%    0.4%  __aeabi_uidivmod
+    450    0.2%    0.3%  memset
+    445    0.2%    0.3%  _init
+    435    0.2%    0.3%  node::contextify::ContextifyContext::CompileFunction(v8::FunctionCallbackInfo<v8::Value> const&)
+    393    0.2%    0.3%  do_futex_wait.constprop.2
+    326    0.2%    0.2%  __libc_malloc
+    291    0.1%    0.2%  memcpy
+    238    0.1%    0.2%  strlen
+    223    0.1%    0.2%  ceil
+    220    0.1%    0.2%  node::native_module::NativeModuleEnv::CompileFunction(v8::FunctionCallbackInfo<v8::Value> const&)
+    218    0.1%    0.2%  node::fs::WriteString(v8::FunctionCallbackInfo<v8::Value> const&)
+    174    0.1%    0.1%  memmove
+    159    0.1%    0.1%  void node::StreamBase::JSMethod<&(int node::StreamBase::WriteString<(node::encoding)1>(v8::FunctionCallbackInfo<v8::Value> const&))>(v8::FunctionCallbackInfo<v8::Value> const&)
+    148    0.1%    0.1%  memchr
+    126    0.1%    0.1%  cfree
+    124    0.1%    0.1%  __lll_lock_wait
+    112    0.1%    0.1%  __GI___pthread_mutex_lock
+     90    0.0%    0.1%  __pthread_cond_broadcast
+     80    0.0%    0.1%  _IO_vfprintf
+     71    0.0%    0.1%  node::Buffer::(anonymous namespace)::IndexOfBuffer(v8::FunctionCallbackInfo<v8::Value> const&)
+     60    0.0%    0.0%  node::InternalCallbackScope::InternalCallbackScope(node::Environment*, v8::Local<v8::Object>, node::async_context const&, int)
+     55    0.0%    0.0%  operator new(unsigned int)
+     53    0.0%    0.0%  node::InternalCallbackScope::Close()
+     46    0.0%    0.0%  __libc_realloc
+     44    0.0%    0.0%  node::EnvGetter(v8::Local<v8::Name>, v8::PropertyCallbackInfo<v8::Value> const&)
+     43    0.0%    0.0%  node::(anonymous namespace)::ProcessWrap::Spawn(v8::FunctionCallbackInfo<v8::Value> const&)
+     38    0.0%    0.0%  __write
+     36    0.0%    0.0%  v8::Function::Call(v8::Local<v8::Context>, v8::Local<v8::Value>, int, v8::Local<v8::Value>*)
+     36    0.0%    0.0%  floor
+     35    0.0%    0.0%  std::__detail::_Prime_rehash_policy::_M_need_rehash(unsigned int, unsigned int, unsigned int) const
+     33    0.0%    0.0%  v8::internal::MarkingBarrier(v8::internal::HeapObject, v8::internal::FullObjectSlot, v8::internal::Object)
+     32    0.0%    0.0%  std::__detail::_Prime_rehash_policy::_M_next_bkt(unsigned int) const
+     31    0.0%    0.0%  __gettimeofday
+     31    0.0%    0.0%  __adddf3
+     30    0.0%    0.0%  node::StreamBase::CallJSOnreadMethod(int, v8::Local<v8::ArrayBuffer>, unsigned int, node::StreamBase::StreamBaseJSChecks)
+     28    0.0%    0.0%  node::AsyncWrap::EmitTraceEventBefore()
+     28    0.0%    0.0%  calloc
+     27    0.0%    0.0%  v8::internal::Builtin_TypedArrayPrototypeFill(int, unsigned int*, v8::internal::Isolate*)
+     27    0.0%    0.0%  node::AsyncWrap::MakeCallback(v8::Local<v8::Function>, int, v8::Local<v8::Value>*)
+     26    0.0%    0.0%  v8::Context::Exit()
+     26    0.0%    0.0%  v8::(anonymous namespace)::CallDepthScope<true>::CallDepthScope(v8::internal::Isolate*, v8::Local<v8::Context>)
+     26    0.0%    0.0%  node::Environment::RunAndClearNativeImmediates(bool)
+     25    0.0%    0.0%  v8::internal::libc_memcpy(void*, void const*, unsigned int)
+     24    0.0%    0.0%  node::InternalMakeCallback(node::Environment*, v8::Local<v8::Object>, v8::Local<v8::Function>, int, v8::Local<v8::Value>*, node::async_context)
+     24    0.0%    0.0%  __udivmoddi4
+     23    0.0%    0.0%  node::ReallyExit(v8::FunctionCallbackInfo<v8::Value> const&)
+     22    0.0%    0.0%  v8::HandleScope::HandleScope(v8::Isolate*)
+     22    0.0%    0.0%  node::NodePlatform::MonotonicallyIncreasingTime()
+     21    0.0%    0.0%  v8::HandleScope::~HandleScope()
+     21    0.0%    0.0%  node::EmitToJSStreamListener::OnStreamRead(int, uv_buf_t const&)
+     21    0.0%    0.0%  __GI___pthread_getspecific
+     20    0.0%    0.0%  v8::internal::Builtin_TypedArrayPrototypeBuffer(int, unsigned int*, v8::internal::Isolate*)
+     19    0.0%    0.0%  v8::Context::Enter()
+     19    0.0%    0.0%  fwrite
+     19    0.0%    0.0%  __mprotect
+     18    0.0%    0.0%  void node::Buffer::(anonymous namespace)::StringSlice<(node::encoding)1>(v8::FunctionCallbackInfo<v8::Value> const&)
+     18    0.0%    0.0%  v8::Context::GetNumberOfEmbedderDataFields()
+     18    0.0%    0.0%  node::MakeCallback(v8::Isolate*, v8::Local<v8::Object>, v8::Local<v8::Function>, int, v8::Local<v8::Value>*)
+     17    0.0%    0.0%  v8::External::Value() const
+     17    0.0%    0.0%  node::fs::InternalModuleStat(v8::FunctionCallbackInfo<v8::Value> const&)
+     17    0.0%    0.0%  __clock_gettime
+     16    0.0%    0.0%  v8::(anonymous namespace)::CallDepthScope<true>::~CallDepthScope()
+     16    0.0%    0.0%  node::binding::GetInternalBinding(v8::FunctionCallbackInfo<v8::Value> const&)
+     15    0.0%    0.0%  v8::internal::Builtin_ArrayBufferPrototypeGetByteLength(int, unsigned int*, v8::internal::Isolate*)
+     15    0.0%    0.0%  node::inspector::(anonymous namespace)::InspectorConsoleCall(v8::FunctionCallbackInfo<v8::Value> const&)
+     15    0.0%    0.0%  node::fs::InternalModuleReadJSON(v8::FunctionCallbackInfo<v8::Value> const&)
+     14    0.0%    0.0%  v8::ArrayBuffer::New(v8::Isolate*, void*, unsigned int, v8::ArrayBufferCreationMode)
+     14    0.0%    0.0%  operator delete(void*, unsigned int)
+     14    0.0%    0.0%  node::EmitToJSStreamListener::OnStreamAlloc(unsigned int)
+     14    0.0%    0.0%  node::AsyncWrap::EmitTraceEventAfter(node::AsyncWrap::ProviderType, double)
+     13    0.0%    0.0%  syscall
+     13    0.0%    0.0%  node::NodeArrayBufferAllocator::Allocate(unsigned int)
+     13    0.0%    0.0%  __GI___pthread_mutex_init
+     12    0.0%    0.0%  v8::internal::HandleScope::~HandleScope()
+     12    0.0%    0.0%  v8::internal::Builtin_ArrayBufferConstructor(int, unsigned int*, v8::internal::Isolate*)
+     12    0.0%    0.0%  v8::Context::Global()
+     11    0.0%    0.0%  v8::internal::tracing::ScopedTracer::~ScopedTracer()
+     11    0.0%    0.0%  std::basic_ostream<char, std::char_traits<char> >& std::__ostream_insert<char, std::char_traits<char> >(std::basic_ostream<char, std::char_traits<char> >&, char const*, int)
+     11    0.0%    0.0%  operator delete(void*)
+     11    0.0%    0.0%  node::LibuvStreamWrap::ReadStart()::{lambda(uv_handle_s*, unsigned int, uv_buf_t*)#1}::_FUN(uv_handle_s*, unsigned int, uv_buf_t*)
+     11    0.0%    0.0%  __getpid
+     11    0.0%    0.0%  _IO_default_xsputn
+     10    0.0%    0.0%  v8::internal::Builtin_JsonStringify(int, unsigned int*, v8::internal::Isolate*)
+     10    0.0%    0.0%  v8::EscapableHandleScope::Escape(unsigned int*)
+     10    0.0%    0.0%  unsigned int node::stringsearch::SearchString<unsigned char>(node::stringsearch::Vector<unsigned char const>, node::stringsearch::Vector<unsigned char const>, unsigned int)
+     10    0.0%    0.0%  node::LibuvStreamWrap::ReadStart()::{lambda(uv_stream_s*, int, uv_buf_t const*)#2}::_FUN(uv_stream_s*, int, uv_buf_t const*)
+     10    0.0%    0.0%  node::Environment::RunAndClearInterrupts()
+     10    0.0%    0.0%  node::Environment::Reallocate(char*, unsigned int, unsigned int)
+     10    0.0%    0.0%  node::Environment::CheckImmediate(uv_check_s*)
+     10    0.0%    0.0%  _IO_padn
+      9    0.0%    0.0%  v8::internal::CompilationCache::Iterate(v8::internal::RootVisitor*)
+      9    0.0%    0.0%  v8::MicrotasksScope::PerformCheckpoint(v8::Isolate*)
+      9    0.0%    0.0%  v8::EscapableHandleScope::EscapableHandleScope(v8::Isolate*)
+      9    0.0%    0.0%  node::fs::Open(v8::FunctionCallbackInfo<v8::Value> const&)
+      9    0.0%    0.0%  node::fs::LStat(v8::FunctionCallbackInfo<v8::Value> const&)
+      9    0.0%    0.0%  node::NodePlatform::CurrentClockTimeMillis()
+      9    0.0%    0.0%  __GI___pthread_mutex_unlock
+      8    0.0%    0.0%  v8::internal::IsolateFromNeverReadOnlySpaceObject(unsigned int)
+      8    0.0%    0.0%  v8::internal::FunctionCallbackArguments::FunctionCallbackArguments(v8::internal::Isolate*, v8::internal::Object, v8::internal::HeapObject, v8::internal::Object, v8::internal::HeapObject, unsigned int*, int)
+      8    0.0%    0.0%  v8::Isolate::GetCurrentContext()
+      8    0.0%    0.0%  strchrnul
+      8    0.0%    0.0%  node::fs::Read(v8::FunctionCallbackInfo<v8::Value> const&)
+      8    0.0%    0.0%  node::fs::FStat(v8::FunctionCallbackInfo<v8::Value> const&)
+      8    0.0%    0.0%  node::NodeArrayBufferAllocator::Reallocate(void*, unsigned int, unsigned int)
+      8    0.0%    0.0%  node::LibuvStreamWrap::Initialize(v8::Local<v8::Object>, v8::Local<v8::Value>, v8::Local<v8::Context>, void*)::{lambda(v8::FunctionCallbackInfo<v8::Value> const&)#1}::_FUN(v8::FunctionCallbackInfo<v8::Value> const&)
+      8    0.0%    0.0%  __vsnprintf
+      8    0.0%    0.0%  __aeabi_read_tp
+      8    0.0%    0.0%  __aeabi_l2d
+      7    0.0%    0.0%  v8::internal::heap_internals::GenerationalBarrierInternal(v8::internal::HeapObject, unsigned int, v8::internal::HeapObject)
+      7    0.0%    0.0%  v8::internal::HandleScopeImplementer::IterateThis(v8::internal::RootVisitor*)
+      7    0.0%    0.0%  v8::internal::Builtin_HandleApiCall(int, unsigned int*, v8::internal::Isolate*)
+      7    0.0%    0.0%  v8::Value::IsFunction() const
+      7    0.0%    0.0%  v8::ArrayBuffer::GetContents()
+      7    0.0%    0.0%  node::task_queue::RunMicrotasks(v8::FunctionCallbackInfo<v8::Value> const&)
+      7    0.0%    0.0%  node::TraceEventScope::~TraceEventScope()
+      7    0.0%    0.0%  __printf_fp
+      6    0.0%    0.0%  v8::internal::RuntimeCallTimerScope::RuntimeCallTimerScope(v8::internal::Isolate*, v8::internal::RuntimeCallCounterId)
+      6    0.0%    0.0%  v8::internal::FixedArray::set(int, v8::internal::Object)
+      6    0.0%    0.0%  v8::internal::Builtin_DateNow(int, unsigned int*, v8::internal::Isolate*)
+      6    0.0%    0.0%  v8::internal::ApiNatives::InstantiateObject(v8::internal::Isolate*, v8::internal::Handle<v8::internal::ObjectTemplateInfo>, v8::internal::Handle<v8::internal::JSReceiver>)
+      6    0.0%    0.0%  v8::Value::IsObject() const
+      6    0.0%    0.0%  v8::Value::IsBoolean() const
+      6    0.0%    0.0%  v8::TryCatch::TryCatch(v8::Isolate*)
+      6    0.0%    0.0%  v8::HandleScope::CreateHandle(v8::internal::Isolate*, unsigned int)
+      6    0.0%    0.0%  sigemptyset
+      6    0.0%    0.0%  sigaddset
+      6    0.0%    0.0%  node::errors::TryCatchScope::~TryCatchScope()
+      6    0.0%    0.0%  node::(anonymous namespace)::IsAnyArrayBuffer(v8::FunctionCallbackInfo<v8::Value> const&)
+      6    0.0%    0.0%  __pthread_cond_destroy
+      6    0.0%    0.0%  __munmap
+      6    0.0%    0.0%  __aeabi_uldivmod
+      5    0.0%    0.0%  v8::internal::HandleScopeImplementer::Iterate(v8::internal::RootVisitor*)
+      5    0.0%    0.0%  v8::internal::Compiler::Compile(v8::internal::Handle<v8::internal::SharedFunctionInfo>, v8::internal::Compiler::ClearExceptionFlag, v8::internal::IsCompiledScope*)
+      5    0.0%    0.0%  v8::Value::IsTrue() const
+      5    0.0%    0.0%  v8::TryCatch::~TryCatch()
+      5    0.0%    0.0%  v8::ArrayBufferView::ByteLength()
+      5    0.0%    0.0%  operator new[](unsigned int, std::nothrow_t const&)
+      5    0.0%    0.0%  node::fs::Close(v8::FunctionCallbackInfo<v8::Value> const&)
+      5    0.0%    0.0%  node::NodePlatform::CallOnWorkerThread(std::unique_ptr<v8::Task, std::default_delete<v8::Task> >)
+      5    0.0%    0.0%  node::NodeArrayBufferAllocator::AllocateUninitialized(unsigned int)
+      5    0.0%    0.0%  node::Environment::RunWeakRefCleanup()
+      5    0.0%    0.0%  node::EnvQuery(v8::Local<v8::Name>, v8::PropertyCallbackInfo<v8::Integer> const&)
+      5    0.0%    0.0%  ceilf
+      5    0.0%    0.0%  brk
+      5    0.0%    0.0%  __pthread_enable_asynccancel
+      5    0.0%    0.0%  __condvar_cancel_waiting
+      4    0.0%    0.0%  v8::internal::Builtins::builtin_handle(int)
+      4    0.0%    0.0%  v8::Isolate::GetCurrent()
+      4    0.0%    0.0%  v8::Integer::New(v8::Isolate*, int)
+      4    0.0%    0.0%  v8::ArrayBufferView::HasBuffer() const
+      4    0.0%    0.0%  std::ostream::sentry::sentry(std::ostream&)
+      4    0.0%    0.0%  operator delete[](void*)
+      4    0.0%    0.0%  node::binding::DLOpen(v8::FunctionCallbackInfo<v8::Value> const&)
+      4    0.0%    0.0%  node::NodePlatform::IdleTasksEnabled(v8::Isolate*)
+      4    0.0%    0.0%  memcmp
+      4    0.0%    0.0%  __new_sem_post
+      4    0.0%    0.0%  __aeabi_ul2d
+      3    0.0%    0.0%  v8::internal::libc_memmove(void*, void const*, unsigned int)
+      3    0.0%    0.0%  v8::internal::Builtin_ArrayPop(int, unsigned int*, v8::internal::Isolate*)
+      3    0.0%    0.0%  v8::internal::AstValueFactory::GetString(unsigned int, bool, v8::internal::Vector<unsigned char const>)
+      3    0.0%    0.0%  v8::internal::Accessors::FunctionPrototypeGetter(v8::Local<v8::Name>, v8::PropertyCallbackInfo<v8::Value> const&)
+      3    0.0%    0.0%  v8::internal::Accessors::ErrorStackGetter(v8::Local<v8::Name>, v8::PropertyCallbackInfo<v8::Value> const&)
+      3    0.0%    0.0%  v8::Value::IsArrayBuffer() const
+      3    0.0%    0.0%  v8::TryCatch::HasCaught() const
+      3    0.0%    0.0%  v8::Isolate::SetIdle(bool)
+      3    0.0%    0.0%  unsigned int node::SearchString<unsigned char>(unsigned char const*, unsigned int, unsigned char const*, unsigned int, unsigned int, bool)
+      3    0.0%    0.0%  std::_Rb_tree_rebalance_for_erase(std::_Rb_tree_node_base*, std::_Rb_tree_node_base&)
+      3    0.0%    0.0%  pthread_condattr_setclock
+      3    0.0%    0.0%  operator new(unsigned int, std::nothrow_t const&)
+      3    0.0%    0.0%  non-virtual thunk to node::LibuvStreamWrap::GetAsyncWrap()
+      3    0.0%    0.0%  node::contextify::ContextifyContext::MakeContext(v8::FunctionCallbackInfo<v8::Value> const&)
+      3    0.0%    0.0%  node::Environment::StartProfilerIdleNotifier()::{lambda(uv_check_s*)#2}::_FUN(uv_check_s*)
+      3    0.0%    0.0%  node::AsyncWrap::EmitAfter(node::Environment*, double)
+      3    0.0%    0.0%  __new_sem_wait
+      3    0.0%    0.0%  __mmap
+      3    0.0%    0.0%  __errno_location
+      3    0.0%    0.0%  __condvar_load_64_relaxed.isra.1
+      3    0.0%    0.0%  _IO_file_xsputn
+      2    0.0%    0.0%  v8::internal::Variable* v8::internal::Scope::Lookup<(v8::internal::Scope::ScopeLookupMode)0>(v8::internal::VariableProxy*, v8::internal::Scope*, v8::internal::Scope*, v8::internal::Scope*, bool)
+      2    0.0%    0.0%  v8::internal::Builtin_ObjectGetOwnPropertySymbols(int, unsigned int*, v8::internal::Isolate*)
+      2    0.0%    0.0%  v8::internal::AstValueFactory::Internalize(v8::internal::Isolate*)
+      2    0.0%    0.0%  v8::internal::AstValueFactory::GetOneByteStringInternal(v8::internal::Vector<unsigned char const>)
+      2    0.0%    0.0%  v8::internal::(anonymous namespace)::ProbeInstantiationsCache(v8::internal::Isolate*, v8::internal::Handle<v8::internal::NativeContext>, int, v8::internal::(anonymous namespace)::CachingMode)
+      2    0.0%    0.0%  v8::Value::IsInt32() const
+      2    0.0%    0.0%  v8::Object::CreationContext()
+      2    0.0%    0.0%  v8::ArrayBufferView::ByteOffset()
+      2    0.0%    0.0%  v8::ArrayBufferView::Buffer()
+      2    0.0%    0.0%  std::ostream::sentry::~sentry()
+      2    0.0%    0.0%  std::num_put<char, std::ostreambuf_iterator<char, std::char_traits<char> > >::do_put(std::ostreambuf_iterator<char, std::char_traits<char> >, std::ios_base&, char, long) const
+      2    0.0%    0.0%  std::_Rb_tree_insert_and_rebalance(bool, std::_Rb_tree_node_base*, std::_Rb_tree_node_base*, std::_Rb_tree_node_base&)
+      2    0.0%    0.0%  operator new[](unsigned int)
+      2    0.0%    0.0%  node::contextify::ContextifyContext::PropertyGetterCallback(v8::Local<v8::Name>, v8::PropertyCallbackInfo<v8::Value> const&)
+      2    0.0%    0.0%  node::AsyncWrap::EmitBefore(node::Environment*, double)
+      2    0.0%    0.0%  __pthread_condattr_init
+      2    0.0%    0.0%  __mempcpy
+      2    0.0%    0.0%  __libc_alloca_cutoff
+      2    0.0%    0.0%  __condvar_fetch_add_64_relaxed.constprop.3
+      2    0.0%    0.0%  __aeabi_ldivmod
+      2    0.0%    0.0%  _IO_setb
+      1    0.0%    0.0%  void node::StreamBase::JSMethod<&node::StreamBase::WriteBuffer>(v8::FunctionCallbackInfo<v8::Value> const&)
+      1    0.0%    0.0%  void node::Buffer::(anonymous namespace)::StringWrite<(node::encoding)0>(v8::FunctionCallbackInfo<v8::Value> const&)
+      1    0.0%    0.0%  v8::internal::libc_memchr(void*, int, unsigned int)
+      1    0.0%    0.0%  v8::internal::Zone::New(unsigned int)
+      1    0.0%    0.0%  v8::internal::String::Flatten(v8::internal::Isolate*, v8::internal::Handle<v8::internal::String>, v8::internal::AllocationType)
+      1    0.0%    0.0%  v8::internal::SequentialStringKey<unsigned char>::IsMatch(v8::internal::String)
+      1    0.0%    0.0%  v8::internal::Scope::Scope(v8::internal::Zone*, v8::internal::Scope*, v8::internal::ScopeType)
+      1    0.0%    0.0%  v8::internal::Scope::IsAsmModule() const
+      1    0.0%    0.0%  v8::internal::Scope::GetDeclarationScope()
+      1    0.0%    0.0%  v8::internal::Scope::GetClosureScope()
+      1    0.0%    0.0%  v8::internal::Scope::FinalizeBlockScope()
+      1    0.0%    0.0%  v8::internal::Scope::DeclareVariable(v8::internal::Declaration*, v8::internal::AstRawString const*, int, v8::internal::VariableMode, v8::internal::VariableKind, v8::internal::InitializationFlag, bool*, bool*, bool*)
+      1    0.0%    0.0%  v8::internal::PrototypeIterator::Advance()
+      1    0.0%    0.0%  v8::internal::Object::ToNumber(v8::internal::Isolate*, v8::internal::Handle<v8::internal::Object>)
+      1    0.0%    0.0%  v8::internal::LiteralProperty::NeedsSetFunctionName() const
+      1    0.0%    0.0%  v8::internal::IsCompiledScope::IsCompiledScope(v8::internal::SharedFunctionInfo, v8::internal::Isolate*)
+      1    0.0%    0.0%  v8::internal::HandlerTable::NumberOfRangeEntries() const
+      1    0.0%    0.0%  v8::internal::HandlerTable::LookupRange(int, int*, v8::internal::HandlerTable::CatchPrediction*)
+      1    0.0%    0.0%  v8::internal::HandleScopeImplementer::Detach(unsigned int*)
+      1    0.0%    0.0%  v8::internal::ExternalAssemblerBuffer(void*, int)
+      1    0.0%    0.0%  v8::internal::Expression::IsNumberLiteral() const
+      1    0.0%    0.0%  v8::internal::DeclarationScope::DeclareParameter(v8::internal::AstRawString const*, v8::internal::VariableMode, bool, bool, v8::internal::AstValueFactory*, int)
+      1    0.0%    0.0%  v8::internal::DeclarationScope::DeclareArguments(v8::internal::AstValueFactory*)
+      1    0.0%    0.0%  v8::internal::CompilationCache::MarkCompactPrologue()
+      1    0.0%    0.0%  v8::internal::CompilationCache::LookupRegExp(v8::internal::Handle<v8::internal::String>, v8::base::Flags<v8::internal::JSRegExp::Flag, int>)
+      1    0.0%    0.0%  v8::internal::Builtins::name(int)
+      1    0.0%    0.0%  v8::internal::Builtin_StringPrototypeLastIndexOf(int, unsigned int*, v8::internal::Isolate*)
+      1    0.0%    0.0%  v8::internal::Builtin_JsonParse(int, unsigned int*, v8::internal::Isolate*)
+      1    0.0%    0.0%  v8::internal::Builtin_ArrayBufferIsView(int, unsigned int*, v8::internal::Isolate*)
+      1    0.0%    0.0%  v8::internal::Accessors::ReconfigureToDataProperty(v8::Local<v8::Name>, v8::Local<v8::Value>, v8::PropertyCallbackInfo<v8::Boolean> const&)
+      1    0.0%    0.0%  v8::base::TemplateHashMapImpl<void*, void*, v8::base::HashEqualityThenKeyMatcher<void*, bool (*)(void*, void*)>, v8::internal::ZoneAllocationPolicy>::FillEmptyEntry(v8::base::TemplateHashMapEntry<void*, void*>*, void* const&, void* const&, unsigned int, v8::internal::ZoneAllocationPolicy)
+      1    0.0%    0.0%  v8::Value::IsArrayBufferView() const
+      1    0.0%    0.0%  v8::Isolate::ClearKeptObjects()
+      1    0.0%    0.0%  v8::Integer::Value() const
+      1    0.0%    0.0%  std::ostream& std::ostream::_M_insert<long>(long)
+      1    0.0%    0.0%  std::num_put<char, std::ostreambuf_iterator<char, std::char_traits<char> > > const& std::use_facet<std::num_put<char, std::ostreambuf_iterator<char, std::char_traits<char> > > >(std::locale const&)
+      1    0.0%    0.0%  std::locale::locale()
+      1    0.0%    0.0%  std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_replace(unsigned int, unsigned int, char const*, unsigned int)
+      1    0.0%    0.0%  node::util::GetProxyDetails(v8::FunctionCallbackInfo<v8::Value> const&)
+      1    0.0%    0.0%  node::options_parser::GetOptions(v8::FunctionCallbackInfo<v8::Value> const&)
+      1    0.0%    0.0%  node::native_module::NativeModuleEnv::ModuleIdsGetter(v8::Local<v8::Name>, v8::PropertyCallbackInfo<v8::Value> const&)
+      1    0.0%    0.0%  node::fs::ReadDir(v8::FunctionCallbackInfo<v8::Value> const&)
+      1    0.0%    0.0%  node::cares_wrap::(anonymous namespace)::ChannelWrap::New(v8::FunctionCallbackInfo<v8::Value> const&)
+      1    0.0%    0.0%  node::TTYWrap::IsTTY(v8::FunctionCallbackInfo<v8::Value> const&)
+      1    0.0%    0.0%  node::PrepareStackTraceCallback(v8::Local<v8::Context>, v8::Local<v8::Value>, v8::Local<v8::Array>)
+      1    0.0%    0.0%  node::PatchProcessObject(v8::FunctionCallbackInfo<v8::Value> const&)
+      1    0.0%    0.0%  node::LibuvStreamWrap::GetAsyncWrap()
+      1    0.0%    0.0%  node::InternalCallbackScope::~InternalCallbackScope()
+      1    0.0%    0.0%  node::Environment::StartProfilerIdleNotifier()::{lambda(uv_prepare_s*)#1}::_FUN(uv_prepare_s*)
+      1    0.0%    0.0%  node::BaseObject::~BaseObject()
+      1    0.0%    0.0%  fputc
+      1    0.0%    0.0%  __sem_wait_32_finish
+      1    0.0%    0.0%  __pthread_disable_asynccancel
+      1    0.0%    0.0%  __pthread_cond_wait
+      1    0.0%    0.0%  __new_sem_wait_slow.constprop.1
+      1    0.0%    0.0%  __condvar_confirm_wakeup
+      1    0.0%    0.0%  __GI___pthread_mutex_destroy
+
+ [Summary]:
+   ticks  total  nonlib   name
+  107879   53.2%   81.3%  JavaScript
+  24631   12.2%   18.6%  C++
+  31913   15.7%   24.0%  GC
+  69992   34.5%          Shared libraries
+    210    0.1%          Unaccounted
+
+ [C++ entry points]:
+   ticks    cpp   total   name
+   1535   27.1%    0.8%  __udivsi3
+    454    8.0%    0.2%  __aeabi_uidivmod
+    435    7.7%    0.2%  node::contextify::ContextifyContext::CompileFunction(v8::FunctionCallbackInfo<v8::Value> const&)
+    353    6.2%    0.2%  _init
+    247    4.4%    0.1%  memcpy
+    226    4.0%    0.1%  strlen
+    220    3.9%    0.1%  node::native_module::NativeModuleEnv::CompileFunction(v8::FunctionCallbackInfo<v8::Value> const&)
+    218    3.9%    0.1%  node::fs::WriteString(v8::FunctionCallbackInfo<v8::Value> const&)
+    204    3.6%    0.1%  ceil
+    159    2.8%    0.1%  void node::StreamBase::JSMethod<&(int node::StreamBase::WriteString<(node::encoding)1>(v8::FunctionCallbackInfo<v8::Value> const&))>(v8::FunctionCallbackInfo<v8::Value> const&)
+    158    2.8%    0.1%  memmove
+    148    2.6%    0.1%  memchr
+    125    2.2%    0.1%  node::inspector::(anonymous namespace)::InspectorConsoleCall(v8::FunctionCallbackInfo<v8::Value> const&)
+     82    1.4%    0.0%  memset
+     71    1.3%    0.0%  node::Buffer::(anonymous namespace)::IndexOfBuffer(v8::FunctionCallbackInfo<v8::Value> const&)
+     53    0.9%    0.0%  __lll_lock_wait
+     50    0.9%    0.0%  __libc_malloc
+     44    0.8%    0.0%  node::EnvGetter(v8::Local<v8::Name>, v8::PropertyCallbackInfo<v8::Value> const&)
+     43    0.8%    0.0%  node::(anonymous namespace)::ProcessWrap::Spawn(v8::FunctionCallbackInfo<v8::Value> const&)
+     31    0.5%    0.0%  __gettimeofday
+     28    0.5%    0.0%  v8::internal::MarkingBarrier(v8::internal::HeapObject, v8::internal::FullObjectSlot, v8::internal::Object)
+     28    0.5%    0.0%  calloc
+     27    0.5%    0.0%  v8::internal::Builtin_TypedArrayPrototypeFill(int, unsigned int*, v8::internal::Isolate*)
+     27    0.5%    0.0%  floor
+     25    0.4%    0.0%  v8::internal::libc_memcpy(void*, void const*, unsigned int)
+     25    0.4%    0.0%  __pthread_mutex_unlock_usercnt
+     23    0.4%    0.0%  node::ReallyExit(v8::FunctionCallbackInfo<v8::Value> const&)
+     21    0.4%    0.0%  cfree
+     20    0.4%    0.0%  v8::internal::Builtin_TypedArrayPrototypeBuffer(int, unsigned int*, v8::internal::Isolate*)
+     18    0.3%    0.0%  void node::Buffer::(anonymous namespace)::StringSlice<(node::encoding)1>(v8::FunctionCallbackInfo<v8::Value> const&)
+     18    0.3%    0.0%  __write
+     17    0.3%    0.0%  v8::External::Value() const
+     17    0.3%    0.0%  node::fs::InternalModuleStat(v8::FunctionCallbackInfo<v8::Value> const&)
+     16    0.3%    0.0%  node::contextify::ContextifyContext::MakeContext(v8::FunctionCallbackInfo<v8::Value> const&)
+     16    0.3%    0.0%  node::binding::GetInternalBinding(v8::FunctionCallbackInfo<v8::Value> const&)
+     15    0.3%    0.0%  v8::internal::Builtin_ArrayBufferPrototypeGetByteLength(int, unsigned int*, v8::internal::Isolate*)
+     15    0.3%    0.0%  node::fs::InternalModuleReadJSON(v8::FunctionCallbackInfo<v8::Value> const&)
+     15    0.3%    0.0%  __adddf3
+     15    0.3%    0.0%  __GI___pthread_mutex_lock
+     13    0.2%    0.0%  syscall
+     13    0.2%    0.0%  node::NodeArrayBufferAllocator::Allocate(unsigned int)
+     12    0.2%    0.0%  v8::internal::HandleScope::~HandleScope()
+     12    0.2%    0.0%  v8::internal::Builtin_ArrayBufferConstructor(int, unsigned int*, v8::internal::Isolate*)
+     12    0.2%    0.0%  operator new(unsigned int)
+     10    0.2%    0.0%  v8::internal::Builtin_JsonStringify(int, unsigned int*, v8::internal::Isolate*)
+     10    0.2%    0.0%  unsigned int node::stringsearch::SearchString<unsigned char>(node::stringsearch::Vector<unsigned char const>, node::stringsearch::Vector<unsigned char const>, unsigned int)
+      9    0.2%    0.0%  v8::MicrotasksScope::PerformCheckpoint(v8::Isolate*)
+      9    0.2%    0.0%  node::fs::Open(v8::FunctionCallbackInfo<v8::Value> const&)
+      9    0.2%    0.0%  node::fs::LStat(v8::FunctionCallbackInfo<v8::Value> const&)
+      9    0.2%    0.0%  node::NodePlatform::CurrentClockTimeMillis()
+      9    0.2%    0.0%  fwrite
+      8    0.1%    0.0%  v8::internal::FunctionCallbackArguments::FunctionCallbackArguments(v8::internal::Isolate*, v8::internal::Object, v8::internal::HeapObject, v8::internal::Object, v8::internal::HeapObject, unsigned int*, int)
+      8    0.1%    0.0%  std::__detail::_Prime_rehash_policy::_M_next_bkt(unsigned int) const
+      8    0.1%    0.0%  node::fs::Read(v8::FunctionCallbackInfo<v8::Value> const&)
+      8    0.1%    0.0%  node::fs::FStat(v8::FunctionCallbackInfo<v8::Value> const&)
+      8    0.1%    0.0%  node::LibuvStreamWrap::Initialize(v8::Local<v8::Object>, v8::Local<v8::Value>, v8::Local<v8::Context>, void*)::{lambda(v8::FunctionCallbackInfo<v8::Value> const&)#1}::_FUN(v8::FunctionCallbackInfo<v8::Value> const&)
+      8    0.1%    0.0%  __aeabi_l2d
+      7    0.1%    0.0%  v8::internal::Builtin_HandleApiCall(int, unsigned int*, v8::internal::Isolate*)
+      7    0.1%    0.0%  v8::ArrayBuffer::GetContents()
+      7    0.1%    0.0%  node::task_queue::RunMicrotasks(v8::FunctionCallbackInfo<v8::Value> const&)
+      6    0.1%    0.0%  v8::internal::heap_internals::GenerationalBarrierInternal(v8::internal::HeapObject, unsigned int, v8::internal::HeapObject)
+      6    0.1%    0.0%  v8::internal::FixedArray::set(int, v8::internal::Object)
+      6    0.1%    0.0%  v8::internal::Builtin_DateNow(int, unsigned int*, v8::internal::Isolate*)
+      6    0.1%    0.0%  v8::internal::ApiNatives::InstantiateObject(v8::internal::Isolate*, v8::internal::Handle<v8::internal::ObjectTemplateInfo>, v8::internal::Handle<v8::internal::JSReceiver>)
+      6    0.1%    0.0%  v8::Value::IsObject() const
+      6    0.1%    0.0%  v8::Value::IsBoolean() const
+      6    0.1%    0.0%  node::(anonymous namespace)::IsAnyArrayBuffer(v8::FunctionCallbackInfo<v8::Value> const&)
+      5    0.1%    0.0%  v8::Value::IsTrue() const
+      5    0.1%    0.0%  v8::ArrayBufferView::ByteLength()
+      5    0.1%    0.0%  std::basic_ostream<char, std::char_traits<char> >& std::__ostream_insert<char, std::char_traits<char> >(std::basic_ostream<char, std::char_traits<char> >&, char const*, int)
+      5    0.1%    0.0%  std::__detail::_Prime_rehash_policy::_M_need_rehash(unsigned int, unsigned int, unsigned int) const
+      5    0.1%    0.0%  node::fs::Close(v8::FunctionCallbackInfo<v8::Value> const&)
+      5    0.1%    0.0%  node::EnvQuery(v8::Local<v8::Name>, v8::PropertyCallbackInfo<v8::Integer> const&)
+      5    0.1%    0.0%  __mprotect
+      5    0.1%    0.0%  __libc_realloc
+      4    0.1%    0.0%  v8::internal::Compiler::Compile(v8::internal::Handle<v8::internal::SharedFunctionInfo>, v8::internal::Compiler::ClearExceptionFlag, v8::internal::IsCompiledScope*)
+      4    0.1%    0.0%  v8::Integer::New(v8::Isolate*, int)
+      4    0.1%    0.0%  v8::ArrayBufferView::HasBuffer() const
+      4    0.1%    0.0%  node::binding::DLOpen(v8::FunctionCallbackInfo<v8::Value> const&)
+      4    0.1%    0.0%  node::NodePlatform::IdleTasksEnabled(v8::Isolate*)
+      4    0.1%    0.0%  memcmp
+      3    0.1%    0.0%  v8::internal::libc_memmove(void*, void const*, unsigned int)
+      3    0.1%    0.0%  v8::internal::Builtin_ArrayPop(int, unsigned int*, v8::internal::Isolate*)
+      3    0.1%    0.0%  v8::internal::AstValueFactory::GetString(unsigned int, bool, v8::internal::Vector<unsigned char const>)
+      3    0.1%    0.0%  v8::internal::Accessors::FunctionPrototypeGetter(v8::Local<v8::Name>, v8::PropertyCallbackInfo<v8::Value> const&)
+      3    0.1%    0.0%  v8::internal::Accessors::ErrorStackGetter(v8::Local<v8::Name>, v8::PropertyCallbackInfo<v8::Value> const&)
+      3    0.1%    0.0%  v8::Value::IsArrayBuffer() const
+      3    0.1%    0.0%  v8::Function::Call(v8::Local<v8::Context>, v8::Local<v8::Value>, int, v8::Local<v8::Value>*)
+      3    0.1%    0.0%  v8::(anonymous namespace)::CallDepthScope<true>::CallDepthScope(v8::internal::Isolate*, v8::Local<v8::Context>)
+      3    0.1%    0.0%  unsigned int node::SearchString<unsigned char>(unsigned char const*, unsigned int, unsigned char const*, unsigned int, unsigned int, bool)
+      3    0.1%    0.0%  std::_Rb_tree_rebalance_for_erase(std::_Rb_tree_node_base*, std::_Rb_tree_node_base&)
+      3    0.1%    0.0%  operator delete(void*)
+      3    0.1%    0.0%  __udivmoddi4
+      2    0.0%    0.0%  v8::internal::Variable* v8::internal::Scope::Lookup<(v8::internal::Scope::ScopeLookupMode)0>(v8::internal::VariableProxy*, v8::internal::Scope*, v8::internal::Scope*, v8::internal::Scope*, bool)
+      2    0.0%    0.0%  v8::internal::Builtin_ObjectGetOwnPropertySymbols(int, unsigned int*, v8::internal::Isolate*)
+      2    0.0%    0.0%  v8::internal::AstValueFactory::GetOneByteStringInternal(v8::internal::Vector<unsigned char const>)
+      2    0.0%    0.0%  v8::internal::(anonymous namespace)::ProbeInstantiationsCache(v8::internal::Isolate*, v8::internal::Handle<v8::internal::NativeContext>, int, v8::internal::(anonymous namespace)::CachingMode)
+      2    0.0%    0.0%  v8::Value::IsInt32() const
+      2    0.0%    0.0%  v8::Value::IsFunction() const
+      2    0.0%    0.0%  v8::EscapableHandleScope::Escape(unsigned int*)
+      2    0.0%    0.0%  v8::EscapableHandleScope::EscapableHandleScope(v8::Isolate*)
+      2    0.0%    0.0%  v8::ArrayBufferView::ByteOffset()
+      2    0.0%    0.0%  v8::ArrayBufferView::Buffer()
+      2    0.0%    0.0%  std::ostream::sentry::sentry(std::ostream&)
+      2    0.0%    0.0%  std::_Rb_tree_insert_and_rebalance(bool, std::_Rb_tree_node_base*, std::_Rb_tree_node_base*, std::_Rb_tree_node_base&)
+      2    0.0%    0.0%  node::contextify::ContextifyContext::PropertyGetterCallback(v8::Local<v8::Name>, v8::PropertyCallbackInfo<v8::Value> const&)
+      2    0.0%    0.0%  __pthread_cond_signal
+      2    0.0%    0.0%  __mmap
+      2    0.0%    0.0%  __mempcpy
+      1    0.0%    0.0%  void node::StreamBase::JSMethod<&node::StreamBase::WriteBuffer>(v8::FunctionCallbackInfo<v8::Value> const&)
+      1    0.0%    0.0%  void node::Buffer::(anonymous namespace)::StringWrite<(node::encoding)0>(v8::FunctionCallbackInfo<v8::Value> const&)
+      1    0.0%    0.0%  v8::internal::libc_memchr(void*, int, unsigned int)
+      1    0.0%    0.0%  v8::internal::Zone::New(unsigned int)
+      1    0.0%    0.0%  v8::internal::String::Flatten(v8::internal::Isolate*, v8::internal::Handle<v8::internal::String>, v8::internal::AllocationType)
+      1    0.0%    0.0%  v8::internal::SequentialStringKey<unsigned char>::IsMatch(v8::internal::String)
+      1    0.0%    0.0%  v8::internal::Scope::Scope(v8::internal::Zone*, v8::internal::Scope*, v8::internal::ScopeType)
+      1    0.0%    0.0%  v8::internal::Scope::IsAsmModule() const
+      1    0.0%    0.0%  v8::internal::Scope::GetDeclarationScope()
+      1    0.0%    0.0%  v8::internal::Scope::GetClosureScope()
+      1    0.0%    0.0%  v8::internal::Scope::FinalizeBlockScope()
+      1    0.0%    0.0%  v8::internal::RuntimeCallTimerScope::RuntimeCallTimerScope(v8::internal::Isolate*, v8::internal::RuntimeCallCounterId)
+      1    0.0%    0.0%  v8::internal::PrototypeIterator::Advance()
+      1    0.0%    0.0%  v8::internal::Object::ToNumber(v8::internal::Isolate*, v8::internal::Handle<v8::internal::Object>)
+      1    0.0%    0.0%  v8::internal::LiteralProperty::NeedsSetFunctionName() const
+      1    0.0%    0.0%  v8::internal::IsCompiledScope::IsCompiledScope(v8::internal::SharedFunctionInfo, v8::internal::Isolate*)
+      1    0.0%    0.0%  v8::internal::HandlerTable::NumberOfRangeEntries() const
+      1    0.0%    0.0%  v8::internal::HandlerTable::LookupRange(int, int*, v8::internal::HandlerTable::CatchPrediction*)
+      1    0.0%    0.0%  v8::internal::HandleScopeImplementer::Detach(unsigned int*)
+      1    0.0%    0.0%  v8::internal::ExternalAssemblerBuffer(void*, int)
+      1    0.0%    0.0%  v8::internal::Expression::IsNumberLiteral() const
+      1    0.0%    0.0%  v8::internal::DeclarationScope::DeclareParameter(v8::internal::AstRawString const*, v8::internal::VariableMode, bool, bool, v8::internal::AstValueFactory*, int)
+      1    0.0%    0.0%  v8::internal::CompilationCache::LookupRegExp(v8::internal::Handle<v8::internal::String>, v8::base::Flags<v8::internal::JSRegExp::Flag, int>)
+      1    0.0%    0.0%  v8::internal::Builtin_StringPrototypeLastIndexOf(int, unsigned int*, v8::internal::Isolate*)
+      1    0.0%    0.0%  v8::internal::Builtin_JsonParse(int, unsigned int*, v8::internal::Isolate*)
+      1    0.0%    0.0%  v8::internal::Builtin_ArrayBufferIsView(int, unsigned int*, v8::internal::Isolate*)
+      1    0.0%    0.0%  v8::internal::AstValueFactory::Internalize(v8::internal::Isolate*)
+      1    0.0%    0.0%  v8::internal::Accessors::ReconfigureToDataProperty(v8::Local<v8::Name>, v8::Local<v8::Value>, v8::PropertyCallbackInfo<v8::Boolean> const&)
+      1    0.0%    0.0%  v8::base::TemplateHashMapImpl<void*, void*, v8::base::HashEqualityThenKeyMatcher<void*, bool (*)(void*, void*)>, v8::internal::ZoneAllocationPolicy>::FillEmptyEntry(v8::base::TemplateHashMapEntry<void*, void*>*, void* const&, void* const&, unsigned int, v8::internal::ZoneAllocationPolicy)
+      1    0.0%    0.0%  v8::Value::IsArrayBufferView() const
+      1    0.0%    0.0%  v8::Integer::Value() const
+      1    0.0%    0.0%  std::ostream& std::ostream::_M_insert<long>(long)
+      1    0.0%    0.0%  std::num_put<char, std::ostreambuf_iterator<char, std::char_traits<char> > >::do_put(std::ostreambuf_iterator<char, std::char_traits<char> >, std::ios_base&, char, long) const
+      1    0.0%    0.0%  std::num_put<char, std::ostreambuf_iterator<char, std::char_traits<char> > > const& std::use_facet<std::num_put<char, std::ostreambuf_iterator<char, std::char_traits<char> > > >(std::locale const&)
+      1    0.0%    0.0%  std::locale::locale()
+      1    0.0%    0.0%  std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_replace(unsigned int, unsigned int, char const*, unsigned int)
+      1    0.0%    0.0%  operator new[](unsigned int)
+      1    0.0%    0.0%  node::util::GetProxyDetails(v8::FunctionCallbackInfo<v8::Value> const&)
+      1    0.0%    0.0%  node::options_parser::GetOptions(v8::FunctionCallbackInfo<v8::Value> const&)
+      1    0.0%    0.0%  node::native_module::NativeModuleEnv::ModuleIdsGetter(v8::Local<v8::Name>, v8::PropertyCallbackInfo<v8::Value> const&)
+      1    0.0%    0.0%  node::fs::ReadDir(v8::FunctionCallbackInfo<v8::Value> const&)
+      1    0.0%    0.0%  node::cares_wrap::(anonymous namespace)::ChannelWrap::New(v8::FunctionCallbackInfo<v8::Value> const&)
+      1    0.0%    0.0%  node::TTYWrap::IsTTY(v8::FunctionCallbackInfo<v8::Value> const&)
+      1    0.0%    0.0%  node::PrepareStackTraceCallback(v8::Local<v8::Context>, v8::Local<v8::Value>, v8::Local<v8::Array>)
+      1    0.0%    0.0%  node::PatchProcessObject(v8::FunctionCallbackInfo<v8::Value> const&)
+      1    0.0%    0.0%  __munmap
+      1    0.0%    0.0%  __errno_location
+      1    0.0%    0.0%  __aeabi_uldivmod
+      1    0.0%    0.0%  __GI___pthread_mutex_unlock
+      1    0.0%    0.0%  _IO_file_xsputn
+
+ [Bottom up (heavy) profile]:
+  Note: percentage shows a share of a particular caller in the total
+  amount of its parent calls.
+  Callers occupying less than 1.0% are not shown.
+
+   ticks parent  name
+  75550   37.3%  LazyCompile: *expand /home/dev/tmp/streamtest/bettermotion/server/lib/DbScan.js:88:8
+  75236   99.6%    LazyCompile: *expand /home/dev/tmp/streamtest/bettermotion/server/lib/DbScan.js:88:8
+  74935   99.6%      LazyCompile: *expand /home/dev/tmp/streamtest/bettermotion/server/lib/DbScan.js:88:8
+  74665   99.6%        LazyCompile: *expand /home/dev/tmp/streamtest/bettermotion/server/lib/DbScan.js:88:8
+  74351   99.6%          LazyCompile: *expand /home/dev/tmp/streamtest/bettermotion/server/lib/DbScan.js:88:8
+  74063   99.6%            LazyCompile: *expand /home/dev/tmp/streamtest/bettermotion/server/lib/DbScan.js:88:8
+
+  68133   33.6%  /usr/bin/node
+  24875   36.5%    LazyCompile: *<anonymous> /home/dev/tmp/streamtest/bettermotion/server/lib/MotionListener.js:106:31
+  24870  100.0%      LazyCompile: *readableAddChunk _stream_readable.js:217:26
+   3896    5.7%    RegExp: \b(node|iojs)$
+   3893   99.9%      LazyCompile: ~<anonymous> /home/dev/tmp/streamtest/bettermotion/server/lib/MotionListener.js:106:31
+   2341   60.1%        LazyCompile: *readableAddChunk _stream_readable.js:217:26
+   1552   39.9%        LazyCompile: ~emit events.js:260:44
+   1552  100.0%          LazyCompile: ~addChunk _stream_readable.js:283:18
+   1552  100.0%            LazyCompile: ~readableAddChunk _stream_readable.js:217:26
+   3344    4.9%    LazyCompile: *expand /home/dev/tmp/streamtest/bettermotion/server/lib/DbScan.js:88:8
+   3337   99.8%      LazyCompile: *expand /home/dev/tmp/streamtest/bettermotion/server/lib/DbScan.js:88:8
+   3325   99.6%        LazyCompile: *expand /home/dev/tmp/streamtest/bettermotion/server/lib/DbScan.js:88:8
+   3308   99.5%          LazyCompile: *expand /home/dev/tmp/streamtest/bettermotion/server/lib/DbScan.js:88:8
+   3298   99.7%            LazyCompile: *expand /home/dev/tmp/streamtest/bettermotion/server/lib/DbScan.js:88:8
+   1131    1.7%    /usr/bin/node
+    914   80.8%      LazyCompile: *Memory.get /home/dev/tmp/streamtest/bettermotion/server/node_modules/nconf/lib/nconf/stores/memory.js:37:33
+    588   64.3%        LazyCompile: *<anonymous> /home/dev/tmp/streamtest/bettermotion/server/node_modules/nconf/lib/nconf/provider.js:565:25
+    293   49.8%          LazyCompile: *processFrame /home/dev/tmp/streamtest/bettermotion/server/lib/MvrProcessor.js:364:14
+    273   93.2%            LazyCompile: *<anonymous> /home/dev/tmp/streamtest/bettermotion/server/lib/MotionListener.js:106:31
+     20    6.8%            LazyCompile: ~<anonymous> /home/dev/tmp/streamtest/bettermotion/server/lib/MotionListener.js:106:31
+    112   19.0%          LazyCompile: ~outputCost /home/dev/tmp/streamtest/bettermotion/server/lib/MvrProcessor.js:320:12
+    112  100.0%            LazyCompile: *processFrame /home/dev/tmp/streamtest/bettermotion/server/lib/MvrProcessor.js:364:14
+     80   13.6%          LazyCompile: ~temporalExpiration /home/dev/tmp/streamtest/bettermotion/server/lib/MvrProcessor.js:677:20
+     80  100.0%            LazyCompile: *processFrame /home/dev/tmp/streamtest/bettermotion/server/lib/MvrProcessor.js:364:14
+     39    6.6%          LazyCompile: ~<anonymous> /home/dev/tmp/streamtest/bettermotion/server/lib/VideoListener.js:58:36
+     39  100.0%            LazyCompile: *readableAddChunk _stream_readable.js:217:26
+     37    6.3%          LazyCompile: *<anonymous> /home/dev/tmp/streamtest/bettermotion/server/lib/MotionListener.js:106:31
+     37  100.0%            LazyCompile: *readableAddChunk _stream_readable.js:217:26
+     26    4.4%          LazyCompile: ~<anonymous> /home/dev/tmp/streamtest/bettermotion/server/lib/MotionListener.js:106:31
+     25   96.2%            LazyCompile: *readableAddChunk _stream_readable.js:217:26
+      1    3.8%            LazyCompile: ~emit events.js:260:44
+    115   12.6%        LazyCompile: *<anonymous> /home/dev/tmp/streamtest/bettermotion/server/lib/MotionListener.js:106:31
+    115  100.0%          LazyCompile: *readableAddChunk _stream_readable.js:217:26
+     91   10.0%        LazyCompile: *temporalExpiration /home/dev/tmp/streamtest/bettermotion/server/lib/MvrProcessor.js:677:20
+     91  100.0%          LazyCompile: *processFrame /home/dev/tmp/streamtest/bettermotion/server/lib/MvrProcessor.js:364:14
+     91  100.0%            LazyCompile: *<anonymous> /home/dev/tmp/streamtest/bettermotion/server/lib/MotionListener.js:106:31
+     56    6.1%        LazyCompile: *<anonymous> /home/dev/tmp/streamtest/bettermotion/server/lib/VideoListener.js:58:36
+     56  100.0%          LazyCompile: *readableAddChunk _stream_readable.js:217:26
+     56  100.0%            LazyCompile: *_transform /home/dev/tmp/streamtest/bettermotion/server/node_modules/stream-split/index.js:22:13
+     43    4.7%        LazyCompile: ~Provider.get /home/dev/tmp/streamtest/bettermotion/server/node_modules/nconf/lib/nconf/provider.js:212:35
+     14   32.6%          LazyCompile: *processFrame /home/dev/tmp/streamtest/bettermotion/server/lib/MvrProcessor.js:364:14
+     14  100.0%            LazyCompile: ~<anonymous> /home/dev/tmp/streamtest/bettermotion/server/lib/MotionListener.js:106:31
+     10   23.3%          LazyCompile: ~temporalExpiration /home/dev/tmp/streamtest/bettermotion/server/lib/MvrProcessor.js:677:20
+     10  100.0%            LazyCompile: *processFrame /home/dev/tmp/streamtest/bettermotion/server/lib/MvrProcessor.js:364:14
+     10   23.3%          LazyCompile: ~<anonymous> /home/dev/tmp/streamtest/bettermotion/server/lib/MotionListener.js:106:31
+     10  100.0%            LazyCompile: ~emit events.js:260:44
+      5   11.6%          LazyCompile: ~<anonymous> /home/dev/tmp/streamtest/bettermotion/server/lib/VideoListener.js:58:36
+      5  100.0%            LazyCompile: ~emit events.js:260:44
+      4    9.3%          LazyCompile: ~outputCost /home/dev/tmp/streamtest/bettermotion/server/lib/MvrProcessor.js:320:12
+      4  100.0%            LazyCompile: *processFrame /home/dev/tmp/streamtest/bettermotion/server/lib/MvrProcessor.js:364:14
+     16    1.8%        LazyCompile: *processFrame /home/dev/tmp/streamtest/bettermotion/server/lib/MvrProcessor.js:364:14
+     16  100.0%          LazyCompile: ~Provider.get /home/dev/tmp/streamtest/bettermotion/server/node_modules/nconf/lib/nconf/provider.js:212:35
+      5   31.3%            LazyCompile: ~<anonymous> /home/dev/tmp/streamtest/bettermotion/server/lib/MotionListener.js:106:31
+      5   31.3%            LazyCompile: *processFrame /home/dev/tmp/streamtest/bettermotion/server/lib/MvrProcessor.js:364:14
+      4   25.0%            LazyCompile: ~temporalExpiration /home/dev/tmp/streamtest/bettermotion/server/lib/MvrProcessor.js:677:20
+      1    6.3%            LazyCompile: ~outputCost /home/dev/tmp/streamtest/bettermotion/server/lib/MvrProcessor.js:320:12
+      1    6.3%            LazyCompile: ~<anonymous> /home/dev/tmp/streamtest/bettermotion/server/lib/VideoListener.js:58:36
+     44    3.9%      LazyCompile: ~removeColors internal/util.js:47:22
+     44  100.0%        LazyCompile: ~isBelowBreakLength internal/util/inspect.js:1635:28
+     44  100.0%          LazyCompile: ~reduceToSingleString internal/util/inspect.js:1656:30
+     44  100.0%            LazyCompile: ~formatRaw internal/util/inspect.js:734:19
+     39    3.4%      LazyCompile: *FastBuffer internal/buffer.js:945:1
+     37   94.9%        LazyCompile: ~createUnsafeBuffer buffer.js:144:28
+     37  100.0%          LazyCompile: ~allocate buffer.js:404:18
+     33   89.2%            LazyCompile: *copy /home/dev/tmp/streamtest/bettermotion/server/node_modules/bl/BufferList.js:78:43
+      4   10.8%            LazyCompile: ~allocUnsafe buffer.js:379:42
+      2    5.1%        LazyCompile: ~slice buffer.js:1100:40
+      1   50.0%          LazyCompile: ~consume /home/dev/tmp/streamtest/bettermotion/server/node_modules/bl/BufferList.js:194:49
+      1  100.0%            LazyCompile: *<anonymous> /home/dev/tmp/streamtest/bettermotion/server/lib/MotionListener.js:106:31
+      1   50.0%          LazyCompile: ~_transform /home/dev/tmp/streamtest/bettermotion/server/node_modules/stream-split/index.js:22:13
+      1  100.0%            LazyCompile: ~Transform._read _stream_transform.js:186:37
+     20    1.8%      LazyCompile: *processFrame /home/dev/tmp/streamtest/bettermotion/server/lib/MvrProcessor.js:364:14
+     19   95.0%        LazyCompile: *<anonymous> /home/dev/tmp/streamtest/bettermotion/server/lib/MotionListener.js:106:31
+     19  100.0%          LazyCompile: *readableAddChunk _stream_readable.js:217:26
+      1    5.0%        LazyCompile: ~<anonymous> /home/dev/tmp/streamtest/bettermotion/server/lib/MotionListener.js:106:31
+      1  100.0%          LazyCompile: ~emit events.js:260:44
+      1  100.0%            LazyCompile: ~addChunk _stream_readable.js:283:18
+     17    1.5%      LazyCompile: ~common.path /home/dev/tmp/streamtest/bettermotion/server/node_modules/nconf/lib/nconf/common.js:22:24
+     16   94.1%        LazyCompile: ~Memory.get /home/dev/tmp/streamtest/bettermotion/server/node_modules/nconf/lib/nconf/stores/memory.js:37:33
+     16  100.0%          LazyCompile: ~<anonymous> /home/dev/tmp/streamtest/bettermotion/server/node_modules/nconf/lib/nconf/provider.js:565:25
+     16  100.0%            /usr/bin/node
+      1    5.9%        LazyCompile: ~Memory.set /home/dev/tmp/streamtest/bettermotion/server/node_modules/nconf/lib/nconf/stores/memory.js:62:33
+      1  100.0%          LazyCompile: ~Memory.merge /home/dev/tmp/streamtest/bettermotion/server/node_modules/nconf/lib/nconf/stores/memory.js:152:35
+      1  100.0%            LazyCompile: ~<anonymous> /home/dev/tmp/streamtest/bettermotion/server/node_modules/nconf/lib/nconf/common.js:108:39
+    902    1.3%    LazyCompile: *processFrame /home/dev/tmp/streamtest/bettermotion/server/lib/MvrProcessor.js:364:14
+    724   80.3%      LazyCompile: *<anonymous> /home/dev/tmp/streamtest/bettermotion/server/lib/MotionListener.js:106:31
+    724  100.0%        LazyCompile: *readableAddChunk _stream_readable.js:217:26
+    170   18.8%      LazyCompile: ~<anonymous> /home/dev/tmp/streamtest/bettermotion/server/lib/MotionListener.js:106:31
+    106   62.4%        LazyCompile: ~emit events.js:260:44
+    106  100.0%          LazyCompile: ~addChunk _stream_readable.js:283:18
+    106  100.0%            LazyCompile: ~readableAddChunk _stream_readable.js:217:26
+     64   37.6%        LazyCompile: *readableAddChunk _stream_readable.js:217:26
+
+  25872   12.8%  LazyCompile: *processFrame /home/dev/tmp/streamtest/bettermotion/server/lib/MvrProcessor.js:364:14
+  21676   83.8%    LazyCompile: *<anonymous> /home/dev/tmp/streamtest/bettermotion/server/lib/MotionListener.js:106:31
+  21676  100.0%      LazyCompile: *readableAddChunk _stream_readable.js:217:26
+   4184   16.2%    LazyCompile: ~<anonymous> /home/dev/tmp/streamtest/bettermotion/server/lib/MotionListener.js:106:31
+   2190   52.3%      LazyCompile: *readableAddChunk _stream_readable.js:217:26
+   1994   47.7%      LazyCompile: ~emit events.js:260:44
+   1994  100.0%        LazyCompile: ~addChunk _stream_readable.js:283:18
+   1994  100.0%          LazyCompile: ~readableAddChunk _stream_readable.js:217:26
+   1146   57.5%            LazyCompile: ~Readable.push _stream_readable.js:208:35
+     24    1.2%            LazyCompile: *expand /home/dev/tmp/streamtest/bettermotion/server/lib/DbScan.js:88:8
+
+   9579    4.7%  epoll_pwait
+
+   2970    1.5%  __libc_read
+
+   2137    1.1%  __pthread_mutex_unlock_usercnt
+
+   2036    1.0%  LazyCompile: *<anonymous> /home/dev/tmp/streamtest/bettermotion/server/lib/VideoListener.js:58:36
+   2036  100.0%    LazyCompile: *readableAddChunk _stream_readable.js:217:26
+   2036  100.0%      LazyCompile: *_transform /home/dev/tmp/streamtest/bettermotion/server/node_modules/stream-split/index.js:22:13
+   1225   60.2%        LazyCompile: *Writable.write _stream_writable.js:291:36
+   1225  100.0%          LazyCompile: ~ondata _stream_readable.js:693:18
+   1225  100.0%            LazyCompile: *readableAddChunk _stream_readable.js:217:26
+    811   39.8%        LazyCompile: *ondata _stream_readable.js:693:18
+    811  100.0%          LazyCompile: *readableAddChunk _stream_readable.js:217:26
+

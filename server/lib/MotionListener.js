@@ -43,7 +43,9 @@ class MotionListener
 			processFrameCostTot : 0,
 			processFrameCostAvg : 0,
 			processFrameCostMin : 1000,
-			processFrameCostMax : 0
+			processFrameCostMax : 0,
+			frame : {
+			}
 		};
 
 		this.stop = false;
@@ -113,19 +115,19 @@ class MotionListener
 					return;
 				}
 
-                bl.append(data);
+				bl.append(data);
 
-                while(true) {
-                    if(bl.length < this.frameLength) {
-                        break;
-                    }
+				while(true) {
+					if(bl.length < this.frameLength) {
+						break;
+					}
 
 					//console.log("===");
 					//console.time("motionFrameTotal");
 
 					if(skip) {
 						logger.debug("Skipping motion frame (starting up)...");
-                        bl.consume(this.frameLength);
+						bl.consume(this.frameLength);
 						if(Date.now() > (started + this.startupIgnoreTime)) {
 							skip = false;
 						}
@@ -134,43 +136,74 @@ class MotionListener
 
 					cost = Date.now();
 
-                    // Protect against eating too much damn memory if we are too slow.
-                    if(bl.length > this.frameLength * 3) {
-                        logger.warn("Discarding motion frames, we are probably too slow.");
-                        do {
-                            bl.consume(this.frameLength);
-                        } while(bl.length > (this.frameLength * 3))
-                    }
+					this.cost.frame.ts = Date.now();
 
+					// Protect against eating too much damn memory if we are too slow.
+					if(bl.length > this.frameLength * 2) {
+						logger.warn("Discarding motion frames, we are probably too slow.");
+						do {
+							bl.consume(this.frameLength);
+						} while(bl.length > (this.frameLength * 2))
+					}
+					this.cost.frame.discard = Date.now() - this.cost.frame.ts;
+
+					this.cost.frame.ts = Date.now();
 					// Can I avoid this slice somehow?
                     frameData = bl.slice(0, this.frameLength);
 
+					this.cost.frame.slice = Date.now() - this.cost.frame.ts;
+
+					this.cost.frame.ts = Date.now();
                     clusters = this.mvrProcessor.processFrame(
                         frameData,
                         MvrFilterFlags.MAGNITUDE_LT_300 | MvrFilterFlags.DX_DY_LT_2 | MvrFilterFlags.FRAME_MAGNITUDE_400_INCREASE
                     );
+					this.cost.frame.clustering = Date.now() - this.cost.frame.ts;
 
+					this.cost.frame.ts = Date.now();
 					this.motionRuleEngine.processFrame(frameData, clusters);
+					this.cost.frame.motionrules = Date.now() - this.cost.frame.ts;
 
+					this.cost.frame.ts = Date.now();
 					bl.consume(this.frameLength);
-
+					this.cost.frame.consume = Date.now() - this.cost.frame.ts;
+					
 					if(this.conf.get("sendRaw") === true) {
+						this.cost.frame.ts = Date.now();
 						this.motionSender.broadcastRaw(frameData, this.frameLength, true);
+						this.cost.frame.sendraw = Date.now() - this.cost.frame.ts;
 					}
 
+					this.cost.frame.ts = Date.now();
 					this.motionSender.broadcastMessage(
 						{
-							clusters : clusters,
-							history : this.mvrProcessor.getActiveClusters()
+							clusters : this.conf.get("sendClusters") ? clusters : null,
+							history : this.conf.get("sendHistory") ? this.mvrProcessor.getActiveClusters() : null
 						}
 					);
+					this.cost.frame.broadcast = Date.now() - this.cost.frame.ts;
 
 					this.cost.frameCount++;
 					cost = Date.now() - cost;
+
 					this.cost.processFrameCostTot += cost;
 					this.cost.processFrameCostAvg = this.cost.processFrameCostTot / this.cost.frameCount;
-					if(cost < this.cost.processFrameCostMin) this.cost.processFrameCostMin = cost;
-					if(cost > this.cost.processFrameCostMax) this.cost.processFrameCostMax = cost;
+					if(cost < this.cost.processFrameCostMin)
+						this.cost.processFrameCostMin = cost;
+					if(cost > this.cost.processFrameCostMax)
+						this.cost.processFrameCostMax = cost;
+
+					if(cost > this.conf.get("motionCostThreshold")) {
+						logger.warn(
+							"Process motion frame cost > %d ms: %d ms. Clusters: %d, history: %d",
+							this.conf.get("motionCostThreshold"),
+							cost,
+							clusters.length,
+							this.mvrProcessor.getActiveClusters().length
+						);
+						console.log(this.mvrProcessor.stats.costLastFrame, this.cost.frame);
+//						this.mvrProcessor.outputCost(true);
+					}
 
 					//console.timeEnd("motionFrameTotal");
 					if(this.conf.get("outputMotionCost") > 0 && (this.cost.frameCount % this.conf.get("outputMotionCost")) === 0) {
