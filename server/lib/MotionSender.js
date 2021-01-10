@@ -33,12 +33,12 @@ class MotionSender
 
 	start(welcomeMessage, controlHandler)
 	{
-        this.motionWsServer = new WebSocket.WebSocketServer({ port: this.conf.get('motionwsport') });
-        logger.info( "Motion sender websocket server listening on %d", this.conf.get('motionwsport') );
+        this.motionWsServer = new WebSocket.WebSocketServer({ port: this.conf.get('motionWsPort') });
+        logger.info( "Motion sender websocket server listening on %d", this.conf.get('motionWsPort') );
 
         this.motionWsServer.on('connection', (ws) => {
-            if (this.motionWsServer.clients.length >= this.conf.get('wsclientlimit')) {
-                logger.info('Motion client rejected, limit of %d reached', this.conf.get('wsclientlimit'));
+            if (this.motionWsServer.clients.length >= this.conf.get('wsClientLimit')) {
+                logger.info('Motion client rejected, limit of %d reached', this.conf.get('wsClientLimit'));
                 ws.close();
                 return;
             }

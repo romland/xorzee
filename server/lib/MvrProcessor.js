@@ -73,7 +73,7 @@ class MvrProcessor
 		};
 
 		this.reconfigure(conf, this.conf.get("width"), this.conf.get("height"));
-		this.fps = this.conf.get("framerate");
+		this.fps = this.conf.get("frameRate");
 		this.startTime = Date.now();
 		this.minMagnitude = this.conf.get("vectorMinMagnitude");
 

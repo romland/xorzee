@@ -18,10 +18,10 @@ class VideoScreenshotter
         let tmpFfmpeg = cp.spawn('/usr/bin/ffmpeg', [
             '-y',
             '-hide_banner',
-            '-i', this.conf.get("recordpath") + "/" + fileName + '.h264',
+            '-i', this.conf.get("recordPath") + "/" + fileName + '.h264',
             '-frames:v', '1',
             '-f', 'image2',
-            `${this.conf.get("recordpath")}/${fileName}.jpg`
+            `${this.conf.get("recordPath")}/${fileName}.jpg`
         ]);
 
         tmpFfmpeg.on('close', function(code) {

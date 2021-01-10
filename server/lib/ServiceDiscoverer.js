@@ -33,7 +33,7 @@ class ServiceDiscoverer
 		ME.daemon.ServiceBrowserNew(
 			avahi.IF_UNSPEC,
 			avahi.PROTO_UNSPEC,
-			'_' + this.conf.get("servicename") + '._tcp',
+			'_' + this.conf.get("serviceName") + '._tcp',
 			'local',
 			0,
 			ME.messageHandler

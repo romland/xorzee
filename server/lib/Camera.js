@@ -104,11 +104,11 @@ class Camera
 			`--width ${c.get("width")} ` +
 			`--height ${c.get("height")} ` +
 			`--timeout 0 ` +
-			`--framerate ${c.get("framerate")} ` +
-			`--bitrate ${c.get("bitrate")} ` +
+			`--framerate ${c.get("frameRate")} ` +
+			`--bitrate ${c.get("bitRate")} ` +
 			`--profile baseline ` +
-			`--vectors tcp://127.0.0.1:${this.conf.get("motionport")} ` +
-			`--output - | /bin/nc localhost ${this.conf.get("videoport")}`;
+			`--vectors tcp://127.0.0.1:${this.conf.get("motionPort")} ` +
+			`--output - | /bin/nc localhost ${this.conf.get("videoPort")}`;
 
 		logger.debug("Camera args %s", camArgs);
 
@@ -150,14 +150,7 @@ class Camera
 	async restart(c)
 	{
 		logger.debug("Restarting camera...");
-/*
-		let m = new Map();
 
-		m.set("width", width || this.conf.get("width"));
-		m.set("height", height || this.conf.get("height"));
-		m.set("framerate", framerate || this.conf.get("framerate"));
-		m.set("bitrate", bitrate || this.conf.get("bitrate"));
-*/
 		await this.stop();
 
 		setTimeout(() => {

@@ -13,7 +13,7 @@ class WebServer
 
 	start()
 	{
-        app.use(express.static( this.conf.get("publicpath") ));
+        app.use(express.static( this.conf.get("publicPath") ));
 
         app.get('/', (req, res) => {
             var count = 0;
@@ -28,8 +28,8 @@ class WebServer
             res.send(count.toString());
         });
 
-        app.listen(this.conf.get('wwwport'), () => {
-            logger.info("Listening for HTTP requests on port %d", this.conf.get('wwwport'));
+        app.listen(this.conf.get('wwwPort'), () => {
+            logger.info("Listening for HTTP requests on port %d", this.conf.get('wwwPort'));
         });
 	}
 }

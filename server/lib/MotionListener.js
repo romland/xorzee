@@ -54,7 +54,6 @@ class MotionListener
 
 	_setupMotionProcessor()
 	{
-		//return new MvrProcessor(this.conf.get("framerate"), this.conf.get("width"), this.conf.get("height"));
 		return new MvrProcessor(this.conf);
 	}
 
@@ -220,9 +219,9 @@ class MotionListener
             })
         });
 
-        tcpServer.listen(this.conf.get('motionport'));
+        tcpServer.listen(this.conf.get('motionPort'));
 
-        if (this.conf.get('motionport') == 'systemd') {
+        if (this.conf.get('motionPort') == 'systemd') {
             logger.debug('Motion TCP server listening on systemd socket');
         } else {
             var address = tcpServer.address();

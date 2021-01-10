@@ -59,9 +59,9 @@ class VideoSender
 
 	start()
 	{
-		//wsServer = new WSServer({ port: conf.get('videowsport') })
-		this.wsServer = new WebSocket.WebSocketServer({ port: this.conf.get('videowsport') });
-		logger.info( "Video sender websocket server listening on %d", this.conf.get('videowsport') );
+		//wsServer = new WSServer({ port: conf.get('videoWsPort') })
+		this.wsServer = new WebSocket.WebSocketServer({ port: this.conf.get('videoWsPort') });
+		logger.info( "Video sender websocket server listening on %d", this.conf.get('videoWsPort') );
 
 		this.wsServer.on('connection', (ws) => {
 			ws.on('close', (ws, id) => {
@@ -72,8 +72,8 @@ class VideoSender
 				throw new Error("VideoListener must have set headers in VideoSender at some point before we get connection");
 			}
 
-			if(this.wsServer.clients.length >= this.conf.get('wsclientlimit')) {
-				logger.info('Video client rejected, limit of %d reached', this.conf.get('wsclientlimit'));
+			if(this.wsServer.clients.length >= this.conf.get('wsClientLimit')) {
+				logger.info('Video client rejected, limit of %d reached', this.conf.get('wsClientLimit'));
 				ws.close();
 				return;
 			}

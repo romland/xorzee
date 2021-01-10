@@ -12,7 +12,7 @@ class Recorder
 	constructor(conf, notifyCb = null)
 	{
 		this.conf = conf;
-		this.recordBuffer = new BinaryRingBuffer(conf.get("recordbuffersize"));
+		this.recordBuffer = new BinaryRingBuffer(conf.get("recordBufferSize"));
 		this.recording = false;
 		this.ffmpegProc = null;
 		this.recordingToId = null;
@@ -22,7 +22,7 @@ class Recorder
 		this.lastNofication = null;
 		this.recordLen = 0;
 
-		this.latestRecordings = this._getLatestRecordings(conf.get("recordhistory"));
+		this.latestRecordings = this._getLatestRecordings(conf.get("recordHistory"));
 	}
 
 
@@ -41,14 +41,14 @@ class Recorder
 	 */
 	_getLatestRecordings(num = 20)
 	{
-		let allFiles = this._getSortedDir(this.conf.get("recordpath"), ".json");
+		let allFiles = this._getSortedDir(this.conf.get("recordPath"), ".json");
 		let lastFiles = allFiles.slice(Math.max(allFiles.length - num, 0))
 
 		let ret = [];
 		for(let i = 0; i < lastFiles.length; i++) {
 			ret.push(
 				JSON.parse(
-					fs.readFileSync(this.conf.get("recordpath") + "/" + lastFiles[i], "utf8")
+					fs.readFileSync(this.conf.get("recordPath") + "/" + lastFiles[i], "utf8")
 				)
 			);
 		}
@@ -96,7 +96,7 @@ class Recorder
 	 */
 	_addRecording(meta)
 	{
-		if(this.latestRecordings.length > this.conf.get("recordhistory")) {
+		if(this.latestRecordings.length > this.conf.get("recordHistory")) {
 			// remove first
 			this.latestRecordings.shift();
 		}
@@ -118,7 +118,7 @@ class Recorder
 
 			this.recordingMeta["size"] = this.recordLen;
 			fs.writeFileSync(
-				this.conf.get("recordpath") + "/" + this.recordingToId + ".json",
+				this.conf.get("recordPath") + "/" + this.recordingToId + ".json",
 				JSON.stringify(this.recordingMeta)
 			);
 			logger.debug("Wrote recording meta %o", this.recordingMeta);
@@ -179,7 +179,7 @@ class Recorder
 
 		this.recordingToId = Date.now();
 
-        logger.info("Starting recording to %s/%s.h264 ...", this.conf.get("recordpath"), this.recordingToId);
+        logger.info("Starting recording to %s/%s.h264 ...", this.conf.get("recordPath"), this.recordingToId);
 
         this.ffmpegProc = cp.spawn('/usr/bin/ffmpeg', [
             '-hide_banner',
@@ -188,11 +188,11 @@ class Recorder
             // https://ffmpeg.org/ffmpeg-formats.html
             '-analyzeduration', '2M',       // It defaults to 5,000,000 microseconds = 5 seconds.
             '-probesize', '5M',
-            '-framerate', this.conf.get("framerate"),
+            '-framerate', this.conf.get("frameRate"),
             '-f', 'h264',
             '-i', '-',
             '-codec', 'copy',
-            `${this.conf.get("recordpath")}/${this.recordingToId}.h264`
+            `${this.conf.get("recordPath")}/${this.recordingToId}.h264`
         ]);
 
         this.ffmpegProc.stdout.setEncoding('utf8');
@@ -224,7 +224,7 @@ class Recorder
         }
 
         // Pass buffer of recorded data of the past in first...
-        let buff = this.recordBuffer.read(this.conf.get("recordbuffersize"));
+        let buff = this.recordBuffer.read(this.conf.get("recordBufferSize"));
         logger.debug(`Passing %d bytes to ffmpeg...`, buff.length);
 
         this.ffmpegProc.stdin.write(buff);
@@ -244,8 +244,8 @@ class Recorder
 			video		: this.recordingToId + ".h264",
 			width		: this.conf.get("width"),
 			height		: this.conf.get("height"),
-			framerate	: this.conf.get("framerate"),
-			bitrate		: this.conf.get("bitrate")
+			framerate	: this.conf.get("frameRate"),
+			bitrate		: this.conf.get("bitRate")
 		};
 
 		return this.recordingToId;

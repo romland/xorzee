@@ -67,10 +67,10 @@ class ServiceAnnouncer
 					avahi.PROTO_UNSPEC,								// protocol
 					0,												// flags
 					"VidensiJr-" + this.serialNumber,				// name
-					"_" + this.conf.get("servicename") + "._tcp",	// type
+					"_" + this.conf.get("serviceName") + "._tcp",	// type
 					"local",										// domain
 					this.hostname + ".local",						// host -- not sure what this should be
-					this.conf.get("motionwsport"),					// port for getting settings
+					this.conf.get("motionWsPort"),					// port for getting settings
 					[],												// txt
 				],
 				signature: 'iiussssqaay'

@@ -31,7 +31,7 @@ class VideoListener
 
 	setupRecorder(recorderNotifyCb)
 	{
-		if(this.conf.get("mayrecord")) {
+		if(this.conf.get("mayRecord")) {
 			return new Recorder(this.conf, recorderNotifyCb);
 		}
 
@@ -65,7 +65,7 @@ class VideoListener
 					this.videoSender.broadcast(data);
 				}
 
-                if(this.conf.get("mayrecord")) {
+                if(this.conf.get("mayRecord")) {
                     this.recorder.buffer(data);
                 }
 
@@ -81,11 +81,11 @@ class VideoListener
             socket.pipe(NALSplitter);
         });
 
-        tcpServer.listen(this.conf.get('videoport'));
+        tcpServer.listen(this.conf.get('videoPort'));
 
 		this.videoSender.setHeaders(this.headers);
 
-        if (this.conf.get('videoport') == 'systemd') {
+        if (this.conf.get('videoPort') == 'systemd') {
             logger.debug('Video TCP server listening on systemd socket');
         } else {
             var address = tcpServer.address();
