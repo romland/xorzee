@@ -424,8 +424,8 @@ class MvrProcessor
 		} // each vector
 
 		//console.timeEnd("filterVectors");
-		this.stats.cost.filterVectors += Date.now() - then;
 		this.stats.costLastFrame.filterVectors = Date.now() - then;
+		this.stats.cost.filterVectors += this.stats.costLastFrame.filterVectors;
 
 
 		//console.time("filterFrame");
@@ -482,7 +482,7 @@ class MvrProcessor
 			//		remove every Nth and divide the coordinate of vector by N
 			// let's say, if it is above 200 (nee 400) points, get it down to that...
 			let reductionFactor;
-			let targetCandidates = 200;
+			let targetCandidates = 100;
 			let reduced = false;
 
 			this.frameInfo.candidates = candidates.length;
@@ -503,8 +503,8 @@ class MvrProcessor
 				candidates = reducedCandidates;
 			}
 			//console.timeEnd("reducing");
-			this.stats.cost.reducing += Date.now() - then;
 			this.stats.costLastFrame.reducing = Date.now() - then;
+			this.stats.cost.reducing += this.stats.costLastFrame.reducing;
 
 
 			//console.time("clustering");
@@ -520,8 +520,8 @@ class MvrProcessor
 			//console.timeEnd("clustering");
 
 			let cost = Date.now() - then;
-			this.stats.cost.clustering += cost;
 			this.stats.costLastFrame.clustering = cost;
+			this.stats.cost.clustering += this.stats.costLastFrame.clustering;
 			this.stats.cost.lastFrame = cost;
 			if(cost > this.stats.cost.maxClusteringCost) {
 				this.stats.cost.maxClusteringCost = cost;

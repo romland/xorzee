@@ -167,7 +167,7 @@ class MotionListener
 					this.cost.frame.ts = Date.now();
 					bl.consume(this.frameLength);
 					this.cost.frame.consume = Date.now() - this.cost.frame.ts;
-					
+
 					if(this.conf.get("sendRaw") === true) {
 						this.cost.frame.ts = Date.now();
 						this.motionSender.broadcastRaw(frameData, this.frameLength, true);
@@ -202,6 +202,7 @@ class MotionListener
 							this.mvrProcessor.getActiveClusters().length
 						);
 						console.log(this.mvrProcessor.stats.costLastFrame, this.cost.frame);
+						console.log("motionRuleEngine costs:", this.motionRuleEngine.cost);
 //						this.mvrProcessor.outputCost(true);
 					}
 

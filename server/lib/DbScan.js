@@ -133,7 +133,7 @@ class DbScan
 			// also seems to make execution time a little more predictable.
 			// The downside is that it makes epsilon mean something else.
 			if(Math.abs(this.data[i].x - d.x) < this.eps
-				&& Math.abs(this.data[i].y - d.y) < this.eps
+//				&& Math.abs(this.data[i].y - d.y) < this.eps
 				&& this.distance(this.data[i], d) <= this.eps) {
 				neighbours.push(i);
 			}

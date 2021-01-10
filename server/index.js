@@ -264,6 +264,8 @@ const cameraSettings = [
 			// Advanced/debug/test settings
 			//
 
+			spawnInShell			: false,						// Whether to spawn signal scrips in a shell or not (in shell is slower)
+
 			// Cluster definition
 			clusterEpsilon			: 2,							// The max distance (manhattan) to include points in a cluster (DBscan)
 			clusterMinPoints		: 4,							// The min number of points to be classified as a cluster (DBscan)
@@ -283,8 +285,8 @@ const cameraSettings = [
 			// In the future I may actually have to resort to some binary
 			// output of the MvrProcessor so that more data can be passed
 			// over the wire.
-			sendClusters			: true,							// These are clusters that happened _now_
-			sendHistory				: false,						// These are clusters that happened now _and_ clusters that are deemed important
+			sendClusters			: true,							// This is activity that happened _now_
+			sendHistory				: false,						// This is activity that happened now _and_ clusters that are deemed important
 
 			// Performance output/tests
 			//
@@ -292,7 +294,7 @@ const cameraSettings = [
 			// $ node --prof index.js
 			// $ node --prof-process isolate-nnn > processed.txt
 			outputMotionCost		: 0,							// Output motion performance averages every N frames (0 = disabled)
-			motionCostThreshold		: 30,
+			motionCostThreshold		: 30,							// Output cost when things were costly. Set this really high (1000+) to never see it.
 
 		});
 

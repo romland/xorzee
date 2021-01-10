@@ -4,10 +4,6 @@
  * static frame = nothing is happening
  */
 
-// this.mp.getActiveClusters()
-// this.mp.getFrameStats() (expensive-r)
-// this.mp.getFrameInfo() (cheaper)
-
 const pino = require('pino');
 const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 
@@ -41,6 +37,10 @@ class MotionRuleEngine
 		if(SIMULATE_RECORDING) {
 			this._simulatedRecordStatus = false;
 		}
+
+		this.cost = {
+			ts : null
+		};
 	}
 
 
@@ -85,7 +85,10 @@ class MotionRuleEngine
 		}
 
 		this.lastRecordingStarted = Date.now();
+
+		this.cost.ts = Date.now();
 		this._sendEvent("start", null);
+		this.cost._sendEventStartRec = Date.now() - this.cost.ts;
 	}
 
 
@@ -124,24 +127,38 @@ class MotionRuleEngine
 
 	processFrame(data, allClusters)
 	{
+		this.cost = {
+			ts : Date.now()
+		};
+
 		this._resetReasons();
+		this.cost.reset = Date.now() - this.cost.ts;
 
+		this.cost.ts = Date.now();
 		const cs = this.mp.getActiveClusters();
+		this.cost.getActive = Date.now() - this.cost.ts;
 
+		this.cost.ts = Date.now();
 		const active = this.isActiveFrame(cs)
+		this.cost.isActiveFrame = Date.now() - this.cost.ts;
 
 		if(active) {
+			this.cost.ts = Date.now();
 			const fi = this.mp.getFrameInfo();
 			this._sendEvent("activity", fi);
+			this.cost.sendActivity = Date.now() - this.cost.ts;
 		}
 
 		if(!this.isRecording()) {
 			// Should we start recording?
 			if(active) {
+				this.cost.ts = Date.now();
 				if(this.isActivePeriod(cs)) {
 					this.startRecording();
+					this.cost.startRecording = Date.now() - this.cost.ts;
 					return;
 				}
+				this.cost.isActivePeriod = Date.now() - this.cost.ts;
 			} else if(this.trackReasons) {
 				logger.debug("[not recording] Deemed frame static because: %s", this._getBriefReasons());
 			}
@@ -150,6 +167,7 @@ class MotionRuleEngine
 			// Should we stop recording?
 
 			// minRecordTime
+			this.cost.ts = Date.now();
 			if(this.stopReq.minRecordTime > (Date.now() - this.lastRecordingStarted)) {
 				if(this.trackReasons) {
 					this._addReason("minRecordTime", false);
@@ -158,11 +176,14 @@ class MotionRuleEngine
 
 				return;
 			}
+			this.cost.minRecordTimeCheck = Date.now() - this.cost.ts;
 
 			// maxRecordTime
 			if(this.stopReq.maxRecordTime < (Date.now() - this.lastRecordingStarted)) {
 				logger.debug("Stopping because maxRecordTime was exceeded");
+				this.cost.ts = Date.now();
 				this.stopRecording();
+				this.cost.stopRecording = Date.now() - this.cost.ts;
 				return;
 			} else { 
 				if(this.trackReasons) this._addReason("maxRecordTime", false);
@@ -171,7 +192,9 @@ class MotionRuleEngine
 			if(this.isStaticFrame(cs)) {
 
 				if(this.isStaticPeriod()) {
+					this.cost.ts = Date.now();
 					this.stopRecording();
+					this.cost.stopRecording2 = Date.now() - this.cost.ts;
 				}
 			} else if(this.trackReasons) {
 				logger.debug("[recording] Deemed frame active because: %s", this._getBriefReasons());

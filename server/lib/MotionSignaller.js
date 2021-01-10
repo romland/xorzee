@@ -289,10 +289,9 @@ class MotionSignaller
 				{
 					detached : true,
 					cwd : signal.cwd,
-					shell : true
+					shell : this.conf.get("spawnInShell")
 				}
 			);
-
 
 			proc.unref();
 
