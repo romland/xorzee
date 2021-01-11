@@ -39,6 +39,7 @@
 		return true;
 	}
 
+	let time = null;
 	onMount(() => {
 		document.addEventListener("visibilitychange", function() {
 			console.log("document.hidden", document.hidden)
@@ -55,11 +56,34 @@
 				}, 2000);
 			}
 		}, false);
+
+		const interval = setInterval(() => {
+			time = new Date();
+		}, 1000);
+
+		return () => {
+			clearInterval(interval);
+		};
 	});
+
+	// https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Date#Example.3A_ISO_8601_formatted_dates
+	function pad(n){return n<10 ? '0'+n : n}
+	function ISODateString(d)
+	{
+		if(!d) return "";
+
+		return d.getUTCFullYear()+'-'
+			+ pad(d.getUTCMonth()+1)+'-'
+			+ pad(d.getUTCDate())+' '
+			+ pad(d.getUTCHours())+':'
+			+ pad(d.getUTCMinutes())+':'
+			+ pad(d.getUTCSeconds());
+	}
+
 </script>
 
 <main>
-	MintyMint
+	MintyMint {ISODateString(time)}
 
 	<div on:click={()=> {showOverlayButtons = !showOverlayButtons}}>
 		Toggle controls

@@ -27,6 +27,7 @@ A low-latency, high quality streamer and motion detector. The goal is that it mu
 [1] If it can run on that, it will run on any other.
 
 ## Working on now
+- server settings in UI
 - fixing controls in client
 - exiting fullscreen will forget previous size of videoplayer (and thus all elements are of wrong size
 
@@ -49,6 +50,18 @@ A low-latency, high quality streamer and motion detector. The goal is that it mu
 	note: this adds a dependency on libpng: sudo apt-get install libpng12-dev
 
 ## TODO
+- switch away from Broadway and use something less CPU intensive on clients
+	- Either switch to WebRTC on server (webrtc is so painful)
+		* https://github.com/nicotyze/Webrtc-H264Capturer
+	- Or attempt to package up h264 into something used by video element _on_ client:
+	2	* https://github.com/xevojapan/h264-converter (MP4)
+	3	* or https://github.com/Streamedian/html5_rtsp_player (RTSP)
+	1	* https://github.com/samirkumardas/jmuxer (this one could be massaged into running on raspi too, but it might be expensive?)
+	4	* https://github.com/ChihChengYang/wfs.js (mp4)
+	- Other alternatives (full h264 decoders - so _probably_ not HW decoding):
+		https://github.com/oneam/h264bsd
+		https://github.com/udevbe/tinyh264 (fork of above, I believe)
+
 - want to have quick access to last few events (maybe a graph showing the last day too)
 - want to have statistics how many times signals went off per time-period
 - make camera configurable further 
@@ -140,6 +153,7 @@ A low-latency, high quality streamer and motion detector. The goal is that it mu
 - make a '... | bash' installation script (host on github)
 - when reconfiguring camera settings, make sure the cached NAL headers are cleared (otherwise startup time might be really long!)
 - Merge doc/notes.txt into README or another .md
+- Be able to say "Object needs to enter from <place> and head in <direction>"
 
 ## TODO client
 - Send SAD with raw vectors (want to experiment how much SAD differ between frames. 
@@ -175,6 +189,9 @@ A low-latency, high quality streamer and motion detector. The goal is that it mu
 - https://github.com/esiexata/rpisurv -- not what I had in mind. You'd need multiple machines (this is a server<->camera solution)
 - https://github.com/esiexata/iSpy -- no motion, only a server
 - https://github.com/esiexata/telepi -- no motion, requires mplayer on client (need web browser)
+- https://github.com/pimterry/raspivid-stream (11jan2020)
+- https://github.com/kclyu/rpi-webrtc-streamer - oh wow, this seems to do what I am doing with motion too! (found 11jan2020)
+  Haha. It also does mDNS publishing! This is probably what I wanted all along!
 
 ## Interesting
 - https://github.com/esiexata/Camerafeed
@@ -182,6 +199,17 @@ A low-latency, high quality streamer and motion detector. The goal is that it mu
 	and how expensive it is. My experiences with OpenCV has always been rather underwhelming.
 - ditto here: https://github.com/LukashenkoEvgeniy/People-Counter/blob/master/PeopleCounterMain.py
 	Again, openCV.
+- ditto: https://github.com/kclyu/rpi-webrtc-streamer/blob/master/src/raspi_motionblob.cc
+
+## Notes
+- Running external scripts as signals can be detrimental. There's not much I can do here as spawning
+  a process takes anything between 5 and 35 milliseconds. Remember that at 30 FPS on a single core,
+  we only have 30 milliseconds and some change. If MotionRuleEngine takes a lot of time when starting
+  or stopping recording, the spawn() is the one to blame. Note that I can flag the event-passing as
+  async, but at the end of the day, the actual spawning is blocking. The only gain/loss from flagging
+  a method leading up to it as async is that you hide where the cost is.
+  NOTE: At the moment _sendEvent() in MotionRuleEngine is async, and thus hiding the cost :)
+  The (not special) spawn code in question can be found in lib/MotionSignaller.js -> executeScript()
 
 ## Maybe future stuff (and ideas)
 - support https://www.onvif.org/ (standard) (one implementation here: https://github.com/BreeeZe/rpos )
@@ -284,3 +312,5 @@ A low-latency, high quality streamer and motion detector. The goal is that it mu
 - support strings for signal constants (to be able to make sense of JSON configs): START_RECORDING, EMAIL_SES etc
 - don't render motion if we are hidden
 - refreshing while scrolled will misplace some elements
+- seems when starting/stopping recording, motionrules take up a good 20+ms -- investigate why and presumably fix
+	(due to .sh scripts taking a good 5-25ms to start -- not much I can do)

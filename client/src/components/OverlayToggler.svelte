@@ -2,6 +2,7 @@
 	import { createEventDispatcher, onMount, onDestroy } from 'svelte';
 	import { scale, fade, fly } from "svelte/transition";
 	import { elasticOut, quadOut } from 'svelte/easing';
+	import Button from './Button.svelte';
 
 	export let name, visible, showButton, position = "below";
 
@@ -168,8 +169,13 @@
 </script>
 
 {#if showButton}
+<!--
 	<div class="button" class:active={visible} bind:this={label} on:click={open}>
 		{name}
+	</div>
+-->
+	<div bind:this={label} >
+		<Button label={name} color="blue" bind:pressed={visible} on:click={open}></Button>
 	</div>
 
 	<div bind:this={content} style={contentPos} class="outer" out:fade>
@@ -213,7 +219,7 @@
 		height: auto;
 		background-color: rgba(3, 3, 3, 0.6);
 		padding: 25px;
-		border-radius: 12px;
+		border-radius: 4px;
 		overflow-y: auto;
 		max-height: 600px;
 		border: 1px solid rgba(104, 220, 233, 0.7);
