@@ -77,17 +77,17 @@
 		console.log(sn(), "Got settings from server");
 		settings = newSettings;
 
-		wwwPort = settings.wwwport;
+		wwwPort = settings.wwwPort;
 
-		if(motionStreamPort && motionStreamPort !== settings.motionwsport) {
-			// motionStreamPort = settings.motionwsport;
-			console.error(sn(), "Changing live port of motion stream is not supported");
+		if(motionStreamPort && motionStreamPort !== settings.motionWsPort) {
+			// motionStreamPort = settings.motionWsPort;
+			console.error(sn(), "Changing live port of motion stream is not supported (as we need to restart server _and_ client socket)");
 		}
 
 		fiddleWithUrl();
 
-		if(!videoStreamer.getWebSocket() || (videoStreamPort && videoStreamPort !== settings.videowsport)) {
-			videoStreamPort = settings.videowsport;
+		if(!videoStreamer.getWebSocket() || (videoStreamPort && videoStreamPort !== settings.videoWsPort)) {
+			videoStreamPort = settings.videoWsPort;
 
 			if(videoStreamer.getWebSocket()) {
 				console.error(sn(), "Reconnect video stream (TODO: disconnect here!)");
@@ -242,7 +242,7 @@
 					</div>
 
 					<div class="bottomLeft">
-						<ScreenshotList on:message={(e)=>onLayerChange("ScreenshotList", e)} bind:showButton={showOverlayButtons} bind:visible={overlay["ScreenshotList"]} server={remoteUrl} bind:dir={settings.recordpathwww} bind:items={lastRecordings}></ScreenshotList>
+						<ScreenshotList on:message={(e)=>onLayerChange("ScreenshotList", e)} bind:showButton={showOverlayButtons} bind:visible={overlay["ScreenshotList"]} server={remoteUrl} bind:dir={settings.recordPathWww} bind:items={lastRecordings}></ScreenshotList>
 						<Events on:message={(e)=>onLayerChange("Events", e)} bind:showButton={showOverlayButtons} bind:this={eventsComponent} bind:visible={overlay["Events"]} {settings}></Events>
 					</div>
 				{/if}
