@@ -1,5 +1,9 @@
 /**
  * Video listener listens to camera for data (video stream).
+ * 
+ * The only thing this does to the stream is split messages
+ * up into NAL units. That is, when they reach broadcast,
+ * it is one unit.
  */
 "use strict";
 
@@ -56,43 +60,43 @@ class VideoListener
             const NALSplitter = new Split(NALSeparator);
 
             NALSplitter.on('data', (data) => {
-				if(this.videoSender.getClientCount() > 0) {
-					// XXX: Should we not get these headers when the camera starts up?
-					if (this.headers.length < 3) {
-						this.headers.push(data);
-					}
 
+				if (this.headers.length < 3) {
+					this.headers.push(data);
+				}
+
+				if(this.videoSender.getClientCount() > 0) {
 					this.videoSender.broadcast(data);
 				}
 
-                if(this.conf.get("mayRecord")) {
-                    this.recorder.buffer(data);
-                }
+				if(this.conf.get("mayRecord")) {
+					this.recorder.buffer(data);
+				}
 
-                if(this.recorder.isRecording()) {
-                    this.recorder.append(data);
-                }
+				if(this.recorder.isRecording()) {
+					this.recorder.append(data);
+				}
 
-            }).on('error', (e) => {
-                logger.error('splitter error %s', e);
-                process.exit(0);
-            });
+			}).on('error', (e) => {
+				logger.error('splitter error %s', e);
+				process.exit(0);
+			});
 
-            socket.pipe(NALSplitter);
-        });
+			socket.pipe(NALSplitter);
+		});
 
-        tcpServer.listen(this.conf.get('videoPort'));
+		tcpServer.listen(this.conf.get('videoPort'));
 
 		this.videoSender.setHeaders(this.headers);
 
-        if (this.conf.get('videoPort') == 'systemd') {
-            logger.debug('Video TCP server listening on systemd socket');
-        } else {
-            var address = tcpServer.address();
-            if (address) {
-                logger.debug(`Video TCP server listening on ${address.address}:${address.port}`);
-            }
-        }
+		if(this.conf.get('videoPort') == 'systemd') {
+			logger.debug('Video TCP server listening on systemd socket');
+		} else {
+			let address = tcpServer.address();
+			if(address) {
+				logger.debug(`Video TCP server listening on ${address.address}:${address.port}`);
+			}
+		}
 	}
 }
 

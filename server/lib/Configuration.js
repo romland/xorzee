@@ -4,12 +4,9 @@ const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 
 class Configuration
 {
-	// Verify that all added options have documentation
+	// Verify that all added options have documentation/meta -- 
+	// output warnings for the ones that don't
 	static verifyDocumentation()
-	{
-	}
-
-	static getDocumentation()
 	{
 	}
 
@@ -18,22 +15,29 @@ class Configuration
 		/* default and current are populated automatically */
 		return {
 			name : {
-				category : "General",
-				label : "Name",
-				type : "string",
-				ui : "textbox"
+				category	: "General",
+				label		: "Name",
+				type		: "string",
+				ui			: "textbox",
+				doc			: `A name of your choice identifying this camera`,
 			},
 
 			password : {
+				category	: "General",
+				label		: "Name",
+				type		: "string",
+				ui			: "password",
+				doc			: `Password required to access settings and video streams. Leave empty for no password.`,
 			},
 
 			videoPort : {
-				category : "Internal",
-				label : "Video Port",
-				type : "int",
-				range : [1025, 65535],
-				step : 1,
-				ui : "textbox"
+				category	: "Internal",
+				label		: "Video Port",
+				type		: "int",
+				range		: [1025, 65535],
+				step		: 1,
+				ui			: "textbox",
+				doc			: `(internal) for camera (video)`,
 			}
 
 // XXX: how do we document the parent ofwith sub-categories?
@@ -88,8 +92,8 @@ class Configuration
 			},
 
 			// Video streaming settings
-			streamVideo		: false,								// Toggle streaming of video (can be changed runtime)
-			onlyActivity	: true,									// Stream only _video_ when there is 'valid' activity (experimental!)
+			streamVideo		: true,									// Toggle streaming of video (can be changed runtime)
+			onlyActivity	: false,									// Stream only _video_ when there is 'valid' activity (experimental!)
 																	// You will want to set 'minActiveBlocks' to 20 or so, depending on i
 																	// lighting conditions (there's always some noise).
 

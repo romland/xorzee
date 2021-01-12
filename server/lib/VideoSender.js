@@ -8,6 +8,7 @@ const pino = require('pino');
 const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 const WebSocket = require('@clusterws/cws');
 
+
 class VideoSender
 {
 	constructor(conf)
@@ -19,7 +20,7 @@ class VideoSender
 		this.lastActive = Date.now();
 
 		if(!conf.get("streamVideo")) {
-			logger.warn("Video streaming is disabled by configuration");
+			logger.info("Video streaming is disabled by configuration");
 		}
 	}
 
@@ -28,21 +29,25 @@ class VideoSender
 		return this.wsServer.clients.length;
 	}
 
+	/*
+	 * Incoming data is _one_ NAL unit _without_ separator.
+	 */
 	broadcast(data)
 	{
 		if(!this.conf.get("streamVideo")) {
 			return;
 		}
 
+		// TODO: Make 2000 configurable when I can figure out a name for it
 		if(this.conf.get("onlyActivity") && Date.now() > (this.lastActive + 2000)) {
 			return;
 		}
 
-        this.wsServer.clients.forEach((ws) => {
-            if (ws.readyState === 1) {
-                ws.send(data, { binary: true });
-            }
-        });
+		this.wsServer.clients.forEach((ws) => {
+			if(ws.readyState === 1) {
+				ws.send(data, { binary: true });
+			}
+		});
 	}
 
 	setHeaders(h)
@@ -84,8 +89,10 @@ class VideoSender
 				ws.send(this.headers[i]);
 			}
 
-			// We always want to send a little when a new client connects
-			this.setActive();
+			// We always want to send a little (few seconds) when a new client connects
+			if(this.conf.get("onlyActivity")) {
+				this.setActive();
+			}
 		});
 	}
 }
