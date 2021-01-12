@@ -175,7 +175,7 @@
 	</div>
 -->
 	<div bind:this={label} >
-		<Button label={name} color="blue" bind:pressed={visible} on:click={open}></Button>
+		<Button label={name} style="square" bind:pressed={visible} on:click={open}></Button>
 	</div>
 
 	<div bind:this={content} style={contentPos} class="outer" out:fade>
