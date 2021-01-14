@@ -1,7 +1,6 @@
 "use strict";
 
 import  { MotionRenderer } from "./motionrenderer";
-import { copyGeography } from "../lib/utils.js";
 
 
 export default class MotionStreamer
@@ -18,17 +17,28 @@ export default class MotionStreamer
 		this.messageHandler = null;
 	}
 
-	start(motionCanvas, videoCanvas, wsUri, port, reconnectInterval, messageHandlerCallback )
+	start(motionCanvas, wsUri, port, reconnectInterval, messageHandlerCallback )
 	{
 		this.messageHandler = messageHandlerCallback;
-		
+
 		if(!this.motionRenderer) {
 			this.motionRenderer = new MotionRenderer(motionCanvas);
-			this.motionRenderer.configure(videoCanvas.width, videoCanvas.height);
 		}
-	
-		this.configureCanvas(motionCanvas, videoCanvas);
+
 		this.setupWebSocket(wsUri, port, reconnectInterval);
+	}
+
+	getRenderer()
+	{
+		if(!this.motionRenderer) {
+			throw new Error("No renderer set");
+		}
+		return this.motionRenderer;
+	}
+
+	setVideoSize(videoWidth, videoHeight)
+	{
+		this.motionRenderer.configure(videoWidth, videoHeight);
 	}
 
 	getWebSocket()
@@ -41,12 +51,6 @@ export default class MotionStreamer
 		this.webSocket.send(JSON.stringify(message));
 	}
 	
-	onResize(motionCanvas, videoCanvas)
-	{
-		this.configureCanvas(motionCanvas, videoCanvas);
-		this.motionRenderer.configure(videoCanvas.width, videoCanvas.height);
-	}
-	
 	stop()
 	{
 		if(this.webSocket) {
@@ -56,35 +60,6 @@ export default class MotionStreamer
 		if(this.motionRenderer) {
 			this.motionRenderer.stop();
 		}
-	}
-	
-	configureCanvas(motionCanvas, videoCanvas)
-	{
-		if(!motionCanvas || !videoCanvas) {
-			console.warn("Canvases are not there. Perhaps they were destroyed.");
-			return;
-		}
-
-		copyGeography(videoCanvas, motionCanvas);
-/*
-		let vsRect = videoCanvas.getBoundingClientRect();
-	
-		let totBorderSize = 2;
-		let styles = {
-			position	: "absolute",
-			zIndex		: 10,
-			// left		: vsRect.left + "px",
-			// top			: vsRect.top + "px",
-			left		: (vsRect.left - window.pageXOffset) + "px",
-			top			: (vsRect.top - window.pageYOffset) + "px",
-			width		: vsRect.width - totBorderSize + "px",
-			height		: vsRect.height - totBorderSize + "px"
-		};
-	
-		for(let s in styles) {
-			motionCanvas.style[s] = styles[s];
-		}
-*/
 	}
 	
 	handleMessage(dataType, data)

@@ -9,7 +9,7 @@
 
 	export function newEvent(e)
 	{
-		console.log("Events component got", e);
+		// console.log("Events component got", e);
 
 		if(eventCache.length >= 100) {
 			eventCache.shift();

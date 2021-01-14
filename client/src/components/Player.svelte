@@ -2,7 +2,7 @@
 	import { createEventDispatcher, onMount, onDestroy } from 'svelte';
 	import { fade } from 'svelte/transition';
 
-	import { copyGeography } from "../lib/utils.js";
+	import { followGeography, addGeographyFollower } from "../lib/utils.js";
 	import BroadwayStats, { onNALunit } from "./BroadwayStats.svelte";
 	import Fullscreen from "./Fullscreen.svelte";
 	import PolyDraw from "./PolyDraw.svelte";
@@ -13,6 +13,7 @@
 	import Events from "./Events.svelte";
 	import VideoStreamer from "../lib/videostreamer";
 	import MotionStreamer from "../lib/motionstreamer";
+	import Button from './Button.svelte';
 
 	export let remoteServer = null;			// Set to true if the client (the Svelte app) is not hosted by this server.
 	export let remoteAddress = null;		// This only needs to be set to an address if above is true.
@@ -34,7 +35,6 @@
 	let wwwPort = null;
 	let container;
 	let videoPlayer;
-	let videoCanvas;
 	let motionCanvas;
 	let fullScreenState;
 	let eventsComponent;
@@ -42,6 +42,7 @@
 	let videoStreamer;
 	let motionStreamer;
 	let polydrawContainer;
+	let drawingIgnoreArea = false;
 
 	let settings = null;
 	let lastRecordings = [];
@@ -74,7 +75,7 @@
 
 	function reconfigure(newSettings)
 	{
-		console.log(sn(), "Got settings from server");
+		console.log(sn(), "Got (new) settings from server");
 		settings = newSettings;
 
 		wwwPort = settings.wwwPort;
@@ -85,6 +86,26 @@
 		}
 
 		fiddleWithUrl();
+
+		if(!videoStreamer) {
+			/*
+			* Alternatives:
+			*	jmuxer:		Video latency of about 1 second in Firefox (motion is live). Chrome/Edge are live-ish.
+			*	broadway:	Truly live, expensive to render for client
+			*/
+			videoStreamer = new VideoStreamer(true, 'auto', settings.width, settings.height, 'jmuxer');
+			videoPlayer = videoStreamer.getPlayer();
+			container.prepend(videoPlayer.canvas);
+			addGeographyFollower(
+				videoPlayer.canvas
+				// [ (w,h,o) => { motionStreamer.resize(settings.width, settings.height, o) } ]
+			);
+			motionStreamer.setVideoSize(settings.width, settings.height);
+		}
+
+		if(settings.width !== newSettings.width || settings.height !== newSettings.height) {
+			motionStreamer.setVideoSize(settings.width, settings.height);
+		}
 
 		if(!videoStreamer.getWebSocket() || (videoStreamPort && videoStreamPort !== settings.videoWsPort)) {
 			videoStreamPort = settings.videoWsPort;
@@ -97,23 +118,14 @@
 			}
 
 			// We start videoStream _after_ motion stream -- since that is where we get the port from.
-			videoStreamer.start(wsUrl, videoStreamPort, reconnectInterval, onNALunit, settings.width, settings.height);
+			videoStreamer.start(wsUrl, videoStreamPort, reconnectInterval, onNALunit, settings.frameRate);
 		}
 	}
 
 	onMount(() => {
-		videoStreamer = new VideoStreamer(true, 'auto');
-		videoPlayer = videoStreamer.getPlayer();
-		videoCanvas = videoPlayer.canvas;
-		container.prepend(videoCanvas);
-
 		motionStreamer = new MotionStreamer();
-		motionStreamer.start(motionCanvas, videoCanvas, wsUrl, motionStreamPort, reconnectInterval, handleServerMessage);
-
-		new ResizeObserver((elt) => {
-			motionStreamer.onResize(motionCanvas, elt[0].target);
-			copyGeography(elt[0].target, polydrawContainer);
-		}).observe(videoCanvas);
+		motionStreamer.start(motionCanvas, wsUrl, motionStreamPort, reconnectInterval, handleServerMessage);
+		followGeography(motionCanvas, [ polydrawContainer ]);
 
 		return () => {
 			motionStreamer.stop();
@@ -138,7 +150,7 @@
 
 		// This is mostly in the root of the object coming from server
 		if(msg.neighbours) {
-			console.log(sn(), "Got new neighbour list from server");
+			// console.log(sn(), "Got new neighbour list from server");
 			neighbours = msg.neighbours;
 
 			dispatch('neighbourChange', {
@@ -154,7 +166,7 @@
 
 	function handleServerEvent(e)
 	{
-		console.log(sn(), "Got event from server", e);
+		// console.log(sn(), "Got event from server", e);
 
 		if(eventsComponent) {
 			eventsComponent.newEvent(e);
@@ -178,26 +190,20 @@
 		motionStreamer.sendMessage(message);
 	}
 
-	function windowResized()
-	{
-		motionStreamer.onResize(motionCanvas, videoCanvas);
-		copyGeography(videoCanvas, polydrawContainer);
-	}
-
+	// This works because it acts on the element that is 'primary' when using followGeography()
 	function toggleFullScreen(request, exit)
 	{
 		if(fullScreenState) {
-			videoCanvas.style.width = "auto";
+			motionCanvas.style.width = "auto";
 			exit();
 		} else {
-			videoCanvas.style.width = "100%";
+			motionCanvas.style.width = "100%";
 			request();
 		}
 		
 		fullScreenState = !fullScreenState;
 	}
 
-	let drawingIgnoreArea = false;
 	function setIgnoreArea(e)
 	{
 		console.log(sn(), "Got ignore area, passing to server:", e.detail.data);
@@ -222,14 +228,21 @@
 		}
 	}
 
+	// for when autoplay does not trigger :/
+	function play(ev)
+	{
+		videoPlayer.canvas.play()
+		videoPlayer.canvas.currentTime = videoPlayer.canvas.duration;
+	}
+
 </script>
-
+<!--
 	<svelte:window on:resize={windowResized}/>
-
+-->
 	<Fullscreen let:onRequest let:onExit>
 		<div class="container" bind:this={container}>
 			<!-- videoCanvas will be inserted above by Broadway -->
-			<canvas bind:this={motionCanvas}/>
+			<canvas bind:this={motionCanvas} class="motionCanvas"/>
 
 			<div on:dblclick={ () => toggleFullScreen(onRequest, onExit) } bind:this={polydrawContainer} style="width: 1280px; height: 720px; z-index: 10; position: absolute;">
 				{#if settings}
@@ -239,6 +252,7 @@
 						{#if videoPlayer}
 							<BroadwayStats on:message={(e)=>onLayerChange("BroadwayStats", e)} bind:showButton={showOverlayButtons} bind:visible={overlay["BroadwayStats"]} player={videoPlayer}></BroadwayStats>
 						{/if}
+						<Button label="Play" on:click={play}></Button>
 					</div>
 
 					<div class="bottomLeft">
@@ -248,7 +262,8 @@
 				{/if}
 
 				{#if drawingIgnoreArea}
-					<PolyDraw placeOn={videoCanvas} on:complete={setIgnoreArea}></PolyDraw>
+					<!-- placeOn={videoCanvas}  -->
+					<PolyDraw on:complete={setIgnoreArea}></PolyDraw>
 				{:else if settings}
 					<PolyShow bind:width={settings.width} bind:height={settings.height} points={settings.ignoreArea}></PolyShow>
 				{/if}
@@ -263,6 +278,10 @@
 	</Fullscreen>
 
 <style>
+	.motionCanvas {
+		position: absolute;
+	}
+
 	.container {
 		user-select: none;
 	}
@@ -270,7 +289,7 @@
 	:global(canvas) {
 		border: 1px solid #eee;
 		margin-bottom: 20px;
-		width: 100%;
+		width: 99vw;
 	}
 
 	.topLeft {
