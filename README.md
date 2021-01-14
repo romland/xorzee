@@ -1,3 +1,7 @@
+- latency with jmuxer is pretty high -- it _must_ be possible to lower it
+	It seems to be lower in Chrome.
+	try firefox setting: media.wmf.low-latency.enabled
+
 # Better Motion (or MintyMint) (looking for a better name)
 A low-latency, high quality streamer and motion detector. The goal is that it must run on (the) one core of a Raspberry Pi Zero[1].
 
@@ -27,6 +31,8 @@ A low-latency, high quality streamer and motion detector. The goal is that it mu
 [1] If it can run on that, it will run on any other.
 
 ## Working on now
+- refactor to make motion the controlling factor -- as it is now, the video channel is controlling
+  the size of rendering area
 - server settings in UI
 - fixing controls in client
 - exiting fullscreen will forget previous size of videoplayer (and thus all elements are of wrong size
@@ -50,6 +56,7 @@ A low-latency, high quality streamer and motion detector. The goal is that it mu
 	note: this adds a dependency on libpng: sudo apt-get install libpng12-dev
 
 ## TODO
+- Make client an optional electron app (that way, we get control of which video decoder sits on client)
 - switch away from Broadway and use something less CPU intensive on clients
 	- Either switch to WebRTC on server (webrtc is so painful)
 		* https://github.com/nicotyze/Webrtc-H264Capturer
@@ -58,10 +65,12 @@ A low-latency, high quality streamer and motion detector. The goal is that it mu
 	3	* or https://github.com/Streamedian/html5_rtsp_player (RTSP)
 	1	* https://github.com/samirkumardas/jmuxer (this one could be massaged into running on raspi too, but it might be expensive?)
 	4	* https://github.com/ChihChengYang/wfs.js (mp4)
+	5	* https://github.com/goldvideo/demuxer/ (mp4 -- seems to take SPS timings into consideration)
 	- Other alternatives (full h264 decoders - so _probably_ not HW decoding):
 		https://github.com/oneam/h264bsd
 		https://github.com/udevbe/tinyh264 (fork of above, I believe)
 
+- attempt to reduce JSON serializing by generating polygons server side (check which is slower)
 - want to have quick access to last few events (maybe a graph showing the last day too)
 - want to have statistics how many times signals went off per time-period
 - make camera configurable further 
@@ -154,6 +163,7 @@ A low-latency, high quality streamer and motion detector. The goal is that it mu
 - when reconfiguring camera settings, make sure the cached NAL headers are cleared (otherwise startup time might be really long!)
 - Merge doc/notes.txt into README or another .md
 - Be able to say "Object needs to enter from <place> and head in <direction>"
+- Look into if we can abuse multicast for both stream types (probably not doable in browser, though)
 
 ## TODO client
 - Send SAD with raw vectors (want to experiment how much SAD differ between frames. 
@@ -169,6 +179,25 @@ A low-latency, high quality streamer and motion detector. The goal is that it mu
 - button to reconnect websockets
 - make configuragle: reconnect sockets on disconnect (just a matter of setting a timeout to non-0)
 - be able to specify _no_ ignore area
+- do some testing if we need polygon simplifcation on lower-end clients: https://github.com/Serveurperso/line-simplify-rdp
+- Streaming only activity and 'don't stream' does not work with jmuxer (yet):
+		* streamVideo
+		* onlyActivity
+- Firefox: if we sit too close to 'duration' of a video, we get stutters, AND there's also a noticable latency
+  In Chrome and Edge we are performing (almost?) as great as Broadway.
+	Maybe related:
+		https://stackoverflow.com/questions/35741233/setting-currenttime-for-html5-video-window-onscroll-is-lagging
+		I ran into a similar problem, the issue was the video encoding.
+		Having a low video keyframe rate causes the lag.
+
+		My guess is that changing video.currentTime makes the browser's video decoder search for the closest keyframe to the specified time position, and this can take a while on videos with rare keyframes. Reencoding the video with higher keyframe rate fixed the problem for me.
+
+		Note that keyframe spacing can be controled with FFMPEGs -g flag.
+
+	MY NOTE: Sadly this is a bad option for Motion detection as keyframes will give huge motion flashes, I think
+
+	Maybe try a third party player to see if they have any tricks up their sleeves? e.g. https://videojs.com/
+
 
 ## Misc. Credits
 - Some styling elements and ideas borrowed from https://github.com/arwes/arwes by Romel Pérez
@@ -192,6 +221,7 @@ A low-latency, high quality streamer and motion detector. The goal is that it mu
 - https://github.com/pimterry/raspivid-stream (11jan2020)
 - https://github.com/kclyu/rpi-webrtc-streamer - oh wow, this seems to do what I am doing with motion too! (found 11jan2020)
   Haha. It also does mDNS publishing! This is probably what I wanted all along!
+- https://github.com/131/h264-live-player
 
 ## Interesting
 - https://github.com/esiexata/Camerafeed
@@ -314,3 +344,15 @@ A low-latency, high quality streamer and motion detector. The goal is that it mu
 - refreshing while scrolled will misplace some elements
 - seems when starting/stopping recording, motionrules take up a good 20+ms -- investigate why and presumably fix
 	(due to .sh scripts taking a good 5-25ms to start -- not much I can do)
+x TODO ( https://github.com/samirkumardas/jmuxer ):
+x with or without NAL separator?
+x we don't set duration
+x how can we set FPS?
+x we pass in null for audio
+x (!) Missing shims for Node.js built-ins
+  Creating a browser bundle that depends on 'stream'. You might need to include https://github.com/ionic-team/rollup-plugin-node-polyfills
+x the width/height is now hardcoded, we need to wait for 'settings' before we can set it
+x need autoplay on video...
+x for now, bring video element to front :( so we can start playing
+x when alt-tabbed -- our latency increases (have since enabled (don't stream when document is hidden)
+x real dilemma: Since we have overlays on the video you cannot press play (and sadly, cannot count on Autoplay any more :( )
