@@ -1,13 +1,10 @@
-- latency with jmuxer is pretty high -- it _must_ be possible to lower it
-	It seems to be lower in Chrome.
-	try firefox setting: media.wmf.low-latency.enabled
-
 # Better Motion (or MintyMint) (looking for a better name)
 A low-latency, high quality streamer and motion detector. The goal is that it must run on (the) one core of a Raspberry Pi Zero[1].
 
 ## Elaboration
 - [x] High quality stream meaning: HD (1920x1080) @ 30 FPS.
 - [x] ...low-latency meaning: video stream should have delay no higher than 200 milliseconds
+- [x] ...while _not_ using Broadway
 - [x] ...able to stream live camera feed to dozens of web-clients simultaneously
 - [x] ...stream directly from device to multiple clients (no intermediaries)
 - [x] ...ability to only stream video when there is activity
@@ -23,7 +20,7 @@ A low-latency, high quality streamer and motion detector. The goal is that it mu
 - [x] ...configurable stream overlays
 - [x] ...multiple cameras in web-clients
 - [x] ...connect to any camera on the network to automatically view _all_ cameras on network
-- [ ] ...modern web-client (Svelte)
+- [ ] ...modern web-client in Svelte
 - [ ] ...store meta-data of amount of activity in period (graph)
 - [ ] ...zero-configuration (that is, image card, connect to network and off we go)
 - [x] ...and quite a bit more
