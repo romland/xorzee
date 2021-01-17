@@ -56,7 +56,7 @@ export function followGeography(from, to, notify)
 		_notify = notify;
 
 	let copyGeo = () => {
-		console.log("copyGeo() to", _to);
+		// console.log("copyGeo() to", _to);
 		for(let i = 0; i < _to.length; i++) {
 			copyGeography(_from, _to[i]);
 		}

@@ -37,8 +37,15 @@
 
 	function mouseDown(e)
 	{
+		if(movingPoint !== null) {
+			console.log("ignoring down; moving point", movingPoint);
+			return;
+		}
+
 		if(done) {
 			console.log("restarting!");
+			movablePoints = [ ];
+			movingPoint = null;
 			prev = null;
 //			polyline.setAttribute("style", "fill", "#33333350");
 			polyline.setAttribute('points', "" ); 
@@ -109,6 +116,11 @@
 
 	function mouseUp(e)
 	{
+		if(movingPoint !== null) {
+			movablePointMouseUp(e);
+			return;
+		}
+
 		var curr = getMousePosition(e);
 
 		if(e.button === 2) {
@@ -116,6 +128,7 @@
 		}
 
 		if(prev && curr.x === prev.x && curr.y === prev.y) {
+			// Completing polygon
 			console.log("Clicked same to flag polygon as done");
 			polylineToConvexHull(polyline);
 
@@ -132,9 +145,15 @@
 				points : polylineToArray(polyline)
 			};
 
-			dispatch('complete', {
-				data : polygon
-			});
+			setMovablePoints(polygon.points);
+
+			try {
+				dispatch('complete', {
+					data : polygon
+				});
+			} catch(ex) {
+				console.log("Error: Failed to dispatch completion of polygon", ex);
+			}
 			
 			return true;
 		}
@@ -144,6 +163,8 @@
 		const newPoint = `${curr.x},${curr.y} `;
         pts += newPoint;
 		polyline.setAttribute('points',pts); 
+
+		addMovablePoint(curr);
 
 		if(MOUSE_DOWN_DRAG_UP) {
 			// mousedown/drag/mouseup drawing
@@ -155,11 +176,15 @@
 		}
 
 		prev = { x : curr.x, y : curr.y };
-			return true;
+		return true;
 	}
 
 	function mouseMove(e)
 	{
+		if(movingPoint !== null) {
+			mouseMovePoint(e);
+		}
+
 		if(done) {
 			return;
 		}
@@ -174,15 +199,78 @@
 		}
 	}
 
+	let movablePoints = [ ];
+	let movingPoint = null;
+
+	function setMovablePoints(polygon)
+	{
+		console.log("Setting movable points");
+		movablePoints = [];
+		// Don't add last point as that one is implicit in a polygon
+		for(let i = 0; i < (polygon.length - 1); i++) {
+			movablePoints.push({
+				x: polygon[i].x,
+				y: polygon[i].y
+			});
+		}
+		console.log("new movables", movablePoints);
+		movablePoints = movablePoints;
+	}
+
+	function addMovablePoint(pos)
+	{
+		console.log("add movable point", pos);
+		movablePoints.push({
+			x: pos.x,
+			y: pos.y
+		});
+		movablePoints = movablePoints;
+	}
+
+	function movablePointMouseDown(e)
+	{
+		// search for which lines this applies to (store indices)
+		let index = parseInt(e.target.attributes["data-id"].nodeValue, 10);
+		console.log("movable down", e, index);
+		movingPoint = index;
+	}
+
+	function movablePointMouseUp(e)
+	{
+		console.log("movable up", e);
+		movingPoint = null;
+	}
+
+	function mouseMovePoint(e)
+	{
+		var curr = getMousePosition(e);
+
+		// find (and update) all lines connecting to this vertex
+		polyline.setAttribute(
+			'points',
+			polyline.getAttribute('points').replaceAll(movablePoints[movingPoint].x+","+movablePoints[movingPoint].y, curr.x+","+curr.y)
+		);
+
+		polyline.getAttribute('points') || '';
+
+
+		movablePoints[movingPoint].x = curr.x;
+		movablePoints[movingPoint].y = curr.y;
+
+	}
+
+
 </script>
 
-<svelte:window bind:scrollX={scrollLeft} bind:scrollY={scrollTop}></svelte:window>
+	<svelte:window bind:scrollX={scrollLeft} bind:scrollY={scrollTop}></svelte:window>
 
+<!--
+-->
 	<svg bind:this={svg}
 			on:contextmenu={(e)=>{ return false}}
 			on:mousemove={mouseMove}
-			on:mousedown|preventDefault|stopPropagation={mouseDown}
-			on:mouseup|preventDefault|stopPropagation={mouseUp}
+			on:mousedown={mouseDown}
+			on:mouseup={mouseUp}
 			height="100%"
 			width="100%"
 			style=""
@@ -194,7 +282,7 @@
 				<path d="M {GRID_SIZE} 0 L 0 0 0 {GRID_SIZE}" fill="none" stroke="gray" stroke-width="0.5"/>
 			</pattern>
 		</defs>
-	
+
 		<polyline bind:this={polyline}
 			style="
 				fill: #33333350;
@@ -210,7 +298,19 @@
 		"/>
 
 	    <rect width="100%" height="100%" fill="url(#grid)" />
+
+		{#if done}
+			{#each movablePoints as point, i}
+				<circle
+					style="fill:yellow"
+					cx={point.x} cy={point.y} r="7"
+					on:mousedown={movablePointMouseDown}
+					data-id={i}
+				/>
+			{/each}
+		{/if}
+
 	</svg>
 
 Instructions:
-- click on same spot twice to end the polygon
+- click on same spot twice to end the polygon (it will be converted to a simplified convex hull)

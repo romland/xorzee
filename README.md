@@ -22,28 +22,29 @@ A low-latency, high quality streamer and motion detector. The goal is that it mu
 - [x] ...connect to any camera on the network to automatically view _all_ cameras on network
 - [ ] ...modern web-client in Svelte
 - [ ] ...store meta-data of amount of activity in period (graph)
-- [ ] ...zero-configuration (that is, image card, connect to network and off we go)
+- [ ] ...zero configuration (that is, image card, connect to network and off we go)
 - [x] ...and quite a bit more
 
 [1] If it can run on that, it will run on any other.
 
 ## Working on now
-- refactor to make motion the controlling factor -- as it is now, the video channel is controlling
-  the size of rendering area
-- server settings in UI
-- fixing controls in client
-- exiting fullscreen will forget previous size of videoplayer (and thus all elements are of wrong size
+- client: Pass in existing polygon (to PolyDraw) so that it can be modified (as it is now, you just simply start over)
+- client: with new video player, multiple cameras are a bit borked (overlaying elements)
+- client: server settings in UI
+- client: controls layout, functionality
+- client: exiting fullscreen will forget previous size of videoplayer (and thus all elements are of wrong size
 
 ## Quick do's
+- name: Xorzee (.com is available)
 - make configurable:
-	- toggle whether to reduce busy frames
+	- toggle whether to 'reduce' busy frames
 - start on boot
 - add "signalSecret" setting (used primarily for 'fetch') -- used so that signals cannot be (as) easily spoofed
 - be able to ignore motion processing (ie. just use as 'real time' streamer)
 - rename all config options to use camelCase (note, some option names are used on client too!)
 - Need better name: call it Aufero?
-- set up a service (service file)
-- set up a default pm2 file
+- set up as service (service file)
+	https://thomashunter.name/posts/2016-09-27-running-a-node-js-process-on-debian-as-a-systemd-service
 - test if we still need 'reducing' on lots of motion points (with recent optimization, maybe reducing cost more than it gives)
 - be able to _not record_ but remember event (a time-stamp will suffice?)
 - can definitely increase requirements for 'send only activity' (it sends when there is virtually no activity now)
@@ -53,6 +54,10 @@ A low-latency, high quality streamer and motion detector. The goal is that it mu
 	note: this adds a dependency on libpng: sudo apt-get install libpng12-dev
 
 ## TODO
+- Stopping recording will incur slow serialization (15ms?) since we transmit a list of latest recordings; client should keep track
+- Look into writing a native node module for camera (instead of using pipes)
+	limited node module: https://github.com/sandeepmistry/node-raspberry-pi-camera-native
+	base on: https://github.com/kclyu/rpi-webrtc-streamer
 - Make client an optional electron app (that way, we get control of which video decoder sits on client)
 - switch away from Broadway and use something less CPU intensive on clients
 	- Either switch to WebRTC on server (webrtc is so painful)
@@ -161,6 +166,7 @@ A low-latency, high quality streamer and motion detector. The goal is that it mu
 - Merge doc/notes.txt into README or another .md
 - Be able to say "Object needs to enter from <place> and head in <direction>"
 - Look into if we can abuse multicast for both stream types (probably not doable in browser, though)
+- set up a default pm2 file? do I want to use pm2?
 
 ## TODO client
 - Send SAD with raw vectors (want to experiment how much SAD differ between frames. 
@@ -194,7 +200,8 @@ A low-latency, high quality streamer and motion detector. The goal is that it mu
 	MY NOTE: Sadly this is a bad option for Motion detection as keyframes will give huge motion flashes, I think
 
 	Maybe try a third party player to see if they have any tricks up their sleeves? e.g. https://videojs.com/
-
+- Kerberos.io does look great, see if there are some ideas there that I did not think of!
+- Client should keep track of latest recordings and append to it when a recording stops (to reduce JSON encoding server side)
 
 ## Misc. Credits
 - Some styling elements and ideas borrowed from https://github.com/arwes/arwes by Romel Pérez
@@ -208,6 +215,7 @@ A low-latency, high quality streamer and motion detector. The goal is that it mu
 
 ## Projects in same vein...
 - https://github.com/Motion-Project/motion Motion :/ -- the project that made me start this project
+- http://wiki.raspberrytorte.com/index.php?title=Motion_MMAL A slightly better Motion...
 - https://github.com/silvanmelchior/RPi_Cam_Web_Interface (I actually only found out about 
   this one long into my own development (02jan2020) -- it might just be what I need!)
 - motioneye, I knew about (which was what I _wish_ did what I wanted)
@@ -219,6 +227,7 @@ A low-latency, high quality streamer and motion detector. The goal is that it mu
 - https://github.com/kclyu/rpi-webrtc-streamer - oh wow, this seems to do what I am doing with motion too! (found 11jan2020)
   Haha. It also does mDNS publishing! This is probably what I wanted all along!
 - https://github.com/131/h264-live-player
+- https://kerberos.io/ -- looks great, but, live stream is not optimal (the camera needs to be configured as 'IP camera')
 
 ## Interesting
 - https://github.com/esiexata/Camerafeed
@@ -227,6 +236,7 @@ A low-latency, high quality streamer and motion detector. The goal is that it mu
 - ditto here: https://github.com/LukashenkoEvgeniy/People-Counter/blob/master/PeopleCounterMain.py
 	Again, openCV.
 - ditto: https://github.com/kclyu/rpi-webrtc-streamer/blob/master/src/raspi_motionblob.cc
+- ditto: (not streaming, but tracking with ... ugh opencv) https://github.com/pageauc/pi-timolo
 
 ## Notes
 - Running external scripts as signals can be detrimental. There's not much I can do here as spawning
@@ -264,6 +274,7 @@ A low-latency, high quality streamer and motion detector. The goal is that it mu
 	raspivid: -td, --timed    : Cycle between capture and pause. -cycle on,off where on is record time and off is pause time in ms
 	alternatively: just grab from dispmanx (that way we can still detect motion)
 - https://github.com/mpromonet/v4l2rtspserver (latency is main worry, investigate)
+- off-device object classification: https://aws.amazon.com/rekognition/pricing/
 
 ## Thoughts
 - I suppose one _could_ argue that there is no _real_ need to cluster on the server, as long as 
@@ -292,6 +303,10 @@ A low-latency, high quality streamer and motion detector. The goal is that it mu
 - support USB for camera (pipe through socat?)
 - to stream a video, pipe in e.g.: ffmpeg -re -i foo.mp4 -c:v copy -f h264 udp://localhost:8000 (tcp in our case atm)
 - Broadway only supports h264 baseline, no audio (don't go fancy)
+- https://picamera.readthedocs.io/en/release-1.13/
+- Developing against Node 12 (Raspi Zero version here:) https://unofficial-builds.nodejs.org/download/release/v12.16.3/
+	- For some reason, could not get it running on the raspi-zero 'pi1in3oled' (or so) -- should probably just reinstall that card
+	- on other raspizero i run it fine on node 10
 
 ## How's...
 - The stream is h264, that is sent to broadway (i.e. we offload work to client when it comes to the video)
@@ -353,3 +368,5 @@ x need autoplay on video...
 x for now, bring video element to front :( so we can start playing
 x when alt-tabbed -- our latency increases (have since enabled (don't stream when document is hidden)
 x real dilemma: Since we have overlays on the video you cannot press play (and sadly, cannot count on Autoplay any more :( )
+- refactor to make motion the controlling factor -- as it is now, the video channel is controlling
+  the size of rendering area

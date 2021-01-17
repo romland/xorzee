@@ -11,6 +11,7 @@ export default class VideoStreamer
 		this.player
 		this.webSocket
 		this.playerType
+		this.videoEltId (maybe)
 	*/
 	constructor(useWebWorkers = true, useWebGL = "auto", width = 1280, height = 720, playerType = 'broadway')
 	{
@@ -20,7 +21,8 @@ export default class VideoStreamer
 		// alternatives: broadway, jmuxer
 		if(playerType === "jmuxer") {
 			let elt = document.createElement(`video`);
-			elt.id = "videoElt";
+			this.videoEltId = "videoElt" + Date.now();
+			elt.id = this.videoEltId;
 			elt.controls = true;
 			elt.autoplay = true;
 			let styles = {
@@ -63,7 +65,7 @@ export default class VideoStreamer
 			let firefoxAgent = navigator.userAgent.indexOf("Firefox") > -1; 
 
 			this.player.jmuxer = new JMuxer({
-				node	: 'videoElt',
+				node	: this.videoEltId,
 				mode	: 'video',
 				flushingTime : 1,
 				clearBuffer : true,

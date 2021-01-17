@@ -42,7 +42,7 @@
 	let videoStreamer;
 	let motionStreamer;
 	let polydrawContainer;
-	let drawingIgnoreArea = false;
+	let drawingIgnoreArea = true;
 
 	let settings = null;
 	let lastRecordings = [];
