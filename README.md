@@ -1,9 +1,9 @@
-# Better Motion (or MintyMint) (looking for a better name)
-A low-latency, high quality streamer and motion detector. The goal is that it must run on (the) one core of a Raspberry Pi Zero[1].
+# Xorzee
+A low-latency, HD video streamer and motion detector. The goal is that it must run on (the) one core of a Raspberry Pi Zero[1].
 
 ## Elaboration
-- [x] High quality stream meaning: HD (1920x1080) @ 30 FPS.
-- [x] ...low-latency meaning: video stream should have delay no higher than 200 milliseconds
+- [x] ...HD stream meaning: 1920x1080 @ ~30 frames per second.
+- [x] ...low-latency meaning: video stream should have delay no higher than 150 milliseconds
 - [x] ...while _not_ using Broadway
 - [x] ...able to stream live camera feed to dozens of web-clients simultaneously
 - [x] ...stream directly from device to multiple clients (no intermediaries)
@@ -275,6 +275,8 @@ A low-latency, high quality streamer and motion detector. The goal is that it mu
 	alternatively: just grab from dispmanx (that way we can still detect motion)
 - https://github.com/mpromonet/v4l2rtspserver (latency is main worry, investigate)
 - off-device object classification: https://aws.amazon.com/rekognition/pricing/
+- can i utilize https://github.com/gpujs/gpu.js ?
+
 
 ## Thoughts
 - I suppose one _could_ argue that there is no _real_ need to cluster on the server, as long as 

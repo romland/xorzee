@@ -7,6 +7,9 @@
 	let downAt, prev;
 	let done = false;
 	
+	let movablePoints = [ ];
+	let movingPoint = null;
+
 	const MOUSE_DOWN_DRAG_UP = false
 	const GRID = true;
 	const GRID_SIZE = 16;
@@ -17,7 +20,6 @@
 
 	function getMousePosition(e)
 	{
-		// XXX:
 		// We have to do this every time because the object we are act as overlay on might change.
 		// Best would be to pass in an event to this component when that changes, but ... later.
 		svgRect = svg.getBoundingClientRect();
@@ -33,36 +35,6 @@
 				y :	e.pageY - svgRect.top
 			};
 		}
-	}
-
-	function mouseDown(e)
-	{
-		if(movingPoint !== null) {
-			console.log("ignoring down; moving point", movingPoint);
-			return;
-		}
-
-		if(done) {
-			console.log("restarting!");
-			movablePoints = [ ];
-			movingPoint = null;
-			prev = null;
-//			polyline.setAttribute("style", "fill", "#33333350");
-			polyline.setAttribute('points', "" ); 
-//			templine.setAttribute("style", "display", "auto");
-			downAt = null;
-			done = false;
-			return;
-		}
-
-		if(e.button === 2) {
-			return false;
-		}
-
-		var curr = getMousePosition(e);
-		downAt = curr;
-
-		return false;
 	}
 
 	function polylineToArray(pl)
@@ -114,6 +86,75 @@
 		l.setAttribute('y2', 0);
 	}
 
+	function completePolygon(poly)
+	{
+		// Completing polygon
+		console.log("Clicked same to flag polygon as done");
+
+		polylineToConvexHull(poly);
+
+		clearLine(templine);
+		downAt = null;
+		done = true;
+
+		let polygon = sendCompletePolygonEvent(polylineToArray(poly));
+
+		setMovablePoints(polygon.points);
+	}
+
+	function sendCompletePolygonEvent(points)
+	{
+		let polygon = {
+			resolution : {
+				width : svgRect.width,
+				height : svgRect.height
+			},
+			points : points
+		};
+
+		try {
+			dispatch('complete', {
+				data : polygon
+			});
+		} catch(ex) {
+			console.log("Error: Failed to dispatch completion of polygon", ex);
+		}
+
+		return polygon
+	}
+
+	function createNewPolygon(e)
+	{
+		console.log("createNewPolygon()!");
+		movablePoints = [ ];
+		movingPoint = null;
+		prev = null;
+		polyline.setAttribute('points', "" ); 
+		downAt = null;
+		done = false;
+		return true;
+	}
+
+	function mouseDown(e)
+	{
+		if(movingPoint !== null) {
+			return;
+		}
+
+		if(done) {
+			createNewPolygon(e);
+			return;
+		}
+
+		if(e.button === 2) {
+			return false;
+		}
+
+		downAt = getMousePosition(e);
+
+		return false;
+	}
+
 	function mouseUp(e)
 	{
 		if(movingPoint !== null) {
@@ -121,40 +162,19 @@
 			return;
 		}
 
-		var curr = getMousePosition(e);
-
+		if(downAt === null) {
+			// If no downAt, it means we just cleared previous polygon
+			return;
+		}
+		
 		if(e.button === 2) {
 			return;
 		}
 
+		const curr = getMousePosition(e);
+
 		if(prev && curr.x === prev.x && curr.y === prev.y) {
-			// Completing polygon
-			console.log("Clicked same to flag polygon as done");
-			polylineToConvexHull(polyline);
-
-//			polyline.setAttribute("style", "fill", "#88333350");
-			clearLine(templine);
-			downAt = null;
-			done = true;
-
-			let polygon = {
-				resolution : {
-					width : svgRect.width,
-					height : svgRect.height
-				},
-				points : polylineToArray(polyline)
-			};
-
-			setMovablePoints(polygon.points);
-
-			try {
-				dispatch('complete', {
-					data : polygon
-				});
-			} catch(ex) {
-				console.log("Error: Failed to dispatch completion of polygon", ex);
-			}
-			
+			completePolygon(polyline);
 			return true;
 		}
 
@@ -199,13 +219,11 @@
 		}
 	}
 
-	let movablePoints = [ ];
-	let movingPoint = null;
 
 	function setMovablePoints(polygon)
 	{
-		console.log("Setting movable points");
 		movablePoints = [];
+
 		// Don't add last point as that one is implicit in a polygon
 		for(let i = 0; i < (polygon.length - 1); i++) {
 			movablePoints.push({
@@ -213,13 +231,12 @@
 				y: polygon[i].y
 			});
 		}
-		console.log("new movables", movablePoints);
+
 		movablePoints = movablePoints;
 	}
 
 	function addMovablePoint(pos)
 	{
-		console.log("add movable point", pos);
 		movablePoints.push({
 			x: pos.x,
 			y: pos.y
@@ -229,16 +246,15 @@
 
 	function movablePointMouseDown(e)
 	{
-		// search for which lines this applies to (store indices)
+		// get indices of affected lines
 		let index = parseInt(e.target.attributes["data-id"].nodeValue, 10);
-		console.log("movable down", e, index);
 		movingPoint = index;
 	}
 
 	function movablePointMouseUp(e)
 	{
-		console.log("movable up", e);
 		movingPoint = null;
+		sendCompletePolygonEvent(movablePoints);
 	}
 
 	function mouseMovePoint(e)
@@ -252,20 +268,13 @@
 		);
 
 		polyline.getAttribute('points') || '';
-
-
 		movablePoints[movingPoint].x = curr.x;
 		movablePoints[movingPoint].y = curr.y;
-
 	}
-
-
 </script>
 
 	<svelte:window bind:scrollX={scrollLeft} bind:scrollY={scrollTop}></svelte:window>
 
-<!--
--->
 	<svg bind:this={svg}
 			on:contextmenu={(e)=>{ return false}}
 			on:mousemove={mouseMove}
@@ -309,8 +318,17 @@
 				/>
 			{/each}
 		{/if}
-
 	</svg>
 
+<pre>
 Instructions:
 - click on same spot twice to end the polygon (it will be converted to a simplified convex hull)
+
+TODO:
+- pass in existing poly
+- disable double-click when drawing polys
+- add button/function for 'undo'
+- add button/function for 'clear'
+- add button/function for toggling whether to 'disregard' (ignore) or 'regard' (don't ignore)
+- maybe get rid of convex hull wrangling (since it's quite annoying if you actually _need_ a complex area) (need to fix server-side for that)
+</pre>
