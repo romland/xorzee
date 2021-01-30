@@ -83,7 +83,7 @@
 </script>
 
 <main>
-	MintyMint {ISODateString(time)}
+	Xorzee {ISODateString(time)}
 
 	<div on:click={()=> {showOverlayButtons = !showOverlayButtons}}>
 		Toggle controls

@@ -10,6 +10,7 @@ https://codepen.io/collection/CFhLc?cursor=ZD0xJm89MSZwPTEmdj03
 
 	const dispatch = createEventDispatcher();
 
+	export let visible = true;
 	export let style = "";
 	export let label = "Button";
 	export let pressed = false;
@@ -26,12 +27,15 @@ https://codepen.io/collection/CFhLc?cursor=ZD0xJm89MSZwPTEmdj03
 	}
 </script>
 
-	<div class="scifiUI">
+	<div class="scifiUI" class:hide={!visible}>
 		<button class:active={pressed} type="button" on:click|preventDefault={clicked}>{label}</button>
 	</div>
 
 
 <style>
+	.hide {
+		display: none;
+	}
 
 	.scifiUI button {
 		color: rgb(77, 219, 242);

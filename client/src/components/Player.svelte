@@ -42,6 +42,7 @@
 	let videoStreamer;
 	let motionStreamer;
 	let polydrawContainer;
+
 	let drawingIgnoreArea = true;
 
 	let settings = null;
@@ -193,6 +194,11 @@
 	// This works because it acts on the element that is 'primary' when using followGeography()
 	function toggleFullScreen(request, exit)
 	{
+		if(drawingIgnoreArea) {
+			// Don't allow resizing when drawing
+			return;
+		}
+
 		if(fullScreenState) {
 			motionCanvas.style.width = "auto";
 			exit();
@@ -231,8 +237,11 @@
 	// for when autoplay does not trigger :/
 	function play(ev)
 	{
+		console.log("Play");
 		videoPlayer.canvas.play()
-		videoPlayer.canvas.currentTime = videoPlayer.canvas.duration;
+		if(videoPlayer.canvas.duration > 0) {
+			videoPlayer.canvas.currentTime = videoPlayer.canvas.duration;
+		}
 	}
 
 </script>
@@ -248,11 +257,11 @@
 				{#if settings}
 					<div class="topLeft">
 						<Configuration on:message={(e)=>onLayerChange("Configuration", e)} bind:showButton={showOverlayButtons} bind:visible={overlay["Configuration"]} sendMessage={sendMessage} {settings}></Configuration>
-						<Controls on:message={(e)=>onLayerChange("Controls", e)} bind:showButton={showOverlayButtons} bind:visible={overlay["Controls"]} bind:drawingIgnoreArea={drawingIgnoreArea} sendMessage={sendMessage} {settings}></Controls>
+						<Controls videoPlayer={videoPlayer} on:message={(e)=>onLayerChange("Controls", e)} bind:showButton={showOverlayButtons} bind:visible={overlay["Controls"]} bind:drawingIgnoreArea={drawingIgnoreArea} sendMessage={sendMessage} {settings}></Controls>
 						{#if videoPlayer}
 							<BroadwayStats on:message={(e)=>onLayerChange("BroadwayStats", e)} bind:showButton={showOverlayButtons} bind:visible={overlay["BroadwayStats"]} player={videoPlayer}></BroadwayStats>
 						{/if}
-						<Button label="Play" on:click={play}></Button>
+						<Button bind:visible={showOverlayButtons} label="Play" on:click={play}></Button>
 					</div>
 
 					<div class="bottomLeft">
@@ -261,11 +270,8 @@
 					</div>
 				{/if}
 
-				{#if drawingIgnoreArea}
-					<!-- placeOn={videoCanvas}  -->
-					<PolyDraw on:complete={setIgnoreArea}></PolyDraw>
-				{:else if settings}
-					<PolyShow bind:width={settings.width} bind:height={settings.height} points={settings.ignoreArea}></PolyShow>
+				{#if settings}
+					<PolyDraw bind:drawing={drawingIgnoreArea} bind:width={settings.width} bind:height={settings.height} currentPoints={settings.ignoreArea} on:complete={setIgnoreArea}></PolyDraw>
 				{/if}
 
 				<div class="recordingStatus">

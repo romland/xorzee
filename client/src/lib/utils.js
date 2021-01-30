@@ -84,3 +84,44 @@ export function followGeography(from, to, notify)
 	copyGeo();
 	notifyGeo();
 }
+
+
+/**
+ * NOTE: This method also sits on server in lib/util.js
+ * 
+ * This will never work great with fish-eye lens (need remapping for that) -- but the 
+ * shape that is on the server is on the client.
+ */
+export function scalePolygon(polygon, currentResolution, targetResolution, roundToNearest = 16, copy = false)
+{
+	let wr = targetResolution.width / currentResolution.width;
+	let hr = targetResolution.height / currentResolution.height;
+
+	let p;
+
+	if(copy) {
+		p = polygon.map( (n) => {
+			return { x: n.x, y: n.y };
+		});
+
+	} else {
+		p = polygon;
+	}
+
+	for(let i = 0; i < p.length; i++) {
+		if(roundToNearest > 0) {
+			p[i].x *= wr;
+			p[i].y *= hr;
+		} else {
+			// Rounds to nearest N and 0 decimals
+			p[i].x = Math.round(
+				Math.round( (p[i].x * wr) / roundToNearest) * roundToNearest
+			);
+			p[i].y = Math.round(
+				Math.round( (p[i].y * hr) / roundToNearest) * roundToNearest
+			);
+		}
+	}
+
+	return p;
+}

@@ -1,6 +1,7 @@
 <script>
 	import OverlayToggler from "./OverlayToggler.svelte";
 
+	export let videoPlayer;
 	export let showButton = true;
 	export let sendMessage = null;
 	export let settings = null;
@@ -69,7 +70,6 @@
 			// Stop notifications (make a state for this)
 		}
 	}
-
 </script>
 
 	<OverlayToggler on:message bind:visible={visible} name="✓ Controls" showButton={showButton} position="below">

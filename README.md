@@ -35,6 +35,7 @@ A low-latency, HD video streamer and motion detector. The goal is that it must r
 - client: exiting fullscreen will forget previous size of videoplayer (and thus all elements are of wrong size
 
 ## Quick do's
+- (keep a flag around for this): if manually started recording -- don't automatically stop it
 - name: Xorzee (.com is available)
 - make configurable:
 	- toggle whether to 'reduce' busy frames

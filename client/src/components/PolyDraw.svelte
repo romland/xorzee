@@ -2,10 +2,16 @@
 	import { onMount } from 'svelte';
 	import { getOutline } from "../lib/convex-hull";
 	import { createEventDispatcher } from 'svelte';
+	import { scalePolygon } from "../lib/utils";
 
+	export let currentPoints = [];
+	export let width, height;
+	export let drawing = true;
+
+	let initialized = false;
 	var svgRect;
 	let downAt, prev;
-	let done = false;
+	let done = true;
 	
 	let movablePoints = [ ];
 	let movingPoint = null;
@@ -24,15 +30,27 @@
 		// Best would be to pass in an event to this component when that changes, but ... later.
 		svgRect = svg.getBoundingClientRect();
 
+		let x = e.pageX;
+		let y = e.pageY;
+		// console.log(svgRect);
+
+		// Because the SVG can be scaled...
+		x *= width / svgRect.width;
+		y *= height / svgRect.height;
+
+		// let wr = targetResolution.width / currentResolution.width;
+		// let hr = targetResolution.height / currentResolution.height;
+
+
 		if(GRID) {
 			return {
-				x :	(Math.round((e.pageX - svgRect.left - scrollLeft) / GRID_SIZE) * GRID_SIZE),
-				y :	(Math.round((e.pageY - svgRect.top - scrollTop) / GRID_SIZE) * GRID_SIZE)
+				x :	(Math.round((x - svgRect.left - scrollLeft) / GRID_SIZE) * GRID_SIZE),
+				y :	(Math.round((y - svgRect.top - scrollTop) / GRID_SIZE) * GRID_SIZE)
 			};
 		} else {
 			return {
-				x :	e.pageX - svgRect.left,
-				y :	e.pageY - svgRect.top
+				x :	x - svgRect.left,
+				y :	y - svgRect.top
 			};
 		}
 	}
@@ -106,8 +124,10 @@
 	{
 		let polygon = {
 			resolution : {
-				width : svgRect.width,
-				height : svgRect.height
+				// width : svgRect.width,
+				// height : svgRect.height
+				width : width,
+				height : height
 			},
 			points : points
 		};
@@ -271,11 +291,51 @@
 		movablePoints[movingPoint].x = curr.x;
 		movablePoints[movingPoint].y = curr.y;
 	}
+	
+
+	function resizePolygon()
+	{
+		if(false) {
+			// console.log("currentPoints before:", currentPoints);
+			let svgRect = svg.getBoundingClientRect();
+			// let points = currentPoints;
+			//(coordinates are always stored in 1920x1088 format)
+			let points = scalePolygon(
+				currentPoints,
+				{ width: 1920, height: 1088 },
+				{ width: svgRect.width, height: svgRect.height },
+				16,
+				true
+			);
+
+			for(let i = 0; i < points.length; i++) {
+				points[i].x = Math.round(points[i].x);
+				points[i].y = Math.round(points[i].y);
+			}
+
+			// console.log("currentPoints after:", currentPoints);
+			// console.log("draw points", points);
+			// console.log("Initializing existing polygon...", points);
+
+			polyline.setAttribute('points', arrToPolylineStr(points));
+			setMovablePoints(points);
+		} else {
+			polyline.setAttribute('points', arrToPolylineStr(currentPoints));
+			setMovablePoints(currentPoints);
+		}
+
+	}
+
+$:	if(currentPoints && polyline && !initialized) {
+		initialized = true;
+		resizePolygon();
+	}
+
 </script>
 
 	<svelte:window bind:scrollX={scrollLeft} bind:scrollY={scrollTop}></svelte:window>
 
-	<svg bind:this={svg}
+	<svg class:hide={!drawing} bind:this={svg}
 			on:contextmenu={(e)=>{ return false}}
 			on:mousemove={mouseMove}
 			on:mousedown={mouseDown}
@@ -283,6 +343,7 @@
 			height="100%"
 			width="100%"
 			style=""
+			viewBox="0 0 {width} {height}"
 		>
 
 		<defs>
@@ -306,7 +367,7 @@
 			stroke-width:1;
 		"/>
 
-	    <rect width="100%" height="100%" fill="url(#grid)" />
+		<rect width="100%" height="100%" fill="url(#grid)" />
 
 		{#if done}
 			{#each movablePoints as point, i}
@@ -318,6 +379,25 @@
 				/>
 			{/each}
 		{/if}
+	</svg>
+
+	<svg
+		class:hide={drawing}
+		width="100%"
+		height="100%"
+		style=""
+		viewBox="0 0 {width} {height}"
+	>
+		<g fill="none" fill-rule="evenodd">
+			<polyline
+				style="
+					fill: #ff000030;
+					stroke: black;
+					stroke-width: 1
+				"
+				points={arrToPolylineStr(currentPoints)}
+			/>
+		</g>
 	</svg>
 
 <pre>
@@ -332,3 +412,9 @@ TODO:
 - add button/function for toggling whether to 'disregard' (ignore) or 'regard' (don't ignore)
 - maybe get rid of convex hull wrangling (since it's quite annoying if you actually _need_ a complex area) (need to fix server-side for that)
 </pre>
+
+<style>
+.hide {
+	display: none;
+}
+</style>
