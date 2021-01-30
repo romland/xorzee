@@ -93,20 +93,16 @@ export default class MotionStreamer
 	setupWebSocket(wsUri, port, reconnectInterval)
 	{
 		let that = this;
-		console.log("Attempting to connect to: ", wsUri + port);
 	
 		this.webSocket = new WebSocket(wsUri + port);
 		this.webSocket.binaryType = 'arraybuffer';
 		this.webSocket.onopen = function (e) {
-			console.log('Connected motion stream...');
-	
 			that.webSocket.onmessage = function(msg) {
 				that.handleMessage(typeof msg.data, msg.data);
 			}
 		}
 	
 		this.webSocket.onclose = function (e) {
-			console.log('Disconnected motion stream...');
 			that.webSocket = null;
 	
 			if(reconnectInterval > 0) {

@@ -6,7 +6,6 @@
 	import BroadwayStats, { onNALunit } from "./BroadwayStats.svelte";
 	import Fullscreen from "./Fullscreen.svelte";
 	import PolyDraw from "./PolyDraw.svelte";
-	import PolyShow from "./PolyShow.svelte";
 	import ScreenshotList from "./ScreenshotList.svelte";
 	import Configuration from "./Configuration.svelte";
 	import Controls from "./Controls.svelte";
@@ -43,7 +42,7 @@
 	let motionStreamer;
 	let polydrawContainer;
 
-	let drawingIgnoreArea = true;
+	let drawingIgnoreArea = false;
 
 	let settings = null;
 	let lastRecordings = [];
@@ -69,7 +68,7 @@
 	// Server name, used for debugging
 	function sn()
 	{
-		// They all have the same name atm (pulled from git)
+		// They [all clients] all have the same name atm (their configs are pulled from git)
 		// return `[${(settings ? settings.name : remoteUrl)}]`;
 		return `[${remoteUrl}]`;
 	}
@@ -245,12 +244,10 @@
 	}
 
 </script>
-<!--
-	<svelte:window on:resize={windowResized}/>
--->
+
 	<Fullscreen let:onRequest let:onExit>
 		<div class="container" bind:this={container}>
-			<!-- videoCanvas will be inserted above by Broadway -->
+			<!-- 'videoCanvas' (can also be a video player) will be inserted above by Broadway -->
 			<canvas bind:this={motionCanvas} class="motionCanvas"/>
 
 			<div on:dblclick={ () => toggleFullScreen(onRequest, onExit) } bind:this={polydrawContainer} style="width: 1280px; height: 720px; z-index: 10; position: absolute;">

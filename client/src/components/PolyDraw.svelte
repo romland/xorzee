@@ -32,15 +32,10 @@
 
 		let x = e.pageX;
 		let y = e.pageY;
-		// console.log(svgRect);
 
 		// Because the SVG can be scaled...
 		x *= width / svgRect.width;
 		y *= height / svgRect.height;
-
-		// let wr = targetResolution.width / currentResolution.width;
-		// let hr = targetResolution.height / currentResolution.height;
-
 
 		if(GRID) {
 			return {
@@ -107,8 +102,6 @@
 	function completePolygon(poly)
 	{
 		// Completing polygon
-		console.log("Clicked same to flag polygon as done");
-
 		polylineToConvexHull(poly);
 
 		clearLine(templine);
@@ -145,7 +138,6 @@
 
 	function createNewPolygon(e)
 	{
-		console.log("createNewPolygon()!");
 		movablePoints = [ ];
 		movingPoint = null;
 		prev = null;
@@ -296,9 +288,8 @@
 	function resizePolygon()
 	{
 		if(false) {
-			// console.log("currentPoints before:", currentPoints);
 			let svgRect = svg.getBoundingClientRect();
-			// let points = currentPoints;
+
 			//(coordinates are always stored in 1920x1088 format)
 			let points = scalePolygon(
 				currentPoints,
@@ -312,10 +303,6 @@
 				points[i].x = Math.round(points[i].x);
 				points[i].y = Math.round(points[i].y);
 			}
-
-			// console.log("currentPoints after:", currentPoints);
-			// console.log("draw points", points);
-			// console.log("Initializing existing polygon...", points);
 
 			polyline.setAttribute('points', arrToPolylineStr(points));
 			setMovablePoints(points);
@@ -400,18 +387,20 @@ $:	if(currentPoints && polyline && !initialized) {
 		</g>
 	</svg>
 
-<pre>
-Instructions:
-- click on same spot twice to end the polygon (it will be converted to a simplified convex hull)
+{#if drawing}
+	<pre>
+	Instructions:
+	- click on same spot twice to end the polygon (it will be converted to a simplified convex hull)
 
-TODO:
-- pass in existing poly
-- disable double-click when drawing polys
-- add button/function for 'undo'
-- add button/function for 'clear'
-- add button/function for toggling whether to 'disregard' (ignore) or 'regard' (don't ignore)
-- maybe get rid of convex hull wrangling (since it's quite annoying if you actually _need_ a complex area) (need to fix server-side for that)
-</pre>
+	TODO:
+	- pass in existing poly
+	- disable double-click when drawing polys
+	- add button/function for 'undo'
+	- add button/function for 'clear'
+	- add button/function for toggling whether to 'disregard' (ignore) or 'regard' (don't ignore)
+	- maybe get rid of convex hull wrangling (since it's quite annoying if you actually _need_ a complex area) (need to fix server-side for that)
+	</pre>
+{/if}
 
 <style>
 .hide {

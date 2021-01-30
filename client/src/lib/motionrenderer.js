@@ -32,7 +32,6 @@ export class MotionRenderer
 
 	configure(videoWidth, videoHeight)
 	{
-console.log("wtf2", videoWidth, videoHeight, this.motionCanvas);
 		let frameDataWidth = Math.floor( videoWidth / 16) + 1;
 		let frameDataHeight = Math.floor( videoHeight / 16) + 1;
 

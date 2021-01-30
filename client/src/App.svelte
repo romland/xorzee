@@ -26,7 +26,6 @@
 
 	function neighbourChange(e)
 	{
-		console.log("APP got new neighbours", e);
 		neighbours = e.detail.data;
 	}
 

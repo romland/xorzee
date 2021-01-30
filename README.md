@@ -28,11 +28,12 @@ A low-latency, HD video streamer and motion detector. The goal is that it must r
 [1] If it can run on that, it will run on any other.
 
 ## Working on now
-- client: Pass in existing polygon (to PolyDraw) so that it can be modified (as it is now, you just simply start over)
+- Dig into issue with recording / stop recording not being great
 - client: with new video player, multiple cameras are a bit borked (overlaying elements)
 - client: server settings in UI
 - client: controls layout, functionality
 - client: exiting fullscreen will forget previous size of videoplayer (and thus all elements are of wrong size
+- ditch the whole sci-fi-look attempt
 
 ## Quick do's
 - (keep a flag around for this): if manually started recording -- don't automatically stop it
@@ -373,3 +374,5 @@ x when alt-tabbed -- our latency increases (have since enabled (don't stream whe
 x real dilemma: Since we have overlays on the video you cannot press play (and sadly, cannot count on Autoplay any more :( )
 - refactor to make motion the controlling factor -- as it is now, the video channel is controlling
   the size of rendering area
+- client: Pass in existing polygon (to PolyDraw) so that it can be modified (as it is now, you just simply start over)
+- client: allow movement of vertices in polygon
