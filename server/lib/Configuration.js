@@ -31,7 +31,7 @@ class Configuration
 			},
 
 			videoPort : {
-				category	: "Internal",
+				category	: "Advanced.Internal",
 				label		: "Video Port",
 				type		: "int",
 				range		: [1025, 65535],
@@ -51,10 +51,6 @@ class Configuration
 			// General
 			name			: "Camera at default location",			// A name of your choice identifying this camera
 			password		: "",									// TODO: be able to password protect stream (need to pass pw on connect)
-
-			// Internal ports
-			videoPort		: 8000,									// (internal) for camera (video)
-			motionPort		: 8001,									// (internal) for camera (motion data)
 
 			// Webserver
 			wwwPort			: 8080,									// (public) for client (web content)
@@ -174,9 +170,14 @@ class Configuration
 			announce		: true,									// Whther to announce presence to neighbouring cameras
 
 			//
-			// Advanced/debug/test settings
+			// Advanced/internal/debug/test settings
 			//
 
+			// Internal ports
+			videoPort		: 8000,									// (internal) for camera (video)
+			motionPort		: 8001,									// (internal) for camera (motion data)
+
+			// Signal settings
 			spawnInShell			: false,						// Whether to spawn signal scrips in a shell or not (in shell is slower)
 
 			// Cluster definition

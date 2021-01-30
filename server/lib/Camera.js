@@ -132,6 +132,10 @@ class Camera
         });
 
 		logger.debug("Started camera with PID %d", this.camProc.pid);
+
+		if(!this.camProc.pid) {
+			logger.warn("Could probably not start camera; something already using it?");
+		}
 	}
 
 	async stop()

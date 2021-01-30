@@ -330,6 +330,8 @@ class MvrProcessor
 
 	preCalculateIgnoredArea()
 	{
+		logger.debug("Recalculating ignored area");
+
 		this.ignoredAreaLookup = { };
 
 		if(!this.ignoredArea) {
