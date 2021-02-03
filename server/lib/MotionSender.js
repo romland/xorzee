@@ -6,7 +6,8 @@
 
 const pino = require('pino');
 const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
-const WebSocket = require('@clusterws/cws');
+//const WebSocket = require('@clusterws/cws');
+const WebSocket = require('ws');
 
 class MotionSender
 {
@@ -16,14 +17,14 @@ class MotionSender
 		this.motionWsServer = null;
 	}
 
-    broadcastRaw(data, len, binary = true)
-    {
-        this.motionWsServer.clients.forEach((ws) => {
-            if (ws.readyState === 1) {
-                ws.send(data, { binary: binary });
-            }
-        });
-    }
+	broadcastRaw(data, len, binary = true)
+	{
+		this.motionWsServer.clients.forEach((ws) => {
+			if (ws.readyState === 1) {
+				ws.send(data, { binary: binary });
+			}
+		});
+	}
 
 	broadcastMessage(ob)
 	{
@@ -33,17 +34,17 @@ class MotionSender
 
 	start(welcomeMessage, controlHandler)
 	{
-        this.motionWsServer = new WebSocket.WebSocketServer({ port: this.conf.get('motionWsPort') });
-        logger.info( "Motion sender websocket server listening on %d", this.conf.get('motionWsPort') );
+		this.motionWsServer = new WebSocket.Server({ port: this.conf.get('motionWsPort') });
+		logger.info( "Motion sender websocket server listening on %d", this.conf.get('motionWsPort') );
 
-        this.motionWsServer.on('connection', (ws) => {
-            if (this.motionWsServer.clients.length >= this.conf.get('wsClientLimit')) {
-                logger.info('Motion client rejected, limit of %d reached', this.conf.get('wsClientLimit'));
-                ws.close();
-                return;
-            }
+		this.motionWsServer.on('connection', (ws) => {
+			if (this.motionWsServer.clients.size >= this.conf.get('wsClientLimit')) {
+				logger.info('Motion client rejected, limit of %d reached', this.conf.get('wsClientLimit'));
+				ws.close();
+				return;
+			}
 
-            logger.info('Motion client connected. Viewers: %d', this.motionWsServer.clients.length)
+			logger.info('Motion client connected. Viewers: %d', this.motionWsServer.clients.size)
 
 			ws.send(
 				JSON.stringify(welcomeMessage()),
@@ -51,14 +52,14 @@ class MotionSender
 				false
 			);
 
-            ws.on('message', (msg) => {
+			ws.on('message', (msg) => {
 				controlHandler(msg);
-            });
+			});
 
-            ws.on('close', (ws, id) => {
-                logger.debug('Video client disconnected. Viewers: %d', this.motionWsServer.clients.length);
-            })
-        });
+			ws.on('close', (ws, id) => {
+				logger.debug('Video client disconnected. Viewers: %d', this.motionWsServer.clients.size);
+			});
+		});
 	}
 }
 
