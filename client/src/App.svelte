@@ -9,6 +9,7 @@
 	let neighbours = [];
 	let remoteServer = false;
 	let remoteAddress = null;
+	let playerWidth = "40%";
 
 	// TODO: The first server needs to provide its motionStreamPort to 
 	//       its clients -- the rest SHOULD be dynamic... The TODO here
@@ -19,8 +20,9 @@
 	if(DEVELOPING_CLIENT_ON_LOCALHOST) {
 		// Set the address of the 'first server' if our client is not hosted by that server.
 		remoteServer = true;
-		// remoteAddress = "192.168.178.194";
-		remoteAddress = "192.168.178.67";
+		// remoteAddress = "192.168.178.194";	// raspi-zero test
+		// remoteAddress = "192.168.178.228";		// The 'desktop' raspi 3b+
+		remoteAddress = "192.168.178.67";		// the JoyIt fisheye tester (Vidensi)
 	}
 
 
@@ -82,39 +84,61 @@
 </script>
 
 <main>
-	Xorzee {ISODateString(time)}
+	<div>
+		Xorzee {ISODateString(time)}
+	</div>
 
 	<div on:click={()=> {showOverlayButtons = !showOverlayButtons}}>
 		Toggle controls
 	</div>
 
-	<div class="player">
-		<!-- our primary server, the other ones we should NOT get neighbour events from -->
-		<Player
-			on:neighbourChange={neighbourChange}
-			{remoteServer}
-			{remoteAddress}
-			{motionStreamPort}
-			{showOverlayButtons}
-		></Player>
-	</div>
+	<div class="players">
+		<div class="player">
+			<!-- our primary server, the other ones we should NOT get neighbour events from -->
+			<Player
+				on:neighbourChange={neighbourChange}
+				{remoteServer}
+				{remoteAddress}
+				{motionStreamPort}
+				{showOverlayButtons}
+				{playerWidth}
+			></Player>
+		</div>
 
-	<!-- TODO: Check so we only do _one_ of each, ipv4 or ipv6 or whatever other hostname we might get -->
-	{#each neighbours as neighbour}
-		{#if isValidAddress(neighbour.address)}
-			<div class="player">
-				<Player
-					remoteServer={true}
-					remoteAddress={neighbour.address}
-					motionStreamPort={neighbour.port}
-					{showOverlayButtons}
-				></Player>
-			</div>
-		{/if}
-	{/each}
+		<!-- TODO: Check so we only do _one_ of each, ipv4 or ipv6 or whatever other hostname we might get -->
+		{#each neighbours as neighbour}
+			{#if isValidAddress(neighbour.address)}
+				<div class="player">
+					<Player
+						remoteServer={true}
+						remoteAddress={neighbour.address}
+						motionStreamPort={neighbour.port}
+						{showOverlayButtons}
+						{playerWidth}
+					></Player>
+				</div>
+			{/if}
+		{/each}
+	</div>
 </main>
 
 <style>
+	.players {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: space-between;
+		align-content: space-around;
+		height: 100vh; /* new */
+  	}
+
 	.player {
+		flex: 1 1 auto 40%;
+		margin: 4px;
 	}
+
+/* 
+    .players>* {
+        flex: 1 1 260px;
+    }
+ */
 </style>

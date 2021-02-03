@@ -2,7 +2,7 @@
 	import { createEventDispatcher, onMount, onDestroy } from 'svelte';
 	import { fade } from 'svelte/transition';
 
-	import { followGeography, addGeographyFollower } from "../lib/utils.js";
+	import { updateAllGeography, followGeography, addGeographyFollower } from "../lib/utils.js";
 	import BroadwayStats, { onNALunit } from "./BroadwayStats.svelte";
 	import Fullscreen from "./Fullscreen.svelte";
 	import PolyDraw from "./PolyDraw.svelte";
@@ -18,6 +18,7 @@
 	export let remoteAddress = null;		// This only needs to be set to an address if above is true.
 	export let motionStreamPort = null;		// The client needs to get motionStreamPort from the _first_ server it connects to
 	export let showOverlayButtons = true;
+	export let playerWidth = null;			// Size of one player -- _must_ be passed in
 
 	const reconnectInterval = 0;// 2000;	// set to 0 for no auto-reconnect
 
@@ -97,6 +98,7 @@
 			videoPlayer = videoStreamer.getPlayer();
 			container.prepend(videoPlayer.canvas);
 			addGeographyFollower(
+				motionCanvas,
 				videoPlayer.canvas
 				// [ (w,h,o) => { motionStreamer.resize(settings.width, settings.height, o) } ]
 			);
@@ -191,21 +193,26 @@
 	}
 
 	// This works because it acts on the element that is 'primary' when using followGeography()
-	function toggleFullScreen(request, exit)
+	function toggleFullScreen(requestFullscreen, exitFullscreen)
 	{
+		console.log("toggleFullScreen called", motionCanvas);
 		if(drawingIgnoreArea) {
 			// Don't allow resizing when drawing
 			return;
 		}
 
 		if(fullScreenState) {
-			motionCanvas.style.width = "auto";
-			exit();
+			exitFullscreen();
+
+			motionCanvas.style.width = playerWidth;
+			updateAllGeography();
 		} else {
+			
+			requestFullscreen();
 			motionCanvas.style.width = "100%";
-			request();
+			updateAllGeography()
 		}
-		
+
 		fullScreenState = !fullScreenState;
 	}
 
@@ -248,9 +255,9 @@
 	<Fullscreen let:onRequest let:onExit>
 		<div class="container" bind:this={container}>
 			<!-- 'videoCanvas' (can also be a video player) will be inserted above by Broadway -->
-			<canvas bind:this={motionCanvas} class="motionCanvas"/>
+			<canvas bind:this={motionCanvas} class="motionCanvas" style="width: {playerWidth};"/>
 
-			<div on:dblclick={ () => toggleFullScreen(onRequest, onExit) } bind:this={polydrawContainer} style="width: 1280px; height: 720px; z-index: 10; position: absolute;">
+			<div class="containerOverlays" on:dblclick={ () => toggleFullScreen(onRequest, onExit) } bind:this={polydrawContainer}>
 				{#if settings}
 					<div class="topLeft">
 						<Configuration on:message={(e)=>onLayerChange("Configuration", e)} bind:showButton={showOverlayButtons} bind:visible={overlay["Configuration"]} sendMessage={sendMessage} {settings}></Configuration>
@@ -281,18 +288,19 @@
 	</Fullscreen>
 
 <style>
-	.motionCanvas {
-		position: absolute;
-	}
-
 	.container {
 		user-select: none;
 	}
+	
+	.containerOverlays {
+		position: absolute;
+		z-index: 10;
+	}
 
-	:global(canvas) {
+	.motionCanvas {
+		position: absolute;
 		border: 1px solid #eee;
-		margin-bottom: 20px;
-		width: 99vw;
+		width: 100vw;
 	}
 
 	.topLeft {

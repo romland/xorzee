@@ -27,15 +27,25 @@ A low-latency, HD video streamer and motion detector. The goal is that it must r
 
 [1] If it can run on that, it will run on any other.
 
+
+// 'cast to tv' : upnp and dlna ?
+	https://github.com/lillanes/spellcast
+	cast to smart tv : https://github.com/search?q=cast+to+smart+tv&type=repositories
+	my lg tv does not seem to broadcast itself as a DLNA renderer (?)
+
+
+
 ## Working on now
-- Dig into issue with recording / stop recording not being great
+- replace cws (and uWebsockets.js) with plain 'ws'
 - client: with new video player, multiple cameras are a bit borked (overlaying elements)
+- ditch the whole sci-fi-look attempt -- make it look something like: https://v3demo.mediasoup.org/?roomId=sflbgtdf
+- Dig into issue with recording / stop recording not being great
 - client: server settings in UI
 - client: controls layout, functionality
 - client: exiting fullscreen will forget previous size of videoplayer (and thus all elements are of wrong size
-- ditch the whole sci-fi-look attempt
 
 ## Quick do's
+- upgrade systemd package and then actually put it to use
 - (keep a flag around for this): if manually started recording -- don't automatically stop it
 - name: Xorzee (.com is available)
 - make configurable:
@@ -311,6 +321,9 @@ A low-latency, HD video streamer and motion detector. The goal is that it must r
 - Developing against Node 12 (Raspi Zero version here:) https://unofficial-builds.nodejs.org/download/release/v12.16.3/
 	- For some reason, could not get it running on the raspi-zero 'pi1in3oled' (or so) -- should probably just reinstall that card
 	- on other raspizero i run it fine on node 10
+- (cws is breaking for me on later node versions):
+	install uws: npm install uWebSockets.js@uNetworking/uWebSockets.js#v18.14.0
+
 
 ## How's...
 - The stream is h264, that is sent to broadway (i.e. we offload work to client when it comes to the video)
@@ -320,6 +333,22 @@ A low-latency, HD video streamer and motion detector. The goal is that it must r
 - A firewall needs to (by default) open 8080-8082 (TCP)
 - install ffmpeg (not in raspbian repositories), binaries available from https://ffmpeg.org/. Choose download / linux / Linux Static Builds. Download the armhf build for newer raspberry pi's. Unarchive and move the created directory somewhere: like to /usr/local. So you will have e.g.: /usr/local/ffmpeg-3.3.2-armhf-32bit-static/.
 - create symlinks for /usr/local/ffmpeg-/bin/ffmpeg, ffmpeg-10bit and ffserver into /usr/local/bin.
+- installing on a more recent Raspi (arm7):
+	curl -sL https://deb.nodesource.com/setup_15.x | sudo -E bash -
+	sudo apt-get install -y git nodejs gcc g++ make
+	git clone https://github.com/romland/bettermotion.git
+	cd bettermotion/client
+	npm install
+	npm run build (warnings here are okay)
+	cd ../server
+	npm install
+	node index.js
+
+## Since no 32bit UWS by default: building uws
+- ditching uWebSockets.js and going with https://www.npmjs.com/package/ws
+
+
+
 
 # Done
 - add 'trigger areas' (polygons)

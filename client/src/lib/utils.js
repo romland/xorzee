@@ -1,6 +1,13 @@
 "use strict";
 
-var _from, _to = [], _notify = [];
+/*
+// example:
+<from html element> : {
+	to : [ ... ],
+	notify : [ ... ]
+}
+*/
+var connections = [];
 
 export function copyGeography(from, to)
 {
@@ -8,8 +15,8 @@ export function copyGeography(from, to)
 	let totBorderSize = 2;
 	let styles = {
 		position	: "absolute",
-		left		: (vsRect.left + window.pageXOffset) + "px",
-		top			: (vsRect.top + window.pageYOffset) + "px",
+		// left		: (vsRect.left + window.pageXOffset) + "px",
+		// top			: (vsRect.top + window.pageYOffset) + "px",
 		width		: vsRect.width - totBorderSize + "px",
 		height		: vsRect.height - totBorderSize + "px"
 	};
@@ -19,19 +26,60 @@ export function copyGeography(from, to)
 	}
 }
 
-export function addGeographyFollower(to, notify)
+export function updateAllGeography()
 {
-	if(!_from) {
-		throw new Error("Not initialized with a 'from'");
+	// let froms = Object.keys(connections);
+	for(var i = 0; i < connections.length; i++) {
+		let from = connections[i].from;
+		for(let i = 0; i < connections[i].to.length; i++) {
+			copyGeography(from, connections[i].to[i]);
+		}
+
+		let style = window.getComputedStyle(from, null);
+		for(let i = 0; i < connections[i].notify.length; i++) {
+			// size without border padding
+			connections[i].notify[i](style.getPropertyValue("width"), style.getPropertyValue("height"), from);
+		}
+	}
+}
+
+export function addGeographyFollower(from, to, notify)
+{
+	if(!from) {
+		throw new Error("no 'from'");
+	}
+
+	let con = getConnection(from);
+	if(!con) {
+		throw new Error("No such from was previously added");
 	}
 
 	if(to) {
-		_to.push(to);
+		if(!Array.isArray(to)) {
+			to = [ to ];
+		}
+
+		con.to.push(...to);
 	}
 
 	if(notify) {
-		_notify.push(notify);
+		if(!Array.isArray(notify)) {
+			notify = [ notify ];
+		}
+
+		con.notify.push(...notify);
 	}
+}
+
+
+function getConnection(ob)
+{
+	for(let i = 0; i < connections.length; i++) {
+		if(ob === connections[i].from) {
+			return connections[i];
+		}
+	}
+	return null;
 }
 
 /**
@@ -40,46 +88,44 @@ export function addGeographyFollower(to, notify)
  */
 export function followGeography(from, to, notify)
 {
-	if(!Array.isArray(to) && to) {
-		to = [ to ];
+	let con = getConnection(from);
+	if(!con) {
+		con = {
+			from : from,
+			to : [],
+			notify : [],
+		};
+		connections.push(con);
 	}
 
-	if(!Array.isArray(notify) && notify) {
-		notify = [ notify ];
-	}
-
-	if(from)
-		_from = from;
-	if(to && to.length)
-		_to = to;
-	if(notify && notify.length)
-		_notify = notify;
+	addGeographyFollower(from, to, notify);
 
 	let copyGeo = () => {
 		// console.log("copyGeo() to", _to);
-		for(let i = 0; i < _to.length; i++) {
-			copyGeography(_from, _to[i]);
+		for(let i = 0; i < con.to.length; i++) {
+			copyGeography(from, con.to[i]);
 		}
 	};
 
 	let notifyGeo = () => {
-		let style = window.getComputedStyle(_from, null);
-		for(let i = 0; i < _notify.length; i++) {
+		let style = window.getComputedStyle(from, null);
+		for(let i = 0; i < con.notify.length; i++) {
 			// size without border padding
-			_notify[i](style.getPropertyValue("width"), style.getPropertyValue("height"), _from);
+			con.notify[i](style.getPropertyValue("width"), style.getPropertyValue("height"), from);
 		}
 	};
-
+/*
 	window.onresize = (e) => {
 		copyGeo();
 		notifyGeo();
+		console.log("window resize", from);
 	};
-
+*/
 	new ResizeObserver((elt) => {
 		// resized element sits in elt[0].target
 		copyGeo();
 		notifyGeo();
-	}).observe(_from);
+	}).observe(from);
 
 	copyGeo();
 	notifyGeo();
