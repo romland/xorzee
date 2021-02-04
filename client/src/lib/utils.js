@@ -12,7 +12,8 @@ var connections = [];
 export function copyGeography(from, to)
 {
 	let vsRect = from.getBoundingClientRect();
-	let totBorderSize = 2;
+	// let totBorderSize = 2;
+	let totBorderSize = 0;
 	let styles = {
 		position	: "absolute",
 		// left		: (vsRect.left + window.pageXOffset) + "px",

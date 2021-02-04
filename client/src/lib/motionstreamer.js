@@ -101,6 +101,10 @@ export default class MotionStreamer
 				that.handleMessage(typeof msg.data, msg.data);
 			}
 		}
+
+		this.webSocket.onerror = function(err) { 
+			console.error(err);
+		};
 	
 		this.webSocket.onclose = function (e) {
 			that.webSocket = null;

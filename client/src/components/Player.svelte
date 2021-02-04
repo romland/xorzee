@@ -55,7 +55,8 @@
 	// yeah yeah, rename this... it's for development only
 	function fiddleWithUrl()
 	{
-		if(remoteServer && window.location.hostname === "localhost") {
+		if(remoteServer && (window.location.hostname === "localhost" || window.location.hostname === "192.168.178.100")) {
+			// Initial server is NOT on same host as client
 			wsUrl = `ws://${remoteAddress}:`;
 			remoteUrl = window.location.protocol + "//" + remoteAddress + ":" + wwwPort;
 		} else {
@@ -99,8 +100,13 @@
 			container.prepend(videoPlayer.canvas);
 			addGeographyFollower(
 				motionCanvas,
-				videoPlayer.canvas
-				// [ (w,h,o) => { motionStreamer.resize(settings.width, settings.height, o) } ]
+				videoPlayer.canvas,
+				[ (w,h,o) => {
+					// This is called when motionCanvas changes
+					// We need to give container a physical size since everything in it absolute positioned.
+					container.style.height = videoPlayer.canvas.style.height;
+					container.style.width = videoPlayer.canvas.style.width;
+				}]
 			);
 			motionStreamer.setVideoSize(settings.width, settings.height);
 		}
@@ -195,9 +201,7 @@
 	// This works because it acts on the element that is 'primary' when using followGeography()
 	function toggleFullScreen(requestFullscreen, exitFullscreen)
 	{
-		console.log("toggleFullScreen called", motionCanvas);
 		if(drawingIgnoreArea) {
-			// Don't allow resizing when drawing
 			return;
 		}
 
@@ -251,7 +255,6 @@
 	}
 
 </script>
-
 	<Fullscreen let:onRequest let:onExit>
 		<div class="container" bind:this={container}>
 			<!-- 'videoCanvas' (can also be a video player) will be inserted above by Broadway -->
@@ -290,7 +293,7 @@
 <style>
 	.container {
 		user-select: none;
-	}
+  	}
 	
 	.containerOverlays {
 		position: absolute;
@@ -299,8 +302,6 @@
 
 	.motionCanvas {
 		position: absolute;
-		border: 1px solid #eee;
-		width: 100vw;
 	}
 
 	.topLeft {

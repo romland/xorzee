@@ -329,7 +329,7 @@ $:	if(currentPoints && polyline && !initialized) {
 			on:mouseup={mouseUp}
 			height="100%"
 			width="100%"
-			style=""
+			style="margin: 0; padding: 0;"
 			viewBox="0 0 {width} {height}"
 		>
 
@@ -372,7 +372,7 @@ $:	if(currentPoints && polyline && !initialized) {
 		class:hide={drawing}
 		width="100%"
 		height="100%"
-		style=""
+		style="margin: 0; padding: 0;"
 		viewBox="0 0 {width} {height}"
 	>
 		<g fill="none" fill-rule="evenodd">

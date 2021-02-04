@@ -25,6 +25,11 @@ export class MotionRenderer
 		this.render();		
 	}
 
+	getCanvas()
+	{
+		return this.motionCanvas;
+	}
+
 	stop()
 	{
 		// TODO: Stop animframe

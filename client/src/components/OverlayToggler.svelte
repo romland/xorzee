@@ -181,7 +181,8 @@
 	<div bind:this={content} style={contentPos} class="outer" out:fade>
 		{#if visible}
 			<!--div class="content" transition:scale="{{start:0.25}}" -->
-			<div class="content" in:typewriter="{{speed: 6}}" out:scale>
+			<!--div class="content" in:typewriter="{{speed: 6}}" out:scale-->
+			<div class="content" in:fade out:scale>
 				<slot></slot>
 			</div>
 		{/if}

@@ -9,7 +9,8 @@
 	let neighbours = [];
 	let remoteServer = false;
 	let remoteAddress = null;
-	let playerWidth = "40%";
+	let playerWidthValue = 49;
+	let playerWidth = playerWidthValue + "%";
 
 	// TODO: The first server needs to provide its motionStreamPort to 
 	//       its clients -- the rest SHOULD be dynamic... The TODO here
@@ -81,6 +82,32 @@
 			+ pad(d.getUTCSeconds());
 	}
 
+
+	function myLittleClick(ev)
+	{
+		// navigator.bluetooth.requestDevice({ filters: [{ services: ['battery_service'] }] })
+		// navigator.bluetooth.requestDevice({filters: [{ services: ['00002a2b-0000-1000-8000-00805f9b34fb'] }] })
+		navigator.bluetooth.requestDevice({
+				acceptAllDevices : true,
+				optionalServices: ['00002a2b-0000-1000-8000-00805f9b34fb']
+			})
+			.then(async device => {
+				/* … */
+				await device.gatt.connect();
+				console.log("device", device);
+				let primaryServices = await device.gatt.getPrimaryServices();
+				console.log("FOO", primaryServices);
+			})
+			.catch(error => {
+				console.error(error);
+			});;
+	}
+
+$:	if(playerWidthValue) {
+		console.log("slider change", playerWidthValue);
+		playerWidth = playerWidthValue + "%";
+	}
+
 </script>
 
 <main>
@@ -88,9 +115,13 @@
 		Xorzee {ISODateString(time)}
 	</div>
 
+	<input type="range" min="10" max="99" bind:value={playerWidthValue}>
 	<div on:click={()=> {showOverlayButtons = !showOverlayButtons}}>
 		Toggle controls
 	</div>
+<!--
+	<button on:click={myLittleClick}>Click me</button>
+-->
 
 	<div class="players">
 		<div class="player">
@@ -101,11 +132,11 @@
 				{remoteAddress}
 				{motionStreamPort}
 				{showOverlayButtons}
-				{playerWidth}
+				bind:playerWidth={playerWidth}
 			></Player>
 		</div>
 
-		<!-- TODO: Check so we only do _one_ of each, ipv4 or ipv6 or whatever other hostname we might get -->
+		<!-- Each of our neighbours on the network -->
 		{#each neighbours as neighbour}
 			{#if isValidAddress(neighbour.address)}
 				<div class="player">
@@ -114,7 +145,7 @@
 						remoteAddress={neighbour.address}
 						motionStreamPort={neighbour.port}
 						{showOverlayButtons}
-						{playerWidth}
+						bind:playerWidth={playerWidth}
 					></Player>
 				</div>
 			{/if}
@@ -128,17 +159,6 @@
 		flex-wrap: wrap;
 		justify-content: space-between;
 		align-content: space-around;
-		height: 100vh; /* new */
   	}
 
-	.player {
-		flex: 1 1 auto 40%;
-		margin: 4px;
-	}
-
-/* 
-    .players>* {
-        flex: 1 1 260px;
-    }
- */
 </style>

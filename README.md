@@ -9,35 +9,24 @@ A low-latency, HD video streamer and motion detector. The goal is that it must r
 - [x] ...stream directly from device to multiple clients (no intermediaries)
 - [x] ...ability to only stream video when there is activity
 - [x] ...configurable sensitivity of motion detection
-- [x] ...set areas of interest for motion detection
 - [x] ...save motion-sequences (video) to disk
 - [x] ...make thumbnails of motion sequences
 - [x] ...discover all other cameras on the network
 - [x] ...optionally play audio, invoke remote URL or send mail on activity
 - [x] ...optionally signal external programs on activity (or end of)
-- [x] ...highly configurable (but sane defaults)
 - [x] ...user interface to draw ignored areas (think: masks in other programs)
 - [x] ...configurable stream overlays
 - [x] ...multiple cameras in web-clients
 - [x] ...connect to any camera on the network to automatically view _all_ cameras on network
-- [ ] ...modern web-client in Svelte
 - [ ] ...store meta-data of amount of activity in period (graph)
-- [ ] ...zero configuration (that is, image card, connect to network and off we go)
+- [ ] ...modern web-client in Svelte
 - [x] ...and quite a bit more
 
 [1] If it can run on that, it will run on any other.
 
-
-// 'cast to tv' : upnp and dlna ?
-	https://github.com/lillanes/spellcast
-	cast to smart tv : https://github.com/search?q=cast+to+smart+tv&type=repositories
-	my lg tv does not seem to broadcast itself as a DLNA renderer (?)
-
-
-
 ## Working on now
-- replace cws (and uWebsockets.js) with plain 'ws'
 - client: with new video player, multiple cameras are a bit borked (overlaying elements)
+- look into if we can mp4-ify on server instead of client (with multiple cameras I do see a bit of client load)
 - ditch the whole sci-fi-look attempt -- make it look something like: https://v3demo.mediasoup.org/?roomId=sflbgtdf
 - Dig into issue with recording / stop recording not being great
 - client: server settings in UI
@@ -324,6 +313,39 @@ A low-latency, HD video streamer and motion detector. The goal is that it must r
 - (cws is breaking for me on later node versions):
 	install uws: npm install uWebSockets.js@uNetworking/uWebSockets.js#v18.14.0
 
+## LGTV: Make it put my LG TV to use
+### how:
+- would like to get more info on capabilities of the (undocumented) websocket protocol; there's 
+  more than what we know (and god knows what kind of payload things expect in some cases)
+	- can check their apps, e.g.: LG TV Plus -- https://www.lg.com/us/experience-tvs/remote-apps
+	- how can I get an android binary to my desktop
+
+	- analyze an Android binary?
+		https://mobile-security.gitbook.io/mobile-security-testing-guide/appendix/0x08-testing-tools#apktool
+
+
+- first make the web-app work on the browser (it seems to fail on phones too)
+- find TV
+- wake on LAN
+- give toast when activity
+- stream when activity / return to previous program when activity over
+	- alt 1: stream cam directly to tv
+	- alt 1: make it picture-in-picture if possible
+	- alt 2: open URL in webbrowser (can we open in partial?)
+
+### LGTV: doc/notes
+	my tests are on pi19dev05:~/pi
+	// 'cast to tv' : upnp and dlna ?
+	https://github.com/lillanes/spellcast
+	cast to smart tv : https://github.com/search?q=cast+to+smart+tv&type=repositories
+	my lg tv does not seem to broadcast itself as a DLNA renderer (?)
+
+	toast icons?: https://github.com/pasnox/oxygen-icons-png/tree/master/oxygen/32x32
+	- wake on lan (next)
+	// screenshot?! https://www.npmjs.com/package/node-lgtv-api
+
+
+
 
 ## How's...
 - The stream is h264, that is sent to broadway (i.e. we offload work to client when it comes to the video)
@@ -405,3 +427,4 @@ x real dilemma: Since we have overlays on the video you cannot press play (and s
   the size of rendering area
 - client: Pass in existing polygon (to PolyDraw) so that it can be modified (as it is now, you just simply start over)
 - client: allow movement of vertices in polygon
+- replace cws (and uWebsockets.js) with plain 'ws'
