@@ -9,7 +9,7 @@
 	let neighbours = [];
 	let remoteServer = false;
 	let remoteAddress = null;
-	let playerWidthValue = 49;
+	let playerWidthValue = 48;
 	let playerWidth = playerWidthValue + "%";
 
 	// TODO: The first server needs to provide its motionStreamPort to 
@@ -21,8 +21,9 @@
 	if(DEVELOPING_CLIENT_ON_LOCALHOST) {
 		// Set the address of the 'first server' if our client is not hosted by that server.
 		remoteServer = true;
+		// remoteAddress = "192.168.178.193";	// raspi-zero with IR/noIR camera (own IR lamps)
 		// remoteAddress = "192.168.178.194";	// raspi-zero test
-		// remoteAddress = "192.168.178.228";		// The 'desktop' raspi 3b+
+		// remoteAddress = "192.168.178.228";	// The 'desktop' raspi 3b+
 		remoteAddress = "192.168.178.67";		// the JoyIt fisheye tester (Vidensi)
 	}
 
@@ -82,29 +83,7 @@
 			+ pad(d.getUTCSeconds());
 	}
 
-
-	function myLittleClick(ev)
-	{
-		// navigator.bluetooth.requestDevice({ filters: [{ services: ['battery_service'] }] })
-		// navigator.bluetooth.requestDevice({filters: [{ services: ['00002a2b-0000-1000-8000-00805f9b34fb'] }] })
-		navigator.bluetooth.requestDevice({
-				acceptAllDevices : true,
-				optionalServices: ['00002a2b-0000-1000-8000-00805f9b34fb']
-			})
-			.then(async device => {
-				/* … */
-				await device.gatt.connect();
-				console.log("device", device);
-				let primaryServices = await device.gatt.getPrimaryServices();
-				console.log("FOO", primaryServices);
-			})
-			.catch(error => {
-				console.error(error);
-			});;
-	}
-
 $:	if(playerWidthValue) {
-		console.log("slider change", playerWidthValue);
 		playerWidth = playerWidthValue + "%";
 	}
 
@@ -115,13 +94,10 @@ $:	if(playerWidthValue) {
 		Xorzee {ISODateString(time)}
 	</div>
 
-	<input type="range" min="10" max="99" bind:value={playerWidthValue}>
+	<input type="range" min="10" max="98" bind:value={playerWidthValue}>
 	<div on:click={()=> {showOverlayButtons = !showOverlayButtons}}>
 		Toggle controls
 	</div>
-<!--
-	<button on:click={myLittleClick}>Click me</button>
--->
 
 	<div class="players">
 		<div class="player">
@@ -159,6 +135,12 @@ $:	if(playerWidthValue) {
 		flex-wrap: wrap;
 		justify-content: space-between;
 		align-content: space-around;
-  	}
+	}
+
+	.player {
+		border-radius: 10px;
+		border: 4px solid #333;
+		margin: 0.3%;
+	}
 
 </style>

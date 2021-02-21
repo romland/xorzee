@@ -250,7 +250,7 @@
 		console.log("Play");
 		videoPlayer.canvas.play()
 		if(videoPlayer.canvas.duration > 0) {
-			videoPlayer.canvas.currentTime = videoPlayer.canvas.duration;
+			videoPlayer.canvas.currentTime = videoPlayer.canvas.duration + 5000;
 		}
 	}
 
