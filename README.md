@@ -2,25 +2,17 @@
 A low-latency, HD video streamer and motion detector. The goal is that it must run on (the) one core of a Raspberry Pi Zero[1].
 
 ## Elaboration
-- [x] ...HD stream meaning: 1920x1080 @ ~30 frames per second.
-- [x] ...low-latency meaning: video stream should have delay no higher than 150 milliseconds
+- [x] ...HD stream meaning: 1920x1080 @ ~30 frames per second and low-latency meaning: delay no higher than 150 milliseconds
 - [x] ...while _not_ using Broadway
-- [x] ...able to stream live camera feed to dozens of web-clients simultaneously
-- [x] ...stream directly from device to multiple clients (no intermediaries)
-- [x] ...ability to only stream video when there is activity
+- [x] ...able to stream live camera feed directly to dozens of web-clients simultaneously and without intermediaries
+- [x] ...stream always or stream on activity
 - [x] ...configurable sensitivity of motion detection
 - [x] ...save motion-sequences (video) to disk
 - [x] ...make thumbnails of motion sequences
-- [x] ...discover all other cameras on the network
-- [x] ...optionally play audio, invoke remote URL or send mail on activity
-- [x] ...optionally signal external programs on activity (or end of)
-- [x] ...user interface to draw ignored areas (think: masks in other programs)
-- [x] ...configurable stream overlays
-- [x] ...multiple cameras in web-clients
-- [x] ...connect to any camera on the network to automatically view _all_ cameras on network
+- [x] ...a client should automatically discover all cameras on the network (and show a stream)
+- [x] ...ability to signal external programs on activity (or end of), e.g. audio, mail, telegram, ...
 - [ ] ...store meta-data of amount of activity in period (graph)
 - [ ] ...modern web-client in Svelte
-- [x] ...and quite a bit more
 
 [1] If it can run on that, it will run on any other.
 
