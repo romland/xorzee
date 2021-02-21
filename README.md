@@ -7,8 +7,7 @@ A low-latency, HD video streamer and motion detector. The goal is that it must r
 - [x] ...able to stream live camera feed directly to dozens of web-clients simultaneously and without intermediaries
 - [x] ...stream always or stream on activity
 - [x] ...configurable sensitivity of motion detection
-- [x] ...save motion-sequences (video) to disk
-- [x] ...make thumbnails of motion sequences
+- [x] ...save motion-sequences (thumbnail and video) to disk
 - [x] ...a client should automatically discover all cameras on the network (and show a stream)
 - [x] ...ability to signal external programs on activity (or end of), e.g. audio, mail, telegram, ...
 - [ ] ...store meta-data of amount of activity in period (graph)
