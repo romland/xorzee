@@ -3,7 +3,7 @@
 const NAL_SEPARATOR = new Uint8Array([0, 0, 0, 1]);
 
 import JMuxer from 'jmuxer/dist/jmuxer';	// don't go with default .min.js
-
+import { videoPlayers } from '../state.js';
 
 export default class VideoStreamer
 {
@@ -23,7 +23,7 @@ export default class VideoStreamer
 			let elt = document.createElement(`video`);
 			this.videoEltId = "videoElt" + Date.now();
 			elt.id = this.videoEltId;
-			elt.controls = true;
+			elt.controls = false;
 			elt.autoplay = true;
 			let styles = {
 				position	: "absolute"
@@ -52,6 +52,7 @@ export default class VideoStreamer
 				}
 			});
 		}
+		videoPlayers.push(this);
 	}
 
 	getWebSocket()
@@ -81,7 +82,8 @@ export default class VideoStreamer
 				if(this.player.canvas.currentTime < (this.player.canvas.duration - 0.5)) {
 					if(!firefoxAgent) {
 						console.log("CATCHING UO TO LIVE. BEFORE: currentTime", this.player.canvas.currentTime, "duration", this.player.canvas.duration, "seekable", this.player.canvas.seekable.start(0), "-", this.player.canvas.seekable.end(0))
-						this.player.canvas.currentTime = this.player.canvas.duration;
+						// this.player.canvas.currentTime = this.player.canvas.duration;
+						this.player.canvas.currentTime = this.player.canvas.seekable.end(0);
 					} else {
 						console.log("Firefox lagging behind:", (this.player.canvas.duration - this.player.canvas.currentTime))
 					}

@@ -2,6 +2,7 @@
 	import { onMount, onDestroy } from 'svelte';
 
 	import Player from "./components/Player.svelte";
+	import { videoPlayers } from './state.js';
 
 	const DEVELOPING_CLIENT_ON_LOCALHOST = true;
 
@@ -22,9 +23,9 @@
 		// Set the address of the 'first server' if our client is not hosted by that server.
 		remoteServer = true;
 		// remoteAddress = "192.168.178.193";	// raspi-zero with IR/noIR camera (own IR lamps)
-		// remoteAddress = "192.168.178.194";	// raspi-zero test
+		remoteAddress = "192.168.178.194";	// raspi-zero test
 		// remoteAddress = "192.168.178.228";	// The 'desktop' raspi 3b+
-		remoteAddress = "192.168.178.67";		// the JoyIt fisheye tester (Vidensi)
+		// remoteAddress = "192.168.178.67";		// the JoyIt fisheye tester (Vidensi)
 	}
 
 
@@ -69,6 +70,22 @@
 		};
 	});
 
+	function playAll(ev)
+	{
+		console.log("playAll!", videoPlayers);
+		videoPlayers.map(videoStreamer => {
+			videoStreamer.player.canvas.play();
+			if(videoStreamer.player.canvas.duration > 0) {
+				if(videoStreamer.player.canvas.duration === Infinity) {
+					videoStreamer.player.canvas.currentTime = videoStreamer.player.canvas.seekable.end(0);
+				} else {
+					videoStreamer.player.canvas.currentTime = videoStreamer.player.canvas.duration + 5000;
+				}
+			}
+
+		});
+	}
+
 	// https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Date#Example.3A_ISO_8601_formatted_dates
 	function pad(n){return n<10 ? '0'+n : n}
 	function ISODateString(d)
@@ -103,6 +120,7 @@ $:	if(playerWidthValue) {
 		<div class="player">
 			<!-- our primary server, the other ones we should NOT get neighbour events from -->
 			<Player
+				on:playAll={playAll}
 				on:neighbourChange={neighbourChange}
 				{remoteServer}
 				{remoteAddress}
@@ -117,6 +135,7 @@ $:	if(playerWidthValue) {
 			{#if isValidAddress(neighbour.address)}
 				<div class="player">
 					<Player
+						on:playAll={playAll}
 						remoteServer={true}
 						remoteAddress={neighbour.address}
 						motionStreamPort={neighbour.port}

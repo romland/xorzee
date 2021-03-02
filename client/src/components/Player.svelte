@@ -247,11 +247,9 @@
 	// for when autoplay does not trigger :/
 	function play(ev)
 	{
-		console.log("Play");
-		videoPlayer.canvas.play()
-		if(videoPlayer.canvas.duration > 0) {
-			videoPlayer.canvas.currentTime = videoPlayer.canvas.duration + 5000;
-		}
+		dispatch('playAll', {
+			data : ev
+		});
 	}
 
 </script>
