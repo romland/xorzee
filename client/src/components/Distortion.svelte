@@ -1,6 +1,6 @@
 <link href='https://fonts.googleapis.com/css?family=Varela' rel='stylesheet' type='text/css'>
 
-<div class="glitch" data-text="MintyMint">MintyMint</div> 
+<div class="glitch" data-text="Xorzee">Xorzee</div> 
 
 <style>
 body {

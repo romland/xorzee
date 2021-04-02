@@ -22,10 +22,11 @@
 	if(DEVELOPING_CLIENT_ON_LOCALHOST) {
 		// Set the address of the 'first server' if our client is not hosted by that server.
 		remoteServer = true;
-		// remoteAddress = "192.168.178.193";	// raspi-zero with IR/noIR camera (own IR lamps)
-		remoteAddress = "192.168.178.194";	// raspi-zero test
+		// remoteAddress = "192.168.178.193";	// raspi-zero with IR/noIR camera (own IR lamps) (currently my RobotCar prototype)
+		// remoteAddress = "192.168.178.194";	// raspi-zero test
 		// remoteAddress = "192.168.178.228";	// The 'desktop' raspi 3b+
-		// remoteAddress = "192.168.178.67";		// the JoyIt fisheye tester (Vidensi)
+		remoteAddress = "192.168.178.67";		// the JoyIt fisheye tester (Vidensi) (on my desk)
+		// remoteAddress = "192.168.178.47";		// vidensivision / CM3 / dual camera (Waveshare) (shitty cheap WiFi adapter, so might change!)
 	}
 
 
@@ -49,7 +50,7 @@
 			console.log("document.hidden", document.hidden)
 			if(document.hidden) {
 				var notification = new Notification(
-					'MintyMint',
+					'Xorzee',
 					{
 						body: "Pausing rendering",
 						icon: null

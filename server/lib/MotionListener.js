@@ -91,6 +91,10 @@ class MotionListener
         const tcpServer = net.createServer((socket) => {
             logger.debug('Motion streamer connected');
 
+			if(this.conf.get("trackMotion") === false) {
+				logger.info("But NOTE: Motion tracking is disabled by configuration (trackMotion)");
+			}
+
             socket.on('end', () => {
                 logger.debug('Motion streamer disconnected');
             });
@@ -105,6 +109,10 @@ class MotionListener
 			let cost;
 
             socket.on('data', (data) => {
+				if(this.conf.get("trackMotion") === false) {
+					return;
+				}
+
 				if(this.stop) {
 					logger.debug("Stopping sending of motion data...");
 
