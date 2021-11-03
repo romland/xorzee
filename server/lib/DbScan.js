@@ -1,26 +1,22 @@
+"use strict";
 /**
 	Useage:
-
-	const scanner = new DbScan();
-	scanner.setEps(2);
-	scanner.minPts(4);
-	scanner.setDistance("Manhattan");
-	scanner.setData(...);
-	const results = scanner.run();
+		const scanner = new DbScan();
+		scanner.setEps(2);
+		scanner.minPts(4);
+		scanner.setDistance("Manhattan");
+		scanner.setData(...);
+		const results = scanner.run();
  */
-"use strict";
-
-const performance = require('perf_hooks').performance;
 
 class DbScan
 {
 	constructor()
 	{
 		this.eps = 2;
-		this.minPts = 4;
+		this.minPoints = 4;
 		this.distance = this.euclideanDistance;
 		this.data = [];
-
 		this.clusters = [];
 		this.results = [];
 	}
@@ -37,7 +33,7 @@ class DbScan
 
 	setMinPts(p)
 	{
-		this.minPts = p;
+		this.minPoints = p;
 	}
 
 	setDistance(fn)
@@ -59,24 +55,22 @@ class DbScan
 
 	run()
 	{
-		this.results = new Uint16Array(this.data.length).fill(0xffff);//[];
+		this.results = new Uint16Array(this.data.length).fill(0xffff);
 		this.clusters = [];
 
-		let neighbours, num_neighbours, cluster_idx;
+		let neighbours;
 
 		for(let i = 0; i < this.data.length; i++) {
-			if(this.results[i] === 0xffff) {
-				this.results[i] = 0;					// visited and marked as noise by default
-				neighbours = this.getRegionNeighbours(i);
-				num_neighbours = neighbours.length;
+			if(this.results[i] !== 0xffff) {
+				continue;
+			}
 
-				if(num_neighbours < this.minPts) {
-					this.results[i] = 0;				// noise
-				} else {
-					this.clusters.push([]);				// empty new cluster
-					cluster_idx = this.clusters.length;
-					this.expand(i, neighbours, cluster_idx);
-				}
+			this.results[i] = 0;						// Visited and marked as noise by default
+			neighbours = this.getRegionNeighbours(i);
+
+			if(neighbours.length >= this.minPoints) {
+				this.clusters.push([]);					// Empty new cluster
+				this.expand(i, neighbours, this.clusters.length);
 			}
 		}
 
@@ -85,28 +79,27 @@ class DbScan
 
 	expand(pointId, neighbours, clusterId)
 	{
-		this.clusters[clusterId - 1].push(pointId);		// add point to cluster
-		this.results[pointId] = clusterId;				// assign cluster id
+		this.clusters[clusterId - 1].push(pointId);		// Add point to cluster
+		this.results[pointId] = clusterId;				// Assign cluster id
 
-		let curr_neighbours, curr_num_neighbours, curr_point_idx;
+		let currNeighbours, currPointId;
 
 		for(let i = 0; i < neighbours.length; i++) {
-			curr_point_idx = neighbours[i];
+			currPointId = neighbours[i];
 
-			if(this.results[curr_point_idx] === 0xffff) {
-				this.results[curr_point_idx] = 0;		// visited and marked as noise by default
-				curr_neighbours = this.getRegionNeighbours(curr_point_idx);
-				curr_num_neighbours = curr_neighbours.length;
+			if(this.results[currPointId] === 0xffff) {
+				this.results[currPointId] = 0;			// Visited and marked as noise by default
+				currNeighbours = this.getRegionNeighbours(currPointId);
 
-				if(curr_num_neighbours >= this.minPts) {
-					this.expand(curr_point_idx, curr_neighbours, clusterId);
+				if(currNeighbours.length >= this.minPoints) {
+					this.expand(currPointId, currNeighbours, clusterId);
 				}
 			}
 
-			if(this.results[curr_point_idx] < 1) {
-				// not assigned to a cluster but visited (= 0)
-				this.results[curr_point_idx] = clusterId;
-				this.clusters[clusterId - 1].push(curr_point_idx);
+			if(this.results[currPointId] < 1) {
+				// Not assigned to a cluster but visited (= 0)
+				this.results[currPointId] = clusterId;
+				this.clusters[clusterId - 1].push(currPointId);
 			}
 		}
 	}
@@ -114,23 +107,21 @@ class DbScan
 	getRegionNeighbours(pointId)
 	{
 		const neighbours = [];
-		let d = this.data[pointId];
+		const point = this.data[pointId];
 		let i = 0;
-		let dlen = this.data.length;
 
 		// This is a _very_ hot code path.
-		for(; i < dlen; i++) {
+		for(; i < this.data.length; i++) {
 			if(pointId === i) {
 				continue;
 			}
 
-			// The pre-check before calling distance  will actually cut
+			// The pre-check before calling distance() will actually cut
 			// execution time down to 50% (and more in quiet scenarios). It
 			// also seems to make execution time a little more predictable.
 			// The downside is that it makes epsilon mean something else.
-			if(Math.abs(this.data[i].x - d.x) < this.eps
-//				&& Math.abs(this.data[i].y - d.y) < this.eps
-				&& this.distance(this.data[i], d) <= this.eps) {
+			if(Math.abs(this.data[i].x - point.x) < this.eps /*&& Math.abs(this.data[i].y - d.y) < this.eps*/
+				&& this.distance(this.data[i], point) <= this.eps) {
 				neighbours.push(i);
 			}
 		}
