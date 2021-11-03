@@ -18,6 +18,7 @@
     "nconf": "^0.8.4",
     "node-fetch": "^2.6.1",
     "node-ses": "^3.0.3",
+    "nodemon": "^2.0.14",
     "pino": "^6.8.0",
     "sendmail": "^1.6.1",
     "stream-split": "^1.1.0",

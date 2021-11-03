@@ -15,7 +15,7 @@ class DbScan
 	{
 		this.eps = 2;
 		this.minPoints = 4;
-		this.distance = this.euclideanDistance;
+		this.distance = this.getEuclideanDistance;
 		this.data = [];
 		this.clusters = [];
 		this.results = [];
@@ -40,11 +40,11 @@ class DbScan
 	{
 		switch(fn) {
 			case 'Euclidean' :
-				this.distance = this.euclideanDistance;
+				this.distance = this.getEuclideanDistance;
 				break;
 
 			case 'Manhattan' :
-				this.distance = this.manhattanDistance;
+				this.distance = this.getManhattanDistance;
 				break;
 
 			default :
@@ -121,7 +121,7 @@ class DbScan
 			// also seems to make execution time a little more predictable.
 			// The downside is that it makes epsilon mean something else.
 			if(Math.abs(this.data[i].x - point.x) < this.eps /*&& Math.abs(this.data[i].y - d.y) < this.eps*/
-				&& this.distance(this.data[i], point) <= this.eps) {
+			   && this.distance(this.data[i], point) <= this.eps) {
 				neighbours.push(i);
 			}
 		}
@@ -129,12 +129,12 @@ class DbScan
 		return neighbours;
 	}
 
-	euclideanDistance(point1, point2)
+	getEuclideanDistance(point1, point2)
 	{
 		return Math.sqrt(Math.pow(point2.x - point1.x, 2) + Math.pow(point2.y - point1.y, 2));
 	}
 
-	manhattanDistance(point1, point2)
+	getManhattanDistance(point1, point2)
 	{
 		return Math.abs(point2.x - point1.x) + Math.abs(point2.y - point1.y);
 	}
