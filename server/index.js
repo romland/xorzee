@@ -25,7 +25,7 @@ const pino = require('pino');
 const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 
 const settingsDir = path.resolve("../conf");
-const settingsFile = settingsDir + "/mintymint.config";
+const settingsFile = settingsDir + "/xorzee.config";
 
 // Settings that require a restart of camera
 const cameraSettings = [
@@ -132,7 +132,7 @@ const cameraSettings = [
 		//
 		// Let a config file override defaults...
 		//
-		conf.file( { file: settingsFile, format: require('hjson') });
+		conf.file( { file: settingsFile, format: Hjson });
 
 		//
 		// Command line arguments / options

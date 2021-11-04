@@ -334,10 +334,11 @@ class MotionRuleEngine
 
 
 		// nullFrame: Don't stop recording on them
-		if(fi.nullFrame) {
-			if(this.trackReasons) this._addReason("nullFrame", false);
-			return false;
-		}
+		// 04nov2021: Why? I think I might want to...
+		// if(fi.nullFrame) {
+		// 	if(this.trackReasons) this._addReason("nullFrame", false);
+		// 	return false;
+		// }
 
 		// maxFrameMagnitude
 		if(this.stopReq.maxFrameMagnitude > 0 && fi.totalMagnitude >= this.stopReq.maxFrameMagnitude) {

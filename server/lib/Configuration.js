@@ -211,7 +211,7 @@ class Configuration
 			// $ node --prof index.js
 			// $ node --prof-process isolate-nnn > processed.txt
 			outputMotionCost		: 0,							// Output motion performance averages every N frames (0 = disabled)
-			motionCostThreshold		: 30,							// Output cost when things were costly. Set this really high (1000+) to never see it.
+			motionCostThreshold		: 1130,							// Output cost when things were costly. Set this really high (1000+) to never see it.
 
 		};
 	}
