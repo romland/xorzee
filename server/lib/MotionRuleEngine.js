@@ -7,9 +7,6 @@
 const pino = require('pino');
 const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 
-// Now set by config.
-var SIMULATE_RECORDING;
-
 class MotionRuleEngine
 {
 	constructor(conf, mvrProcessor, videoListener, eventTriggerCallback = null)
@@ -20,6 +17,7 @@ class MotionRuleEngine
 		this.mp = mvrProcessor;
 		this.videoListener = videoListener;
 		this.recorder = videoListener.getRecorder();
+		this.simulateRecord = conf.get("simulateRecord");
 
 		this.reconfigure(conf);
 
@@ -34,10 +32,6 @@ class MotionRuleEngine
 		this.lastRecordingStarted = 0;
 		this.lastRecordingStopped = 0;
 
-		if(SIMULATE_RECORDING) {
-			this._simulatedRecordStatus = false;
-		}
-
 		this.cost = {
 			ts : null
 		};
@@ -49,23 +43,12 @@ class MotionRuleEngine
 		this.startReq = conf.get("startRecordRequirements");
 		this.stopReq = conf.get("stopRecordRequirements");
 		this.sigReq = conf.get("signalRequirements");
-		SIMULATE_RECORDING = conf.get("simulateRecord");
-
-		if(SIMULATE_RECORDING) {
-			logger.warn("Simulating recording. Nothing will be written to disk.");
-		} else {
-			logger.debug("Recordings will be written to disk.");
-		}
 	}
 
 
 	isRecording()
 	{
-		if(SIMULATE_RECORDING) {
-			return this._simulatedRecordStatus;
-		} else {
-			return this.recorder.isRecording();
-		}
+		return this.recorder.isRecording();
 	}
 
 
@@ -77,12 +60,8 @@ class MotionRuleEngine
 
 		logger.info("Start recording");
 
-		if(SIMULATE_RECORDING) {
-			this._simulatedRecordStatus = true;
-		} else {
-			// TODO
-			this.recorder.start(this.videoListener.getHeaders());
-		}
+		// TODO
+		this.recorder.start(this.videoListener.getHeaders());
 
 		this.lastRecordingStarted = Date.now();
 
@@ -100,11 +79,7 @@ class MotionRuleEngine
 
 		logger.info("Stop recording (%d sec)", (Date.now() - this.lastRecordingStarted) / 1000);
 
-		if(SIMULATE_RECORDING) {
-			this._simulatedRecordStatus = false;
-		} else {
-			this.recorder.stop();
-		}
+		this.recorder.stop();
 
 		this.lastRecordingStopped = Date.now();
 		this._sendEvent("stop", null);
@@ -114,7 +89,7 @@ class MotionRuleEngine
 	_sendEvent(type, data)
 	{
 		if(this.eventTriggerCallback) {
-			this.eventTriggerCallback("MotionRuleEngine", type, data, SIMULATE_RECORDING);
+			this.eventTriggerCallback("MotionRuleEngine", type, data, this.simulateRecord);
 		}
 	}
 

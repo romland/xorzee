@@ -22,6 +22,8 @@ class Recorder
 		this.lastNofication = null;
 		this.recordLen = 0;
 
+		this.simulateRecord = conf.get("simulateRecord");
+
 		this.latestRecordings = this._getLatestRecordings(conf.get("recordHistory"));
 	}
 
@@ -109,29 +111,33 @@ class Recorder
 	{
 		this.recording = false;
 
-		if(this.ffmpegProc) {
-			this.ffmpegProc.stdin.end();
+		if(this.simulateRecord === false) {
+			if(this.ffmpegProc) {
+				this.ffmpegProc.stdin.end();
+			} else {
+				this.lastNotification = null;
+				this.recordLen = 0;
+				return null;
+			}
+		}
 
-			this.recordingMeta["stopped"] = Date.now();
+		this.recordingMeta["stopped"] = Date.now();
 
-			logger.debug("Stopping recording (after %d sec)...", (this.recordingMeta["stopped"] - this.recordingMeta["started"]) / 1000);
+		logger.info((this.simulateRecord ? "[SIMULATED] " : "") + "Stopping recording (after %d sec)...", (this.recordingMeta["stopped"] - this.recordingMeta["started"]) / 1000);
 
-			this.recordingMeta["size"] = this.recordLen;
+		this.recordingMeta["size"] = this.recordLen;
+		if(this.simulateRecord === false) {
 			fs.writeFileSync(
 				this.conf.get("recordPath") + "/" + this.recordingToId + ".json",
 				JSON.stringify(this.recordingMeta)
 			);
 			logger.debug("Wrote recording meta %o", this.recordingMeta);
-
-			this._addRecording(this.recordingMeta);
-
-			// Screenshotter might want it.
-			return this.recordingToId;
 		}
 
-		this.lastNotification = null;
-		this.recordLen = 0;
-		return null;
+		this._addRecording(this.recordingMeta);
+
+		// Screenshotter might want it.
+		return this.recordingToId;
 	}
 
 
@@ -142,8 +148,11 @@ class Recorder
 
 	append(data)
 	{
-		this.ffmpegProc.stdin.write(NALSeparator);
-		this.ffmpegProc.stdin.write(data);
+		if(this.simulateRecord === false) {
+			this.ffmpegProc.stdin.write(NALSeparator);
+			this.ffmpegProc.stdin.write(data);
+		}
+		
 		this.recordLen += NALSeparator.length + data.length;
 
 		if((this.lastNotification + 10000) < Date.now()) {
@@ -179,58 +188,65 @@ class Recorder
 
 		this.recordingToId = Date.now();
 
-        logger.info("Starting recording to %s/%s.h264 ...", this.conf.get("recordPath"), this.recordingToId);
+        logger.info((this.simulateRecord ? "[SIMULATED] " : "") + "Starting recording to %s/%s.h264 ...", this.conf.get("recordPath"), this.recordingToId);
 
-        this.ffmpegProc = cp.spawn('/usr/bin/ffmpeg', [
-            '-hide_banner',
-            '-y',
+		if(this.simulateRecord === false) {
+			this.ffmpegProc = cp.spawn('/usr/bin/ffmpeg', [
+				'-hide_banner',
+				'-y',
 
-            // https://ffmpeg.org/ffmpeg-formats.html
-            '-analyzeduration', '2M',       // It defaults to 5,000,000 microseconds = 5 seconds.
-            '-probesize', '5M',
-            '-framerate', this.conf.get("frameRate"),
-            '-f', 'h264',
-            '-i', '-',
-            '-codec', 'copy',
-            `${this.conf.get("recordPath")}/${this.recordingToId}.h264`
-        ]);
+				// https://ffmpeg.org/ffmpeg-formats.html
+				'-analyzeduration', '2M',       // It defaults to 5,000,000 microseconds = 5 seconds.
+				'-probesize', '5M',
+				'-framerate', this.conf.get("frameRate"),
+				'-f', 'h264',
+				'-i', '-',
+				'-codec', 'copy',
+				`${this.conf.get("recordPath")}/${this.recordingToId}.h264`
+			]);
 
-        this.ffmpegProc.stdout.setEncoding('utf8');
-        this.ffmpegProc.stdout.on('data', function(data) {
-            logger.debug('Recorder stdout %s', data);
-        });
+			this.ffmpegProc.stdout.setEncoding('utf8');
+			this.ffmpegProc.stdout.on('data', function(data) {
+				logger.debug('Recorder stdout %s', data);
+			});
 
-        this.ffmpegProc.stderr.setEncoding('utf8');
-        this.ffmpegProc.stderr.on('data', function(data) {
-            logger.debug('Recorder stderr %s', data);
-        });
+			this.ffmpegProc.stderr.setEncoding('utf8');
+			this.ffmpegProc.stderr.on('data', function(data) {
+				logger.debug('Recorder stderr %s', data);
+			});
 
-        this.ffmpegProc.on('close', function(code) {
-            logger.debug('Recorder closing, code: %d', code);
-        });
+			this.ffmpegProc.on('close', function(code) {
+				logger.debug('Recorder closing, code: %d', code);
+			});
 
 
-        // XXX:
-        // This has the chance of sending duplicate data as we will
-        // have it in the recordBuffer for a while too. How bad is
-        // that? The whole passing arbitrary data to ffmpeg is not
-        // working great anyway -- so wth, seeing it as prototype
-        // for now.
-        for (let i in headers) {
-			logger.debug("Send header to recorder %o", headers[i]);
-			this.ffmpegProc.stdin.write(NALSeparator);
-			this.ffmpegProc.stdin.write(headers[i]);
-			this.recordLen += NALSeparator.length + headers[i].length;
-        }
+			// XXX:
+			// This has the chance of sending duplicate data as we will
+			// have it in the recordBuffer for a while too. How bad is
+			// that? The whole passing arbitrary data to ffmpeg is not
+			// working great anyway -- so wth, seeing it as prototype
+			// for now.
+			for (let i in headers) {
+				logger.debug("Send header to recorder %o", headers[i]);
+				this.ffmpegProc.stdin.write(NALSeparator);
+				this.ffmpegProc.stdin.write(headers[i]);
+				this.recordLen += NALSeparator.length + headers[i].length;
+			}
 
-        // Pass buffer of recorded data of the past in first...
-        let buff = this.recordBuffer.read(this.conf.get("recordBufferSize"));
-        logger.debug(`Passing %d bytes to ffmpeg...`, buff.length);
+			// Pass buffer of recorded data of the past in first...
+			let buff = this.recordBuffer.read(this.conf.get("recordBufferSize"));
+			logger.debug(`Passing %d bytes to ffmpeg...`, buff.length);
 
-        this.ffmpegProc.stdin.write(buff);
-		this.recordLen += buff.length;
+			this.ffmpegProc.stdin.write(buff);
+			this.recordLen += buff.length;
 
-        logger.debug("Done passing buffer...");
+			logger.debug("Done passing buffer...");
+		} else {
+			// Properly calculate recordLen even though we are simulating
+			for (let i in headers) {
+				this.recordLen += NALSeparator.length + headers[i].length;
+			}
+		}
 
         this.recording = true;
 
