@@ -165,7 +165,7 @@ class Configuration
 			},
 
 			// Discovery settings
-			serviceName		: "Xorzee",								// You want to have this the same on ALL your devices (unless you want to group them)
+			serviceName		: "Xorzee",								// You want to have this the same on ALL your devices (unless you want to create multiple subsets of cameras)
 			discovery		: true,									// Whether to discover neighbouring cameras (TODO: Rename to 'discover')
 			announce		: true,									// Whther to announce presence to neighbouring cameras
 

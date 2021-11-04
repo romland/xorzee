@@ -66,7 +66,7 @@ class ServiceAnnouncer
 					avahi.IF_UNSPEC,								// interface
 					avahi.PROTO_UNSPEC,								// protocol
 					0,												// flags
-					"VidensiJr-" + this.serialNumber,				// name
+					"Xorzee-" + this.serialNumber,					// name
 					"_" + this.conf.get("serviceName") + "._tcp",	// type
 					"local",										// domain
 					this.hostname + ".local",						// host -- not sure what this should be
