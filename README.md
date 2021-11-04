@@ -1,4 +1,6 @@
 # Xorzee
+Pronounced "x or z".
+
 A low-latency, HD video streamer and motion detector. The goal is that it must run on (the) one core of a Raspberry Pi Zero[1].
 
 ## Elaboration
