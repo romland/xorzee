@@ -30,7 +30,7 @@ A low-latency, HD video streamer and motion detector. The goal is that it must r
 - _UV4L_  
   Ran into it many years ago for another project, ran into bugs, closed source so could not debug.  
 - _Rpisurv_  
-  Require multiple device (essentially a camera server)  
+  Require multiple devices (it's essentially a camera server)  
   https://github.com/esiexata/rpisurv
 - _iSpy_  
   Streaming only.  
