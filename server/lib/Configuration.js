@@ -40,7 +40,7 @@ class Configuration
 				doc			: `(internal) for camera (video)`,
 			}
 
-// XXX: how do we document the parent ofwith sub-categories?
+// XXX: how do we document the parent of sub-categories?
 
 		}
 	}

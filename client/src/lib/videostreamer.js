@@ -25,6 +25,7 @@ export default class VideoStreamer
 			elt.id = this.videoEltId;
 			elt.controls = false;
 			elt.autoplay = true;
+			elt.muted = true;
 			let styles = {
 				position	: "absolute"
 			};

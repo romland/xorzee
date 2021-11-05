@@ -255,7 +255,7 @@
 </script>
 	<Fullscreen let:onRequest let:onExit>
 		<div class="container" bind:this={container}>
-			<!-- 'videoCanvas' (can also be a video player) will be inserted above by Broadway -->
+			<!-- 'videoCanvas' (can also be a video player) will be inserted above by Broadway, if that is used -->
 			<canvas bind:this={motionCanvas} class="motionCanvas" style="width: {playerWidth};"/>
 
 			<div class="containerOverlays" on:dblclick={ () => toggleFullScreen(onRequest, onExit) } bind:this={polydrawContainer}>
