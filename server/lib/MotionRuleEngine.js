@@ -58,8 +58,6 @@ class MotionRuleEngine
 			throw new Error("Attempted to start recording while recording");
 		}
 
-		logger.info("Start recording");
-
 		// TODO
 		this.recorder.start(this.videoListener.getHeaders());
 
@@ -76,8 +74,6 @@ class MotionRuleEngine
 		if(!this.isRecording()) {
 			throw new Error("Attempted to stop recording while not recording");
 		}
-
-		logger.info("Stop recording (%d sec)", (Date.now() - this.lastRecordingStarted) / 1000);
 
 		this.recorder.stop();
 
@@ -305,8 +301,6 @@ class MotionRuleEngine
 	isStaticFrame(cs)
 	{
 		let fi = this.mp.getFrameInfo();
-
-
 
 		// nullFrame: Don't stop recording on them
 		// 04nov2021: Why? I think I might want to...
