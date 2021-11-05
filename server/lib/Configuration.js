@@ -89,7 +89,7 @@ class Configuration
 
 			// Video streaming settings
 			streamVideo		: true,									// Toggle streaming of video (can be changed runtime)
-			onlyActivity	: false,									// Stream only _video_ when there is 'valid' activity (experimental!)
+			onlyActivity	: false,								// Stream only _video_ when there is 'valid' activity (experimental!)
 																	// You will want to set 'minActiveBlocks' to 20 or so, depending on i
 																	// lighting conditions (there's always some noise).
 
