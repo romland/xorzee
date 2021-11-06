@@ -67,7 +67,7 @@ const cameraSettings = [
 		}
 
 		// Discovery and announcement
-		if(conf.get("discovery")) {
+		if(conf.get("discover")) {
 			serviceDiscoverer = setupServiceDiscoverer();
 		}
 
@@ -129,21 +129,15 @@ const cameraSettings = [
 	{
 		Configuration.verifyDocumentation();
 
-		//
 		// Let a config file override defaults...
-		//
 		conf.file( { file: settingsFile, format: Hjson });
 
-		//
 		// Command line arguments / options
-		//
 		conf.argv().defaults( Configuration.get() );
 
 		conf.use('memory');
 
-		//
 		// Read in all enabled signals
-		//
 		loadEnabledSignals();
 
 	}
@@ -483,7 +477,7 @@ const cameraSettings = [
 	}
 
 
-	// TODO: Refactor away
+	// TODO: Refactor away to some better place
 	function setupServiceDiscoverer()
 	{
 		neighbours = [];

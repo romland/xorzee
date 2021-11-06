@@ -1,5 +1,5 @@
 /**
- * VideoSender passes video stream onto clients over websockets
+ * VideoSender passes video stream to clients over websocket
  */
 
 "use strict";
@@ -39,7 +39,7 @@ class VideoSender
 			return;
 		}
 
-		// TODO: Make 2000 configurable when I can figure out a name for it
+		// TODO: Make 2000 configurable when I figure out a good name for it
 		if(this.conf.get("onlyActivity") && Date.now() > (this.lastActive + 2000)) {
 			return;
 		}
@@ -99,4 +99,3 @@ class VideoSender
 }
 
 exports.default = VideoSender;
-

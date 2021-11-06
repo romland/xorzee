@@ -9,10 +9,8 @@
 
 const pino = require('pino');
 const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
-const systemd = require('systemd');
 const NALSeparator = Buffer.from([0, 0, 0, 1]);
 const net = require('net');
-//const dgram = require('dgram');
 const Split = require('stream-split');
 const Recorder = require("./Recorder").default;
 
@@ -89,13 +87,9 @@ class VideoListener
 
 		this.videoSender.setHeaders(this.headers);
 
-		if(this.conf.get('videoPort') == 'systemd') {
-			logger.debug('Video TCP server listening on systemd socket');
-		} else {
-			let address = tcpServer.address();
-			if(address) {
-				logger.debug(`Video TCP server listening on ${address.address}:${address.port}`);
-			}
+		let address = tcpServer.address();
+		if(address) {
+			logger.debug(`Video TCP server listening on ${address.address}:${address.port}`);
 		}
 	}
 }

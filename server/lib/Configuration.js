@@ -12,37 +12,580 @@ class Configuration
 
 	static getConfigurationMeta()
 	{
-		/* default and current are populated automatically */
-		return {
-			name : {
-				category	: "General",
-				label		: "Name",
-				type		: "string",
-				ui			: "textbox",
-				doc			: `A name of your choice identifying this camera`,
-			},
+		const doc = {
+			name : "", // the setting is in the root node
+			label : "Configuration",
+			children : [
+				{
+					name : "", // the setting is in the root node
+					label : "General",
+					children: [
+						{
+							name		: "name",
+							label		: "Name",
+							type		: "string",
+							ui			: "textbox",
+							doc			: `A name of your choice identifying this camera`,
+						},
+						{
+							name		: "password",
+							label		: "Name",
+							type		: "string",
+							ui			: "password",
+							doc			: `Password required to access settings and video streams. Leave empty for no password.`,
+						},
+					]
+				},
+				{
+					name : "", // the setting is in the root node
+					label : "Webserver",
+					children: [
+						{
+							name		: "wwwPort",
+							label		: "HTTP port",
+							type		: "int",
+							range		: [1, 65535],
+							ui			: "textbox",
+							doc			: `(public) for client (web content)`,
+						},
+			
+						{
+							name		: "publicPath",
+							label		: "Public path",
+							type		: "string",
+							ui			: "textbox",
+							doc			: `The _public_ directory accessible by clients`,
+						},
+			
+						{
+							name		: "videoWsPort",
+							label		: "Websocket port (video)",
+							type		: "int",
+							range		: [1025, 65535],
+							ui			: "textbox",
+							doc			: `(public) for client (stream)`,
+						},
+			
+						{
+							name		: "motionWsPort",
+							label		: "Websocket port (data)",
+							type		: "int",
+							range		: [1025, 65535],
+							ui			: "textbox",
+							doc			: `(public) for client (motion stream)`,
+						},
+			
+						{
+							name		: "wsClientLimit",
+							label		: "Max number of clients",
+							type		: "int",
+							range		: [0, 65535],
+							ui			: "textbox",
+							doc			: `max number clients allowed`,
+						},
 
-			password : {
-				category	: "General",
-				label		: "Name",
-				type		: "string",
-				ui			: "password",
-				doc			: `Password required to access settings and video streams. Leave empty for no password.`,
-			},
+					],
+				},
+				{
+					name : "", // the setting is in the root node
+					label : "Video",
+					children: [
+						{
+							name		: "bitRate",
+							label		: "Bit rate",
+							type		: "int",
+							range		: [1, 9999999],
+							ui			: "textbox",
+							doc			: `Bitrate of video stream`,
+						},
+						{
+							name		: "frameRate",
+							label		: "Frame rate",
+							type		: "int",
+							range		: [0, 144],
+							ui			: "textbox",
+							doc			: `Frames per second to send`,
+						},
+						{
+							name		: "width",
+							label		: "Width",
+							type		: "int",
+							range		: [32, 3840],
+							ui			: "textbox",
+							doc			: `Video stream width (the higher resolution, the more exact motion tracking)`,
+						},
+			
+						{
+							name		: "height",
+							label		: "Height",
+							type		: "int",
+							range		: [32, 2160],
+							ui			: "textbox",
+							doc			: `Video stream height`,
+						},
+			
+						{
+							name		: "startupIgnore",
+							label		: "Warm-up time",
+							type		: "int",
+							range		: [0, 10000],
+							ui			: "textbox",
+							doc			: `How long (milliseconds) we should ignore motion after starting up camera`,
+						},
 
-			videoPort : {
-				category	: "Advanced.Internal",
-				label		: "Video Port",
-				type		: "int",
-				range		: [1025, 65535],
-				step		: 1,
-				ui			: "textbox",
-				doc			: `(internal) for camera (video)`,
-			}
+						{
+							label		: "Stream overlay",
+							name		: "streamOverlay",	// children are not in root-node (/streamOverlay/...)
+							children : [
+								{
+									name		: "enabled",
+									label		: "Show overlay",
+									type		: "bool",
+									ui			: "checkbox",
+									doc			: `Enable overlay`,
+								},
+								{
+									name		: "showName",
+									label		: "Show name in overlay",
+									type		: "bool",
+									ui			: "checkbox",
+									doc			: `Show name of camera`,
+								},
+								{
+									name		: "text",
+									label		: "Overlay text",
+									type		: "string",
+									ui			: "textbox",
+									doc			: `Misc text, can contain a few \n and date/time substitutions. Time: %Y = year, %m = month, %d = day of month, %Z = timezone name, %z = timezone offset, %p = AM/PM, %X = current time with seconds (hh:mm:ss)`,
+								},
+								{
+									name		: "fontSize",
+									label		: "Font size",
+									type		: "int",
+									range		: [1, 200],
+									ui			: "textbox",
+									doc			: `Font size`,
+								},
+								{
+									name		: "fontSize",
+									label		: "Font size",
+									type		: "int",
+									range		: [1, 200],
+									ui			: "textbox",
+									doc			: `Font size`,
+								},
+								{
+									name		: "textLuminance",
+									label		: "Text luminance",
+									type		: "int",
+									nullable	: true,	// TODO: honestly not sure how to deal with this yet
+									range		: [0, 255],
+									ui			: "textbox",
+									doc			: `null/auto = auto, otherwise a value between 0 and 255`,
+								},
+								{
+									name		: "justify",
+									label		: "Justify",
+									type		: "int",
+									range		: [0, 2],
+									ui			: "textbox",
+									doc			: `0=center, 1=left, 2=right`,
+								},
+								{
+									name		: "top",
+									label		: "Top",
+									type		: "int",
+									range		: [0, 2160],
+									ui			: "textbox",
+									doc			: `placement, pixels from the top`,
+								},
+								{
+									name		: "left",
+									label		: "Left",
+									type		: "int",
+									range		: [0, 3840],
+									ui			: "textbox",
+									doc			: `placement, pixels from the left`,
+								},
+								{
+									name		: "backgroundColor",
+									label		: "Background colour",
+									type		: "string",
+									ui			: "textbox",
+									doc			: `'transparent' or rgb (e.g. ff00ff)`,
+								},
+							], // streamOverlay children
+						} // streamOverlay
+					], // video children
+				}, // video category
+				{
+					name : "", // the setting is in the root node
+					label : "Video streaming",
+					children: [
+						{
+							name		: "streamVideo",
+							label		: "Stream video",
+							type		: "bool",
+							ui			: "checkbox",
+							doc			: `Toggle streaming of video (can be changed runtime)`,
+						},
+						{
+							name		: "onlyActivity",
+							label		: "Stream video only on activity",
+							type		: "bool",
+							ui			: "checkbox",
+							doc			: `Stream only _video_ when there is 'valid' activity (experimental!). You will want to set 'minActiveBlocks' to 20 or so, depending on lighting conditions (there's always some noise).`,
+						},
+					]
+				}, // video streaming
+				/*{
+					we have UI elsewhere for setting ignore areas
+				}*/
+				{
+					name : "", // the setting is in the root node
+					label : "Recording",
+					children: [
+						{
+							name		: "mayRecord",
+							label		: "Record video",
+							type		: "bool",
+							ui			: "checkbox",
+							doc			: `If true, will allocate a buffer of the past. Setting simulateRecord to true will prevent files from being written to disk.`,
+						},
+						{
+							name		: "recordBufferSize",
+							label		: "Record buffer size",
+							type		: "int",
+							range		: [0, 100000000],
+							ui			: "textbox",
+							doc			: `How much video (in bytes) to buffer for pre-recording. 3 MiB (3,145,728 bytes) is default.`,
+						},
+						{
+							name		: "recordPath",
+							label		: "Record path",
+							type		: "string",
+							ui			: "textbox",
+							doc			: `Where to store recordings. Default is client/public/clips/`,
+						},
+						{
+							name		: "recordPathWww",
+							label		: "Public record path",
+							type		: "string",
+							ui			: "textbox",
+							doc			: `Where a web-client can find clips/etc`,
+						},
+						{
+							name		: "recordHistory",
+							label		: "Number of historical recordings",
+							type		: "int",
+							range		: [0, 100000000],
+							ui			: "textbox",
+							doc			: `Number of latest clips to report to clients when they connect`,
+						},
+						{
+							name		: "trackReasons",
+							label		: "Track reasons for start/stop recording",
+							type		: "bool",
+							ui			: "checkbox",
+							doc			: `Whether to track why start/stop recording did not trigger on a frame`,
+						},
+						{
+							name		: "simulateRecord",
+							label		: "Simulate record (dry run)",
+							type		: "bool",
+							ui			: "checkbox",
+							doc			: `If true, dry-run when it comes to recordings (i.e. nothing written to disk)`,
+						},
+						{
+							label		: "Start record requirements",
+							name		: "startRecordRequirements",	// children of this are not in root-node
+							children : [
+								{
+									name		: "activeTime",
+									label		: "Active time",
+									type		: "int",
+									range		: [0, 100000],
+									ui			: "textbox",
+									doc			: `Time (in milliseconds) that needs to be deemed active to trigger recording`,
+								},
+								{
+									name		: "minFrameMagnitude",
+									label		: "Minimum frame magnitude",
+									type		: "int",
+									range		: [0, 100000],
+									ui			: "textbox",
+									doc			: `Total magnitude of motion to be beaten to allow start of recording`,
+								},
+								{
+									name		: "minActiveBlocks",
+									label		: "Minimum number of active blocks",
+									type		: "int",
+									range		: [0, 100000],
+									ui			: "textbox",
+									doc			: `Total number of 'blocks'/vectors that need to be in play to allow start of recording`,
+								},
+								{
+									name		: "minInterval",
+									label		: "Minimum interval between recordings",
+									type		: "int",
+									range		: [0, 900000],
+									ui			: "textbox",
+									doc			: `Do not start recording again if we stopped a previous one less than this long ago (milliseconds)`,
+								},
+							]
+						}, // startRecordRequirements
+						{
+							label		: "Stop record requirements",
+							name		: "stopRecordRequirements",	// children of this are not in root-node
+							children : [
+								{
+									name		: "stillTime",
+									label		: "Minimum still time",
+									type		: "int",
+									range		: [0, 900000],
+									ui			: "textbox",
+									doc			: `How long the view must be deemed not moving before we can stop recording (milliseconds)`,
+								},
+								{
+									name		: "maxFrameMagnitude",
+									label		: "Maximum frame magnitude",
+									type		: "int",
+									range		: [0, 1000000],
+									ui			: "textbox",
+									doc			: `A frame is deemed 'active' if it has a total magnitude of this (or more)`,
+								},
+								{
+									name		: "maxRecordTime",
+									label		: "Maximum record time",
+									type		: "int",
+									range		: [0, 600000],
+									ui			: "textbox",
+									doc			: `Max length in milliseconds to record (+ what is buffered). Default is one minute (60,000)`,
+								},
+								{
+									name		: "minRecordTime",
+									label		: "Minimum record time",
+									type		: "int",
+									range		: [0, 6000000],
+									ui			: "textbox",
+									doc			: `Minimum length in milliseconds to record (- what is buffered)`,
+								},
+							]
+						} // stopRecordRequirements
 
-// XXX: how do we document the parent of sub-categories?
+					] // Recording children
+				}, // Recording
+				{
+					label		: "Signals (TODO: enable/disable; ln -s)",
+					name		: "",
+					doc			: `The signals array is populated automatically with all files in the conf/available-signals/*.conf. TODO: Make some web UI to enable/disable signals?`,
+					children : [
+						{
+							label		: "Send mail using SES",
+							name		: "sendMailSES",
+							doc			: `These settings is for if you are using the signal StandardSignals.EMAIL_SES. For further doc see: https://github.com/aheckmann/node-ses`,
+							
+							children : [
+								{
+									name		: "key",
+									label		: "AWS SES key",
+									type		: "string",
+									ui			: "textbox",
+									doc			: `your AWS SES key`,
+								},
+								{
+									name		: "secret",
+									label		: "AWS SES secret",
+									type		: "string",
+									ui			: "textbox",
+									doc			: `your AWS SES secret`,
+								},
+								{
+									name		: "amazon",
+									label		: "AWS end-point",
+									type		: "string",
+									ui			: "textbox",
+									doc			: `[optional] the amazon end-point uri. defaults to https://email.us-east-1.amazonaws.com`,
+								},
 
-		}
+							]
+						}
+					]
+				}, // Signals
+				{
+					name : "", // the setting is in the root node
+					label : "Discovery",
+					children: [
+						{
+							name		: "serviceName",
+							label		: "Service name",
+							type		: "string",
+							ui			: "textbox",
+							doc			: `You want to have this the same on ALL your devices (unless you want to create multiple subsets of cameras)`,
+						},
+						{
+							name		: "discover",
+							label		: "Discover neighbours",
+							type		: "bool",
+							ui			: "checkbox",
+							doc			: `Whether to discover neighbouring cameras`,
+						},
+						{
+							name		: "announce",
+							label		: "Announce to neighbours",
+							type		: "bool",
+							ui			: "checkbox",
+							doc			: `Whether to announce presence to neighbouring cameras`,
+						},
+					]
+				}, // discovery
+				{
+					name : "", // the setting is in the root node
+					label : "Advanced: Misc",
+					children: [
+						{
+							name		: "videoPort",
+							label		: "Internal port (video data)",
+							type		: "int",
+							range		: [1025, 65535],
+							ui			: "textbox",
+							doc			: `Internal port for camera's video data`,
+						},
+						{
+							name		: "motionPort",
+							label		: "Internal port (motion data)",
+							type		: "int",
+							range		: [1025, 65535],
+							ui			: "textbox",
+							doc			: `Internal port for camera's motion data`,
+						},
+						{
+							name		: "spawnInShell",
+							label		: "Spawn signals in shell",
+							type		: "bool",
+							ui			: "checkbox",
+							doc			: `Whether to spawn signal scrips in a shell or not (in shell is slower, but there may be reasons why one would need it)`,
+						},
+					]
+				}, // misc. advanced
+				{
+					name : "", // the setting is in the root node
+					label : "Advanced: Motion",
+					children: [
+						{
+							name		: "trackMotion",
+							label		: "Track motion",
+							type		: "bool",
+							ui			: "checkbox",
+							doc			: `Enabled/disable motion tracking (automatic recording will be disabled if motion tracking is)`,
+						},
+						{
+							name		: "clusterEpsilon",
+							label		: "Cluster epsilon",
+							type		: "int",
+							range		: [1, 16],
+							ui			: "textbox",
+							doc			: `The max distance (manhattan) to include points in a cluster (DBscan)`,
+						},
+						{
+							name		: "clusterMinPoints",
+							label		: "Minimum cluster size",
+							type		: "int",
+							range		: [1, 2000],
+							ui			: "textbox",
+							doc			: `The minimum number of points needed to be classified as a cluster/object`,
+						},
+						{
+							name		: "clusterDistancing",
+							label		: "Distancing algorithm",
+							type		: "int",
+							range		: [1, 2000],
+							ui			: "textbox",
+							doc			: `Manhattan or Euclidean`,
+						},
+						{
+							name		: "preFilterLoners",
+							label		: "Pre-filter loners",
+							type		: "bool",
+							ui			: "checkbox",
+							doc			: `Whether to filter out loners before density scan to (_possibly_) make clustering cheaper`,
+						},
+						{
+							name		: "discardInactiveAfter",
+							label		: "Pre-filter loners",
+							type		: "int",
+							range		: [0, 10000],
+							ui			: "textbox",
+							doc			: `If a cluster was still for longer than this, discard it`,
+						},
+						{
+							name		: "vectorMinMagnitude",
+							label		: "Minimum magnitude of vector",
+							type		: "int",
+							range		: [0, 1000],
+							ui			: "textbox",
+							doc			: `Minimum magnitude of a vector to be deem it moving`,
+						},
+						{
+							name		: "sendRaw",
+							label		: "Send raw vectors to client",
+							type		: "bool",
+							ui			: "checkbox",
+							doc			: `Whether to pass raw vectors to client (debug -- enable RENDER_RAW on client too)`,
+						},
+						{
+							name : "", // the setting is in the root node
+							label : "Cluster history",
+							doc : `Depending on implementation client-side, we are either using current clusters or _historical_ clusters. It's recommended
+								to not send over both as JSON serialization gets pretty costly. In the future I may actually have to resort to some binary
+								output of the MvrProcessor so that more data can be passed over the wire.`,
+							children: [
+								{
+									name		: "sendClusters",
+									label		: "Send clusters to client",
+									type		: "bool",
+									ui			: "checkbox",
+									doc			: `This is activity that happened _now_`,
+								},
+								{
+									name		: "sendHistory",
+									label		: "xxxx",
+									type		: "bool",
+									ui			: "checkbox",
+									doc			: `This is activity that happened now _and_ clusters that are deemed important`,
+								},
+							]
+						},
+						{
+							name : "", // the setting is in the root node
+							label : "Cluster performance",
+							doc : `Performance output/tests`,
+							children :[
+								{
+									name		: "outputMotionCost",
+									label		: "Output motion cost",
+									type		: "int",
+									range		: [0, 10000],
+									ui			: "textbox",
+									doc			: `Output motion performance averages every N frames (0 = disabled)`,
+								},
+								{
+									name		: "outputMotionCostThreshold",
+									label		: "Output motion cost threshold",
+									type		: "int",
+									range		: [0, 10000],
+									ui			: "textbox",
+									doc			: `Output cost when things were costly. Set this really high (1000+ milliseconds) to never see it.`,
+								},
+							]
+						} // cluster performance
+		
+					] // advanced motion children
+				} // advanced motion
+			] // root node children
+		};
+		
+		return doc;
 	}
 
 	static get()
@@ -90,7 +633,7 @@ class Configuration
 			// Video streaming settings
 			streamVideo		: true,									// Toggle streaming of video (can be changed runtime)
 			onlyActivity	: false,								// Stream only _video_ when there is 'valid' activity (experimental!)
-																	// You will want to set 'minActiveBlocks' to 20 or so, depending on i
+																	// You will want to set 'minActiveBlocks' to 20 or so, depending on
 																	// lighting conditions (there's always some noise).
 
 			// Ignore
@@ -99,13 +642,13 @@ class Configuration
 
 			// Recording settings
 			mayRecord		: true,									// If true, will allocate a buffer of the past
-			recordBufferSize: (3 * 1024 * 1024),					// How much to video (in bytes) to buffer for pre-recording
+			recordBufferSize: (3 * 1024 * 1024),					// How much video (in bytes) to buffer for pre-recording
 			recordPath		: path.resolve("../client/public/clips/"),// Where to store recordings
 			recordPathWww	: "/clips/",							// Where a web-client can find clips/etc
 			recordHistory	: 20,									// Number of latest clips to report to clients
 
 			trackReasons	: true,									// Whether to track why start/stop recording did not trigger on a frame
-			simulateRecord	: true,									// If true, run only MotionRuleEngine, do not trigger Recorder (i.e. nothing written to disk)
+			simulateRecord	: true,									// If true, dry-run when it comes to recordings (i.e. nothing written to disk)
 
 			startRecordRequirements : {
 				activeTime			: 2000,							// Time that needs to be active to trigger recording
@@ -164,10 +707,10 @@ class Configuration
 				smtpPort: 25,
 			},
 
-			// Discovery settings
+			// Discover settings
 			serviceName		: "Xorzee",								// You want to have this the same on ALL your devices (unless you want to create multiple subsets of cameras)
-			discovery		: true,									// Whether to discover neighbouring cameras (TODO: Rename to 'discover')
-			announce		: true,									// Whther to announce presence to neighbouring cameras
+			discover		: true,									// Whether to discover neighbouring cameras
+			announce		: true,									// Whether to announce presence to neighbouring cameras
 
 			//
 			// Advanced/internal/debug/test settings
