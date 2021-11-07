@@ -46,6 +46,7 @@
 	let drawingIgnoreArea = false;
 
 	let settings = null;
+	let settingsMeta = null;
 	let lastRecordings = [];
 	let neighbours = [];
 	let recording = false;
@@ -144,6 +145,10 @@
 	{
 		if(msg.settings) {
 			reconfigure(msg.settings);
+		}
+
+		if(msg.settingsMeta) {
+			settingsMeta = msg.settingsMeta;
 		}
 
 		if(msg.event) {
@@ -261,7 +266,7 @@
 			<div class="containerOverlays" on:dblclick={ () => toggleFullScreen(onRequest, onExit) } bind:this={polydrawContainer}>
 				{#if settings}
 					<div class="topLeft">
-						<Configuration on:message={(e)=>onLayerChange("Configuration", e)} bind:showButton={showOverlayButtons} bind:visible={overlay["Configuration"]} sendMessage={sendMessage} {settings}></Configuration>
+						<Configuration on:message={(e)=>onLayerChange("Configuration", e)} bind:showButton={showOverlayButtons} bind:visible={overlay["Configuration"]} sendMessage={sendMessage} {settings} {settingsMeta}></Configuration>
 						<Controls videoPlayer={videoPlayer} on:message={(e)=>onLayerChange("Controls", e)} bind:showButton={showOverlayButtons} bind:visible={overlay["Controls"]} bind:drawingIgnoreArea={drawingIgnoreArea} sendMessage={sendMessage} {settings}></Controls>
 						{#if videoPlayer}
 							<BroadwayStats on:message={(e)=>onLayerChange("BroadwayStats", e)} bind:showButton={showOverlayButtons} bind:visible={overlay["BroadwayStats"]} player={videoPlayer}></BroadwayStats>
