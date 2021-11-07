@@ -12,9 +12,11 @@ class Configuration
 
 	static getConfigurationMeta()
 	{
+		const defaults = Configuration.get();
+
 		const doc = {
 			name : "", // the setting is in the root node
-			label : "Configuration",
+			label : "Settings",
 			children : [
 				{
 					name : "", // the setting is in the root node
@@ -26,13 +28,15 @@ class Configuration
 							type		: "string",
 							ui			: "textbox",
 							doc			: `A name of your choice identifying this camera`,
+							'default'	: defaults.name,
 						},
 						{
 							name		: "password",
-							label		: "Name",
+							label		: "Password",
 							type		: "string",
 							ui			: "password",
 							doc			: `Password required to access settings and video streams. Leave empty for no password.`,
+							'default'	: defaults.password,
 						},
 					]
 				},
@@ -47,6 +51,7 @@ class Configuration
 							range		: [1, 65535],
 							ui			: "textbox",
 							doc			: `(public) for client (web content)`,
+							'default'	: defaults.wwwPort,
 						},
 			
 						{

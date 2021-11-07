@@ -116,6 +116,7 @@ const cameraSettings = [
 			message : "Welcome",
 			event : "init",
 			settings : conf.get(),
+			settingsMeta : Configuration.getConfigurationMeta(),
 			neighbours : neighbours,
 			lastRecordings : videoListener.getRecorder().getLatestRecordings()
 		};
