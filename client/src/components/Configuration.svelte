@@ -55,7 +55,7 @@ how to change settings:
 </script>
 
 	<OverlayToggler on:message bind:visible={visible} name="⚙ Settings" showButton={showButton} position="below">
-		<div>
+		<div style="background-color: black;">
 			<ConfigurationBlock	bind:settings={settings} configurable={settingsMeta}></ConfigurationBlock>
 		</div>
 	</OverlayToggler>

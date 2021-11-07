@@ -1,11 +1,12 @@
 <script>
 	export let configurable;
 	export let settings;
-	export let expanded = false;	// All nodes are collapsed by default
 	export let parents = [];
 
 	const autoExpanded = ["Settings", "General"];
 
+	let category = false;
+	let expanded = false;	// All nodes are collapsed by default
 	let parentSettings;
 
 	function getParentOfNestedValue(obj, path)
@@ -15,9 +16,11 @@
 
 	// Is this a 'category' which has a 'name'? It means its corresponding value does not live in the root of settings.
 	if(!configurable.ui && configurable.name && configurable.children.length > 0) {
+		category = true;
 		parents = [...parents, configurable.name];
 	} else if(!configurable.ui) {
 		// A category without any UI component
+		category = true;
 		if(autoExpanded.includes(configurable.label)) {
 			expanded = true;
 		} else {
@@ -40,13 +43,13 @@
 
 			{:else if configurable.ui === "checkbox"}
 				<h3>
-					<input type="checkbox"/>
+					<input type="checkbox" bind:checked={parentSettings[configurable.name]}/>
 					{configurable.label}
 				</h3>
 
 			{:else if configurable.ui === "password"}
 				<h3>{configurable.label}</h3>
-				<input type="password"/>
+				<input type="password" bind:value={parentSettings[configurable.name]}/>
 
 			{:else if !configurable.ui}
 				<h3 class="expandable" on:click={() => { expanded = !expanded; } }>{configurable.label}</h3>
@@ -55,11 +58,19 @@
 
 			<div class="content" class:expanded={expanded}>
 				{#if configurable.doc}
-					<div>
+					{#if category}
+						<ul>
+							<li>
+								<span>
+									{configurable.doc}
+								</span>
+							</li>
+						</ul>
+					{:else}
 						<span>
 							{configurable.doc}
 						</span>
-					</div>
+					{/if}
 				{/if}
 
 				{#if configurable.children}
@@ -73,9 +84,15 @@
 </ul>
 
 <style>
+	h3 {
+		margin: 0;
+		padding: 0;
+	}
+	ul {
+		list-style-type: none;
+	}
 	.content {
 		display: none;
-		background-color: black;
 	}
 
 	.expanded {
