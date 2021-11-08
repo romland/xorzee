@@ -78,7 +78,7 @@
 
 	function reconfigure(newSettings)
 	{
-		console.log(sn(), "Got (new) settings from server");
+		console.log(sn(), "Got (new) settings from server", newSettings);
 		settings = newSettings;
 
 		wwwPort = settings.wwwPort;
@@ -144,11 +144,11 @@
 	function handleServerMessage(msg)
 	{
 		if(msg.settings) {
-			reconfigure(msg.settings);
-		}
+			if(msg.settingsMeta) {
+				settingsMeta = msg.settingsMeta;
+			}
 
-		if(msg.settingsMeta) {
-			settingsMeta = msg.settingsMeta;
+			reconfigure(msg.settings);
 		}
 
 		if(msg.event) {
@@ -266,22 +266,64 @@
 			<div class="containerOverlays" on:dblclick={ () => toggleFullScreen(onRequest, onExit) } bind:this={polydrawContainer}>
 				{#if settings}
 					<div class="topLeft">
-						<Configuration on:message={(e)=>onLayerChange("Configuration", e)} bind:showButton={showOverlayButtons} bind:visible={overlay["Configuration"]} sendMessage={sendMessage} {settings} {settingsMeta}></Configuration>
-						<Controls videoPlayer={videoPlayer} on:message={(e)=>onLayerChange("Controls", e)} bind:showButton={showOverlayButtons} bind:visible={overlay["Controls"]} bind:drawingIgnoreArea={drawingIgnoreArea} sendMessage={sendMessage} {settings}></Controls>
+						<Configuration
+							on:message={(e)=>onLayerChange("Configuration", e)}
+							bind:showButton={showOverlayButtons}
+							bind:visible={overlay["Configuration"]}
+							sendMessage={sendMessage}
+							bind:settings={settings}
+							bind:settingsMeta={settingsMeta}>
+						</Configuration>
+
+						<Controls
+							videoPlayer={videoPlayer}
+							on:message={(e)=>onLayerChange("Controls", e)}
+							bind:showButton={showOverlayButtons}
+							bind:visible={overlay["Controls"]}
+							bind:drawingIgnoreArea={drawingIgnoreArea}
+							sendMessage={sendMessage}
+							bind:settings={settings}>
+						</Controls>
+
 						{#if videoPlayer}
-							<BroadwayStats on:message={(e)=>onLayerChange("BroadwayStats", e)} bind:showButton={showOverlayButtons} bind:visible={overlay["BroadwayStats"]} player={videoPlayer}></BroadwayStats>
+							<BroadwayStats 
+								on:message={(e)=>onLayerChange("BroadwayStats", e)} 
+								bind:showButton={showOverlayButtons} 
+								bind:visible={overlay["BroadwayStats"]} 
+								player={videoPlayer}>
+							</BroadwayStats>
 						{/if}
+						
 						<Button bind:visible={showOverlayButtons} label="Play" on:click={play}></Button>
 					</div>
 
 					<div class="bottomLeft">
-						<ScreenshotList on:message={(e)=>onLayerChange("ScreenshotList", e)} bind:showButton={showOverlayButtons} bind:visible={overlay["ScreenshotList"]} server={remoteUrl} bind:dir={settings.recordPathWww} bind:items={lastRecordings}></ScreenshotList>
-						<Events on:message={(e)=>onLayerChange("Events", e)} bind:showButton={showOverlayButtons} bind:this={eventsComponent} bind:visible={overlay["Events"]} {settings}></Events>
+						<ScreenshotList 
+							on:message={(e)=>onLayerChange("ScreenshotList", e)}
+							bind:showButton={showOverlayButtons}
+							bind:visible={overlay["ScreenshotList"]}
+							server={remoteUrl}
+							bind:dir={settings.recordPathWww}
+							bind:items={lastRecordings}>
+						</ScreenshotList>
+						<Events
+							on:message={(e)=>onLayerChange("Events", e)}
+							bind:showButton={showOverlayButtons}
+							bind:this={eventsComponent}
+							bind:visible={overlay["Events"]}
+							bind:settings={settings}>
+						</Events>
 					</div>
 				{/if}
 
 				{#if settings}
-					<PolyDraw bind:drawing={drawingIgnoreArea} bind:width={settings.width} bind:height={settings.height} currentPoints={settings.ignoreArea} on:complete={setIgnoreArea}></PolyDraw>
+					<PolyDraw
+						bind:drawing={drawingIgnoreArea}
+						bind:width={settings.width}
+						bind:height={settings.height}
+						currentPoints={settings.ignoreArea}
+						on:complete={setIgnoreArea}>
+					</PolyDraw>
 				{/if}
 
 				<div class="recordingStatus">
