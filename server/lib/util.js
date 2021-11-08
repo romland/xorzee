@@ -2,6 +2,7 @@ const pino = require('pino');
 const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 const fs = require("fs");
 
+const richTypes = { Date: true, RegExp: true, String: true, Number: true };
 
 class Util
 {
@@ -179,7 +180,111 @@ class Util
 			(parseInt(rgb[1]) * 587) +
 			(parseInt(rgb[2]) * 114)) / 1000);
 	}
+
+
+	static getParentOfNestedValue(obj, path)
+	{
+		return path.length > 1 ? Util.getParentOfNestedValue(obj[path[0]], path.slice(1)) : obj;
+	}
+
+	static diffWithStructure(obj, newObj, returnObj)
+	{
+		const diffs = Util.diff(obj, newObj);
+		let parent = returnObj;
+		let assignTo;
+		
+		for(let i = 0; i < diffs.length; i++) {
+			if(diffs[i].type === "REMOVE") {
+				// ... in our case we never remove settings, but if we were, this would be insufficient.
+				continue;
+			}
+
+			assignTo = returnObj;
+			for(let j = 0; j < diffs[i].path.length - 1; j++) {
+				if(!parent[diffs[i].path[j]]) {
+					parent[diffs[i].path[j]] = {};
+				}
+				assignTo = parent[diffs[i].path[j]];
+			}
+
+			assignTo[diffs[i].path[diffs[i].path.length - 1]] = diffs[i].value;
+		}
+
+		return parent;
+	}
+
+	/*
+		returns e.g.:
+			{
+				path: [ 'name' ],
+				type: 'CHANGE',
+				value: 'My Awesome Sensor'
+			},
+			{
+				path: [ 'streamOverlay', 'text' ],
+				type: 'CHANGE',
+				value: '\n %Y-%m-%d %X'
+			},
+		Lifted from: https://github.com/AsyncBanana/microdiff
+		MIT license
+
+		My changes:
+		- removed typescript specifics (not there yet)
+	*/
+	static diff(obj, newObj)
+	{
+		let diffs = [];
+		for(const key in obj) {
+			if (!(key in newObj)) {
+				diffs.push(
+					{
+						type: "REMOVE",
+						path: [key],
+					}
+				);
+			} else if (
+				obj[key] &&
+				newObj[key] &&
+				typeof obj[key] === "object" &&
+				typeof newObj[key] === "object" &&
+				!richTypes[Object.getPrototypeOf(obj[key]).constructor.name]
+			) {
+				const nestedDiffs = Util.diff(obj[key], newObj[key]);
+				diffs.push(
+					...nestedDiffs.map((difference) => {
+						difference.path.unshift(key);
+						return difference;
+					})
+				);
+			} else if (
+				obj[key] !== newObj[key] &&
+				!(
+					typeof obj[key] === "object" &&
+					typeof newObj[key] === "object" &&
+					(isNaN(obj[key])
+						? obj[key] + "" === newObj[key] + ""
+						: +obj[key] === +newObj[key])
+				)
+			) {
+				diffs.push({
+					path: [key],
+					type: "CHANGE",
+					value: newObj[key],
+				});
+			}
+		}
+		for (const key in newObj) {
+			if (!(key in obj)) {
+				diffs.push({
+					type: "CREATE",
+					path: [key],
+					value: newObj[key],
+				});
+			}
+		}
+
+		return diffs;
+	}
 }
 
 module.exports = Util;
-

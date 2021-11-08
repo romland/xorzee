@@ -346,6 +346,10 @@ const cameraSettings = [
 			case "reconfigure" :
 				logger.info("Reconfiguring server...");
 
+				// Get only settings that are actually changed
+				data = Util.diffWithStructure(conf.get(), data, {});
+				logger.info("Changed settings:", data);
+
 				let restartCamera = requiresCameraRestart(data);
 
 				if(restartCamera) {
@@ -363,6 +367,8 @@ const cameraSettings = [
 					fn = camera.restart(conf);
 					motionListener.resumeSending();
 				}
+
+				Util.savePartialSettings(settingsFile, data);
 
 				motionSender.broadcastMessage(
 					{

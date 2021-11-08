@@ -42,7 +42,7 @@ class Configuration
 				},
 				{
 					name : "", // the setting is in the root node
-					label : "Webserver",
+					label : "Server",
 					children: [
 						{
 							name		: "wwwPort",
@@ -93,7 +93,7 @@ class Configuration
 				},
 				{
 					name : "", // the setting is in the root node
-					label : "Video",
+					label : "Video quality and overlay",
 					children: [
 						{
 							name		: "bitRate",
@@ -248,7 +248,7 @@ class Configuration
 				}*/
 				{
 					name : "", // the setting is in the root node
-					label : "Recording",
+					label : "Automatic recording",
 					children: [
 						{
 							name		: "mayRecord",
@@ -419,7 +419,7 @@ class Configuration
 				}, // Signals
 				{
 					name : "", // the setting is in the root node
-					label : "Discovery",
+					label : "Discovery and announcement",
 					children: [
 						{
 							name		: "serviceName",
@@ -702,12 +702,14 @@ class Configuration
 			// simply use the 'sendMailSES' standard signal instead.
 			//
 			sendMail : {
+				/* enable to properly debug
 				logger: {
 					debug: logger.debug,
 					info: logger.info,
 					warn: logger.warn,
 					error: logger.error
 				},
+				*/
 				silent: false,
 				smtpPort: 25,
 			},
