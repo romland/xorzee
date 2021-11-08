@@ -35,6 +35,17 @@ class MotionRuleEngine
 		this.cost = {
 			ts : null
 		};
+
+		this.recorder.subscribeEvent("start", (data) => {
+			logger.debug("MotionRuleEngine got start event");
+		});
+
+		this.recorder.subscribeEvent("stop", (data) => {
+			logger.debug("MotionRuleEngine got stop event");
+			this._resetReasons();
+			logger.info("Resetting reasons as we were stopped.");
+			this.lastRecordingStopped = Date.now();
+		});
 	}
 
 
@@ -104,6 +115,11 @@ class MotionRuleEngine
 
 		this._resetReasons();
 		this.cost.reset = Date.now() - this.cost.ts;
+
+		if(this.recorder.isManuallyRecording()) {
+			// No need to execute motion rules if we are manually recording
+			return;
+		}
 
 		this.cost.ts = Date.now();
 		const cs = this.mp.getActiveClusters();
