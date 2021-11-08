@@ -74,6 +74,7 @@ class Configuration
 							type		: "string",
 							ui			: "textbox",
 							doc			: `The _public_ directory accessible by clients`,
+							'default'	: defaults.publicPath,
 						},
 			
 						{
@@ -83,6 +84,7 @@ class Configuration
 							range		: [1025, 65535],
 							ui			: "textbox",
 							doc			: `(public) for client (stream)`,
+							'default'	: defaults.videoWsPort,
 						},
 			
 						{
@@ -92,6 +94,7 @@ class Configuration
 							range		: [1025, 65535],
 							ui			: "textbox",
 							doc			: `(public) for client (motion stream)`,
+							'default'	: defaults.videoWsPort,
 						},
 			
 						{
@@ -101,6 +104,7 @@ class Configuration
 							range		: [0, 65535],
 							ui			: "textbox",
 							doc			: `max number clients allowed`,
+							'default'	: defaults.wsClientLimit,
 						},
 
 					],
@@ -116,6 +120,7 @@ class Configuration
 							range		: [1, 9999999],
 							ui			: "textbox",
 							doc			: `Bitrate of video stream`,
+							'default'	: defaults.bitRate,
 						},
 						{
 							name		: "frameRate",
@@ -124,6 +129,7 @@ class Configuration
 							range		: [0, 144],
 							ui			: "textbox",
 							doc			: `Frames per second to send`,
+							'default'	: defaults.frameRate,
 						},
 						{
 							name		: "width",
@@ -132,6 +138,7 @@ class Configuration
 							range		: [32, 3840],
 							ui			: "textbox",
 							doc			: `Video stream width (the higher resolution, the more exact motion tracking)`,
+							'default'	: defaults.width,
 						},
 			
 						{
@@ -141,6 +148,7 @@ class Configuration
 							range		: [32, 2160],
 							ui			: "textbox",
 							doc			: `Video stream height`,
+							'default'	: defaults.height,
 						},
 			
 						{
@@ -150,6 +158,7 @@ class Configuration
 							range		: [0, 10000],
 							ui			: "textbox",
 							doc			: `How long (milliseconds) we should ignore motion after starting up camera`,
+							'default'	: defaults.startupIgnore,
 						},
 
 						{
@@ -162,6 +171,7 @@ class Configuration
 									type		: "bool",
 									ui			: "checkbox",
 									doc			: `Enable overlay`,
+									'default'	: defaults.streamOverlay.enabled,
 								},
 								{
 									name		: "showName",
@@ -169,6 +179,7 @@ class Configuration
 									type		: "bool",
 									ui			: "checkbox",
 									doc			: `Show name of camera`,
+									'default'	: defaults.streamOverlay.showName,
 								},
 								{
 									name		: "text",
@@ -176,6 +187,7 @@ class Configuration
 									type		: "string",
 									ui			: "textbox",
 									doc			: `Misc text, can contain a few \n and date/time substitutions. Time: %Y = year, %m = month, %d = day of month, %Z = timezone name, %z = timezone offset, %p = AM/PM, %X = current time with seconds (hh:mm:ss)`,
+									'default'	: defaults.streamOverlay.text,
 								},
 								{
 									name		: "fontSize",
@@ -184,14 +196,7 @@ class Configuration
 									range		: [1, 200],
 									ui			: "textbox",
 									doc			: `Font size`,
-								},
-								{
-									name		: "fontSize",
-									label		: "Font size",
-									type		: "int",
-									range		: [1, 200],
-									ui			: "textbox",
-									doc			: `Font size`,
+									'default'	: defaults.streamOverlay.fontSize,
 								},
 								{
 									name		: "textLuminance",
@@ -201,6 +206,7 @@ class Configuration
 									range		: [0, 255],
 									ui			: "textbox",
 									doc			: `null/auto = auto, otherwise a value between 0 and 255`,
+									'default'	: defaults.streamOverlay.textLuminance,
 								},
 								{
 									name		: "justify",
@@ -209,6 +215,7 @@ class Configuration
 									range		: [0, 2],
 									ui			: "textbox",
 									doc			: `0=center, 1=left, 2=right`,
+									'default'	: defaults.streamOverlay.justify,
 								},
 								{
 									name		: "top",
@@ -217,6 +224,7 @@ class Configuration
 									range		: [0, 2160],
 									ui			: "textbox",
 									doc			: `placement, pixels from the top`,
+									'default'	: defaults.streamOverlay.top,
 								},
 								{
 									name		: "left",
@@ -225,6 +233,7 @@ class Configuration
 									range		: [0, 3840],
 									ui			: "textbox",
 									doc			: `placement, pixels from the left`,
+									'default'	: defaults.streamOverlay.left,
 								},
 								{
 									name		: "backgroundColor",
@@ -232,6 +241,7 @@ class Configuration
 									type		: "string",
 									ui			: "textbox",
 									doc			: `'transparent' or rgb (e.g. ff00ff)`,
+									'default'	: defaults.streamOverlay.backgroundColor,
 								},
 							], // streamOverlay children
 						} // streamOverlay
@@ -247,6 +257,7 @@ class Configuration
 							type		: "bool",
 							ui			: "checkbox",
 							doc			: `Toggle streaming of video (can be changed runtime)`,
+							'default'	: defaults.streamVideo,
 						},
 						{
 							name		: "onlyActivity",
@@ -254,6 +265,7 @@ class Configuration
 							type		: "bool",
 							ui			: "checkbox",
 							doc			: `Stream only _video_ when there is 'valid' activity (experimental!). You will want to set 'minActiveBlocks' to 20 or so, depending on lighting conditions (there's always some noise).`,
+							'default'	: defaults.onlyActivity,
 						},
 					]
 				}, // video streaming
@@ -270,6 +282,7 @@ class Configuration
 							type		: "bool",
 							ui			: "checkbox",
 							doc			: `If true, will allocate a buffer of the past. Setting simulateRecord to true will prevent files from being written to disk.`,
+							'default'	: defaults.mayRecord,
 						},
 						{
 							name		: "recordBufferSize",
@@ -278,6 +291,7 @@ class Configuration
 							range		: [0, 100000000],
 							ui			: "textbox",
 							doc			: `How much video (in bytes) to buffer for pre-recording. 3 MiB (3,145,728 bytes) is default.`,
+							'default'	: defaults.recordBufferSize,
 						},
 						{
 							name		: "recordPath",
@@ -285,6 +299,7 @@ class Configuration
 							type		: "string",
 							ui			: "textbox",
 							doc			: `Where to store recordings. Default is client/public/clips/`,
+							'default'	: defaults.recordPath,
 						},
 						{
 							name		: "recordPathWww",
@@ -292,6 +307,7 @@ class Configuration
 							type		: "string",
 							ui			: "textbox",
 							doc			: `Where a web-client can find clips/etc`,
+							'default'	: defaults.recordPathWww,
 						},
 						{
 							name		: "recordHistory",
@@ -300,6 +316,7 @@ class Configuration
 							range		: [0, 100000000],
 							ui			: "textbox",
 							doc			: `Number of latest clips to report to clients when they connect`,
+							'default'	: defaults.recordHistory,
 						},
 						{
 							name		: "trackReasons",
@@ -307,6 +324,7 @@ class Configuration
 							type		: "bool",
 							ui			: "checkbox",
 							doc			: `Whether to track why start/stop recording did not trigger on a frame`,
+							'default'	: defaults.trackReasons,
 						},
 						{
 							name		: "simulateRecord",
@@ -314,6 +332,7 @@ class Configuration
 							type		: "bool",
 							ui			: "checkbox",
 							doc			: `If true, dry-run when it comes to recordings (i.e. nothing written to disk)`,
+							'default'	: defaults.simulateRecord,
 						},
 						{
 							label		: "Start record requirements",
@@ -326,6 +345,7 @@ class Configuration
 									range		: [0, 100000],
 									ui			: "textbox",
 									doc			: `Time (in milliseconds) that needs to be deemed active to trigger recording`,
+									'default'	: defaults.startRecordRequirements.activeTime,
 								},
 								{
 									name		: "minFrameMagnitude",
@@ -334,6 +354,7 @@ class Configuration
 									range		: [0, 100000],
 									ui			: "textbox",
 									doc			: `Total magnitude of motion to be beaten to allow start of recording`,
+									'default'	: defaults.startRecordRequirements.minFrameMagnitude,
 								},
 								{
 									name		: "minActiveBlocks",
@@ -342,6 +363,7 @@ class Configuration
 									range		: [0, 100000],
 									ui			: "textbox",
 									doc			: `Total number of 'blocks'/vectors that need to be in play to allow start of recording`,
+									'default'	: defaults.startRecordRequirements.minActiveBlocks,
 								},
 								{
 									name		: "minInterval",
@@ -350,6 +372,7 @@ class Configuration
 									range		: [0, 900000],
 									ui			: "textbox",
 									doc			: `Do not start recording again if we stopped a previous one less than this long ago (milliseconds)`,
+									'default'	: defaults.startRecordRequirements.minInterval,
 								},
 							]
 						}, // startRecordRequirements
@@ -364,6 +387,7 @@ class Configuration
 									range		: [0, 900000],
 									ui			: "textbox",
 									doc			: `How long the view must be deemed not moving before we can stop recording (milliseconds)`,
+									'default'	: defaults.stopRecordRequirements.stillTime,
 								},
 								{
 									name		: "maxFrameMagnitude",
@@ -372,6 +396,7 @@ class Configuration
 									range		: [0, 1000000],
 									ui			: "textbox",
 									doc			: `A frame is deemed 'active' if it has a total magnitude of this (or more)`,
+									'default'	: defaults.stopRecordRequirements.maxFrameMagnitude,
 								},
 								{
 									name		: "maxRecordTime",
@@ -380,6 +405,7 @@ class Configuration
 									range		: [0, 600000],
 									ui			: "textbox",
 									doc			: `Max length in milliseconds to record (+ what is buffered). Default is one minute (60,000)`,
+									'default'	: defaults.stopRecordRequirements.maxRecordTime,
 								},
 								{
 									name		: "minRecordTime",
@@ -388,6 +414,7 @@ class Configuration
 									range		: [0, 6000000],
 									ui			: "textbox",
 									doc			: `Minimum length in milliseconds to record (- what is buffered)`,
+									'default'	: defaults.stopRecordRequirements.minRecordTime,
 								},
 							]
 						} // stopRecordRequirements
@@ -411,6 +438,7 @@ class Configuration
 									type		: "string",
 									ui			: "textbox",
 									doc			: `your AWS SES key`,
+									'default'	: defaults.sendMailSES.key,
 								},
 								{
 									name		: "secret",
@@ -418,6 +446,7 @@ class Configuration
 									type		: "string",
 									ui			: "textbox",
 									doc			: `your AWS SES secret`,
+									'default'	: defaults.sendMailSES.secret,
 								},
 								{
 									name		: "amazon",
@@ -425,6 +454,7 @@ class Configuration
 									type		: "string",
 									ui			: "textbox",
 									doc			: `[optional] the amazon end-point uri. defaults to https://email.us-east-1.amazonaws.com`,
+									'default'	: defaults.sendMailSES.amazon,
 								},
 
 							]
@@ -441,6 +471,7 @@ class Configuration
 							type		: "string",
 							ui			: "textbox",
 							doc			: `You want to have this the same on ALL your devices (unless you want to create multiple subsets of cameras)`,
+							'default'	: defaults.serviceName,
 						},
 						{
 							name		: "discover",
@@ -448,6 +479,7 @@ class Configuration
 							type		: "bool",
 							ui			: "checkbox",
 							doc			: `Whether to discover neighbouring cameras`,
+							'default'	: defaults.discover,
 						},
 						{
 							name		: "announce",
@@ -455,6 +487,7 @@ class Configuration
 							type		: "bool",
 							ui			: "checkbox",
 							doc			: `Whether to announce presence to neighbouring cameras`,
+							'default'	: defaults.announce,
 						},
 					]
 				}, // discovery
@@ -469,6 +502,7 @@ class Configuration
 							range		: [1025, 65535],
 							ui			: "textbox",
 							doc			: `Internal port for camera's video data`,
+							'default'	: defaults.videoPort,
 						},
 						{
 							name		: "motionPort",
@@ -477,6 +511,7 @@ class Configuration
 							range		: [1025, 65535],
 							ui			: "textbox",
 							doc			: `Internal port for camera's motion data`,
+							'default'	: defaults.motionPort,
 						},
 						{
 							name		: "spawnInShell",
@@ -484,6 +519,7 @@ class Configuration
 							type		: "bool",
 							ui			: "checkbox",
 							doc			: `Whether to spawn signal scrips in a shell or not (in shell is slower, but there may be reasons why one would need it)`,
+							'default'	: defaults.spawnInShell,
 						},
 					]
 				}, // misc. advanced
@@ -497,6 +533,7 @@ class Configuration
 							type		: "bool",
 							ui			: "checkbox",
 							doc			: `Enabled/disable motion tracking (automatic recording will be disabled if motion tracking is)`,
+							'default'	: defaults.trackMotion,
 						},
 						{
 							name		: "clusterEpsilon",
@@ -505,6 +542,7 @@ class Configuration
 							range		: [1, 16],
 							ui			: "textbox",
 							doc			: `The max distance (manhattan) to include points in a cluster (DBscan)`,
+							'default'	: defaults.clusterEpsilon,
 						},
 						{
 							name		: "clusterMinPoints",
@@ -513,6 +551,7 @@ class Configuration
 							range		: [1, 2000],
 							ui			: "textbox",
 							doc			: `The minimum number of points needed to be classified as a cluster/object`,
+							'default'	: defaults.clusterMinPoints,
 						},
 						{
 							name		: "clusterDistancing",
@@ -521,6 +560,7 @@ class Configuration
 							range		: [1, 2000],
 							ui			: "textbox",
 							doc			: `Manhattan or Euclidean`,
+							'default'	: defaults.clusterDistancing,
 						},
 						{
 							name		: "preFilterLoners",
@@ -528,6 +568,7 @@ class Configuration
 							type		: "bool",
 							ui			: "checkbox",
 							doc			: `Whether to filter out loners before density scan to (_possibly_) make clustering cheaper`,
+							'default'	: defaults.preFilterLoners,
 						},
 						{
 							name		: "discardInactiveAfter",
@@ -536,6 +577,7 @@ class Configuration
 							range		: [0, 10000],
 							ui			: "textbox",
 							doc			: `If a cluster was still for longer than this, discard it`,
+							'default'	: defaults.discardInactiveAfter,
 						},
 						{
 							name		: "vectorMinMagnitude",
@@ -544,6 +586,7 @@ class Configuration
 							range		: [0, 1000],
 							ui			: "textbox",
 							doc			: `Minimum magnitude of a vector to be deem it moving`,
+							'default'	: defaults.vectorMinMagnitude,
 						},
 						{
 							name		: "sendRaw",
@@ -551,6 +594,7 @@ class Configuration
 							type		: "bool",
 							ui			: "checkbox",
 							doc			: `Whether to pass raw vectors to client (debug -- enable RENDER_RAW on client too)`,
+							'default'	: defaults.sendRaw,
 						},
 						{
 							name : "", // the setting is in the root node
@@ -565,13 +609,15 @@ class Configuration
 									type		: "bool",
 									ui			: "checkbox",
 									doc			: `This is activity that happened _now_`,
+									'default'	: defaults.sendClusters,
 								},
 								{
 									name		: "sendHistory",
-									label		: "xxxx",
+									label		: "Send cluster history to client",
 									type		: "bool",
 									ui			: "checkbox",
 									doc			: `This is activity that happened now _and_ clusters that are deemed important`,
+									'default'	: defaults.sendHistory,
 								},
 							]
 						},
@@ -587,6 +633,7 @@ class Configuration
 									range		: [0, 10000],
 									ui			: "textbox",
 									doc			: `Output motion performance averages every N frames (0 = disabled)`,
+									'default'	: defaults.outputMotionCost,
 								},
 								{
 									name		: "outputMotionCostThreshold",
@@ -595,6 +642,7 @@ class Configuration
 									range		: [0, 10000],
 									ui			: "textbox",
 									doc			: `Output cost when things were costly. Set this really high (1000+ milliseconds) to never see it.`,
+									'default'	: defaults.outputMotionCostThreshold,
 								},
 							]
 						} // cluster performance
