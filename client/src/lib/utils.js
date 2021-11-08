@@ -73,6 +73,27 @@ export function addGeographyFollower(from, to, notify)
 }
 
 
+export function pad(num)
+{
+	var norm = Math.floor(Math.abs(num));
+	return (norm < 10 ? '0' : '') + norm;
+}
+
+
+export function utcToDateTime(utc, verbose = true)
+{
+	// const timeZoneoffset = (-d.getTimezoneOffset()/60);
+	if(!utc) {
+		return translate("Unknown");
+	}
+
+	const d = new Date(utc);
+	const t = d.toLocaleTimeString('nl-NL');
+
+	return `${d.toLocaleDateString()} ${t.substr(0, 5)}` + (verbose ? `:${pad(d.getSeconds())}` : '');
+}
+
+
 function getConnection(ob)
 {
 	for(let i = 0; i < connections.length; i++) {
