@@ -10,6 +10,20 @@ class Configuration
 	{
 	}
 
+	/**
+	 * This is passed to the client when they connect.
+	 * 
+	 * This serves a couple of purposes:
+	 * - Tell client about defaults
+	 * - Tell client what kind of UI should be used to change the setting
+	 * - Tell client about datatypes
+	 * - Documentation
+	 * - I wanted the ability to _arbitrarily_ group settings on the client
+	 * 
+	 * JSON schema or something similar could have been an option, but
+	 * arbitrarily grouping settings together turned out to be too much 
+	 * of a hassle.
+	 */
 	static getConfigurationMeta()
 	{
 		const defaults = Configuration.get();
