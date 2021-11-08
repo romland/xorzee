@@ -53,13 +53,17 @@ $:	if(settings && settings.streamOverlay && settings.streamOverlay.enabled !== u
 				{#if parentSettings && configurable.ui === "textbox"}
 					<h3>{configurable.label}</h3>
 					{#if configurable.type === "int"}
-						<input type="number"
+						<input
+							type="number"
 							min={configurable.range[0]}
 							max={configurable.range[1]} 
 							bind:value={parentSettings[configurable.name]}
 						/>
 					{:else}
-						<input type="text" bind:value={parentSettings[configurable.name]}/>
+						<input
+							type="text"
+							bind:value={parentSettings[configurable.name]}
+						/>
 					{/if}
 
 				{:else if parentSettings && configurable.ui === "checkbox"}
@@ -91,6 +95,12 @@ $:	if(settings && settings.streamOverlay && settings.streamOverlay.enabled !== u
 							<span>
 								{configurable.doc}
 							</span>
+
+							{#if configurable["default"] !== undefined}
+								<span class="defaults">
+									Default: {configurable["default"]}
+								</span>
+							{/if}
 						{/if}
 					{/if}
 
@@ -128,5 +138,9 @@ $:	if(settings && settings.streamOverlay && settings.streamOverlay.enabled !== u
 
 	span {
 		font-size: smaller;
+	}
+
+	.defaults {
+		display: block;
 	}
 </style>
