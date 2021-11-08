@@ -394,20 +394,27 @@ const cameraSettings = [
 
 		switch(cmd) {
 			case "start" :
-				fn = videoListener.getRecorder().start(videoListener.getHeaders());
+				fn = videoListener.getRecorder().start(videoListener.getHeaders(), true);
 				motionSender.broadcastMessage(
 					{
 						"event" : "startRecording",
+						"data" : "manual",
 						"filename" : fn + ".h264",
 					}
 				);
 				break;
 
 			case "stop" :
+				if(videoListener.getRecorder().isRecording() === false) {
+					logger.info("Not recording, cannot stop that");
+					break;
+				}
+
 				fn = videoListener.getRecorder().stop();
 				motionSender.broadcastMessage(
 					{
 						"event" : "stopRecording",
+						"data" : "manual",
 						"filename" : fn + ".h264",
 					}
 				);

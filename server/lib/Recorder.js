@@ -23,8 +23,14 @@ class Recorder
 		this.recordLen = 0;
 
 		this.simulateRecord = conf.get("simulateRecord");
+		this.manuallyRecording = false;
 
 		this.latestRecordings = this._getLatestRecordings(conf.get("recordHistory"));
+
+		this.subscriptions = {
+			"start" : [],
+			"stop" : []
+		};
 	}
 
 
@@ -32,6 +38,20 @@ class Recorder
 	{
 		logger.debug("Queried latest recordings. Have %d", this.latestRecordings.length);
 		return this.latestRecordings;
+	}
+
+	subscribeEvent(eventType, fn)
+	{
+		logger.debug("Adding recorder event subscriber for %s", eventType);
+		this.subscriptions[eventType].push(fn);
+	}
+
+	broadcastEvent(eventType, data)
+	{
+		logger.debug("Broadcasting recorder event %s", eventType);
+		for(let i = 0; i < this.subscriptions[eventType].length; i++) {
+			this.subscriptions[eventType][i](data);
+		}
 	}
 
 
@@ -106,12 +126,11 @@ class Recorder
 		this.latestRecordings.push(meta);
 	}
 
-
 	stop()
 	{
 		this.recording = false;
 
-		if(this.simulateRecord === false) {
+		if(this.dryRun() === false) {
 			if(this.ffmpegProc) {
 				this.ffmpegProc.stdin.end();
 			} else {
@@ -123,10 +142,10 @@ class Recorder
 
 		this.recordingMeta["stopped"] = Date.now();
 
-		logger.info((this.simulateRecord ? "[SIMULATED] " : "") + "Stopping recording (after %d sec)...", (this.recordingMeta["stopped"] - this.recordingMeta["started"]) / 1000);
+		logger.info((this.dryRun() ? "[SIMULATED] " : "") + "Stopping recording (after %d sec)...", (this.recordingMeta["stopped"] - this.recordingMeta["started"]) / 1000);
 
 		this.recordingMeta["size"] = this.recordLen;
-		if(this.simulateRecord === false) {
+		if(this.dryRun() === false) {
 			fs.writeFileSync(
 				this.conf.get("recordPath") + "/" + this.recordingToId + ".json",
 				JSON.stringify(this.recordingMeta)
@@ -135,6 +154,10 @@ class Recorder
 		}
 
 		this._addRecording(this.recordingMeta);
+
+		this.manuallyRecording = false;
+
+		this.broadcastEvent("stop");
 
 		// Screenshotter might want it.
 		return this.recordingToId;
@@ -148,7 +171,7 @@ class Recorder
 
 	append(data)
 	{
-		if(this.simulateRecord === false) {
+		if(this.dryRun() === false) {
 			this.ffmpegProc.stdin.write(NALSeparator);
 			this.ffmpegProc.stdin.write(data);
 		}
@@ -162,9 +185,25 @@ class Recorder
 	}
 
 
+	dryRun()
+	{
+		if(this.manuallyRecording) {
+			return false;
+		}
+
+		return this.simulateRecord;
+	}
+
+
 	isRecording()
 	{
 		return this.recording;
+	}
+
+
+	isManuallyRecording()
+	{
+		return this.manuallyRecording;
 	}
 
 
@@ -175,22 +214,35 @@ class Recorder
 	}
 
 
-	start(headers)
+	start(headers, manualOverride = false)
 	{
 		if(this.recording) {
-			logger.error("Already recording...");
-			return null;
+			if(manualOverride && !this.manuallyRecording && this.simulateRecord) {
+				// if it's dry-run, quickly just stop it if it's running
+				this.stop();
+			} else {
+				logger.error("Already recording...");
+				return null;
+			}
 		}
 
 		if(!headers) {
 			throw new Error("Start require headers");
 		}
 
+		this.broadcastEvent("start");
+
+		if(manualOverride === true) {
+			this.manuallyRecording = true;
+		} else {
+			this.manuallyRecording = false;
+		}
+
 		this.recordingToId = Date.now();
 
-        logger.info((this.simulateRecord ? "[SIMULATED] " : "") + "Starting recording to %s/%s.h264 ...", this.conf.get("recordPath"), this.recordingToId);
+        logger.info((this.dryRun() ? "[SIMULATED] " : "") + "Starting recording to %s/%s.h264 ...", this.conf.get("recordPath"), this.recordingToId);
 
-		if(this.simulateRecord === false) {
+		if(this.dryRun() === false) {
 			this.ffmpegProc = cp.spawn('/usr/bin/ffmpeg', [
 				'-hide_banner',
 				'-y',
