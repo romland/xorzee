@@ -17,17 +17,22 @@ Pronounced "x or z".
 
 [1] The original one, released in 2015. If it can run on that, it will run on any other Raspberry Pi.
 
+
 ## Why?
 Motion is truly excellent software and I've (well, our cat) depended on it for years. At some point
 I wanted to add more cameras and bumped into Motioneye, which looks great. I wanted a different UI,
 and I knew the motion detection could be heaps cheaper. Primarily though, a higher quality stream
 without bringing the device to its knees. So, here we are. :-)
 
+
 ## Supported cameras
 Raspberry Pi cameras (or compatible) only. Due to dependency on motion vectors, USB cameras are not supported.
 
+
 ## Credits to other folks
 - H.264 NAL unit handling credit goes to https://github.com/131/h264-live-player
+- ...and naturally to everyone contributing to packages in package.json
+
 
 ## Projects (partially or fully) in the same vein
 - _Motion_  

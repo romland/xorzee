@@ -28,25 +28,6 @@
 		);
 	}
 
-	function reconfigureStream()
-	{
-		sendMessage(
-			{
-				scope	: "general",
-				verb	: "reconfigure",
-				data : {
-                	"width"				: 1280,
-                	"height"			: 720,
-                	"framerate"			: 24,
-					"bitrate"			: 1700000 / 4,
-					"clusterEpsilon"	: 3,
-					"clusterMinPoints"	: 2,
-					"vectorMinMagnitude": 1,
-				}
-			}
-		);
-	}
-
 	function btnToggleVideoStream()
 	{
 		sendMessage(
@@ -77,7 +58,6 @@
 			<button on:click={btnToggleVideoStream}>Toggle video stream</button>
 			<button on:click={btnRecordStart}>Start recording</button>
 			<button on:click={btnRecordStop}>Stop recording</button>
-			<button on:click={reconfigureStream}>Reconfigure</button>
 			<button on:click={() => drawingIgnoreArea = !drawingIgnoreArea}>Toggle adding ignore area</button>
 			<input type="checkbox" on:change={toggleNotifications}/>Notifications
 		</div>
