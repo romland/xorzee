@@ -52,7 +52,15 @@ $:	if(settings && settings.streamOverlay && settings.streamOverlay.enabled !== u
 			<div>
 				{#if parentSettings && configurable.ui === "textbox"}
 					<h3>{configurable.label}</h3>
-					<input type="text" bind:value={parentSettings[configurable.name]}/>
+					{#if configurable.type === "int"}
+						<input type="number"
+							min={configurable.range[0]}
+							max={configurable.range[1]} 
+							bind:value={parentSettings[configurable.name]}
+						/>
+					{:else}
+						<input type="text" bind:value={parentSettings[configurable.name]}/>
+					{/if}
 
 				{:else if parentSettings && configurable.ui === "checkbox"}
 					<h3>
