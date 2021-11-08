@@ -160,7 +160,7 @@ class Camera
 		setTimeout(() => {
 			this.start(c);
 			logger.info("Restarted camera");
-		}, 200);
+		}, 1000);
 	}
 
 }
