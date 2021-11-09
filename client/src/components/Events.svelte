@@ -3,7 +3,7 @@
 
 	export let showButton = true;
 	export let visible = false;
-	export let settings = null;
+	// export let settings = null;
 
 	let eventCache = [];
 

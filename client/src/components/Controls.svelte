@@ -1,7 +1,7 @@
 <script>
 	import OverlayToggler from "./OverlayToggler.svelte";
 
-	export let videoPlayer;
+	// export let videoPlayer;
 	export let showButton = true;
 	export let sendMessage = null;
 	export let settings = null;
