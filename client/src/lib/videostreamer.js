@@ -2,7 +2,7 @@
 
 const NAL_SEPARATOR = new Uint8Array([0, 0, 0, 1]);
 
-import JMuxer from 'jmuxer/dist/jmuxer';	// don't go with default .min.js
+import JMuxer from 'jmuxer/src/jmuxer.js';	// don't go with default .min.js
 import { videoPlayers } from '../state.js';
 
 export default class VideoStreamer

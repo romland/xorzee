@@ -52,21 +52,6 @@
     background-color: transparent;
 }
 
-.c011515 *, .c011515 ::before, .c011515 ::after {
-    box-sizing: inherit;
-}
-
-.c011515 {
-    color: rgb(77, 219, 242);
-}
-
-.c011515 {
-    color: #26dafd;
-    font-size: 21px;
-    line-height: 1.5;
-    font-family: "Titillium Web", "sans-serif";
-}
-
 .c011937 {
     border-top: 5px solid #26dafd;
         border-top-color: rgb(38, 218, 253);
@@ -101,20 +86,6 @@
         border-right-color: transparent;
     border-radius: 50%;
     background-color: transparent;
-}
-
-.c011515 *, .c011515 ::before, .c011515 ::after {
-    box-sizing: inherit;
-}
-
-.c011515 {
-    color: rgb(77, 219, 242);
-}
-.c011515 {
-    color: #26dafd;
-    font-size: 21px;
-    line-height: 1.5;
-    font-family: "Titillium Web", "sans-serif";
 }
 
 @keyframes arwes-loading-circle1 {
