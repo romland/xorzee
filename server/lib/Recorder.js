@@ -118,6 +118,10 @@ class Recorder
 	 */
 	_addRecording(meta)
 	{
+		if(meta.dryRun === true) {
+			return;
+		}
+		
 		if(this.latestRecordings.length > this.conf.get("recordHistory")) {
 			// remove first
 			this.latestRecordings.shift();
@@ -141,6 +145,7 @@ class Recorder
 		}
 
 		this.recordingMeta["stopped"] = Date.now();
+		this.recordingMeta["dryRun"] = this.dryRun();
 
 		logger.info((this.dryRun() ? "[SIMULATED] " : "") + "Stopping recording (after %d sec)...", (this.recordingMeta["stopped"] - this.recordingMeta["started"]) / 1000);
 
