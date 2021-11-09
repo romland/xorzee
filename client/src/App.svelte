@@ -151,6 +151,9 @@ $:	if(playerWidthValue) {
 </main>
 
 <style>
+	main {
+		min-height: 100%;
+	}
 	.players {
 		display: flex;
 		flex-wrap: wrap;

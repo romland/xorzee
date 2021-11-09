@@ -21,12 +21,16 @@ Pronounced "x or z".
 ## Why?
 Motion is truly excellent software and I've (well, our cat) depended on it for years. At some point
 I wanted to add more cameras and bumped into Motioneye, which looks great. I wanted a different UI,
-and I knew the motion detection could be heaps cheaper. Primarily though, a higher quality stream
-without bringing the device to its knees. So, here we are. :-)
+auto-discovery, and I knew the motion detection could be heaps cheaper. Primarily though, a higher 
+quality live stream without bringing the device to its knees. So, here we are. :-)
 
 
 ## Supported cameras
 Raspberry Pi cameras (or compatible) only. Due to dependency on motion vectors, USB cameras are not supported.
+
+
+## Development notes
+[Frontend](https://github.com/romland/xorzee/tree/main/client) is written in Svelte, [backend](https://github.com/romland/xorzee/tree/main/server) is in Node.
 
 
 ## Credits to other folks
@@ -34,7 +38,7 @@ Raspberry Pi cameras (or compatible) only. Due to dependency on motion vectors, 
 - ...and naturally to everyone contributing to packages in package.json
 
 
-## Projects (partially or fully) in the same vein
+### Projects (partially or fully) in the same vein
 - _Motion_  
   The excellent project that made me start this project. Primarily motion detection.  
   https://github.com/Motion-Project/motion
@@ -62,3 +66,9 @@ Raspberry Pi cameras (or compatible) only. Due to dependency on motion vectors, 
 	https://github.com/pimterry/pi-cam  
 	https://github.com/matijagaspar/ws-avc-player  
 	https://github.com/TeaFlex/PiStreamer  
+
+
+## Some related keywords
+...so that the project can be found.
+
+Not RTSP, not broadway.js, h264, live streaming, detect movement, record videos, play videos

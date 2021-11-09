@@ -63,7 +63,7 @@
 		padding: 25px;
 		border-radius: 4px;
 		overflow-y: auto;
-		max-height: 600px;
+		max-height: 350px;
 
 		opacity: 0.8;
 	}
