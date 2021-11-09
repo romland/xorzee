@@ -7,7 +7,7 @@
 	import { utcToDateTime } from '../lib/utils.js';
 	import Loading from "./Loading.svelte";
 
-	import JMuxer from 'jmuxer/dist/jmuxer';	// don't go with default .min.js
+	import JMuxer from 'jmuxer/src/jmuxer.js';	// don't go with default .min.js
 
 	export let showButton = true;
 	export let server = "";
