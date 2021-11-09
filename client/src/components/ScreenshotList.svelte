@@ -56,6 +56,39 @@
 		oReq.send(null);
 	}
 
+	function secToTime(seconds)
+	{
+		var date = new Date(null);
+		date.setSeconds(seconds);
+		return date.toISOString().substr(11, 8);		
+	}
+
+	/*
+	 * Brutally copy/pasted from
+	 * https://stackoverflow.com/questions/15900485/correct-way-to-convert-size-in-bytes-to-kb-mb-gb-in-javascript
+	 */
+	function formatBytes(bytes, decimals = 2)
+	{
+		if (bytes === 0) return '0 Bytes';
+
+		const k = 1024;
+		const dm = decimals < 0 ? 0 : decimals;
+		const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+
+		const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+		return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+	}
+
+/*
+an item:
+	camera: "My Awesome Sensor"
+	screenshot: "1608770998037.jpg"
+	size: 5063593
+	started: 1608770998243
+	stopped: 1608771299603
+	video: "1608770998037.h264"
+*/
 </script>
 
 	<OverlayToggler on:message bind:visible={visible} name="📹 Recordings" showButton={showButton} position="above">
@@ -69,7 +102,7 @@
 							<div class="content">
 								<!-- svelte-ignore a11y-media-has-caption -->
 								<video width="90%" controls autoplay id={item.video}></video>
-								<img alt="" src="{baseUrl}{item.screenshot}"/>
+								<img alt="" src="{baseUrl}{item.screenshot}" />
 								<p>
 									<span on:click={() => {play(item)}}>play test</span>
 								</p>
@@ -77,6 +110,9 @@
 							
 							<footer>
 								{utcToDateTime(item.started)}
+								Length: {secToTime(Math.round((item.stopped-item.started)/1000))}
+								Size: {formatBytes(item.size, 0)}
+								<a download href="{baseUrl}{item.video}">Download</a>
 							</footer>
 						</div>
 					{/each}
@@ -108,5 +144,8 @@
 	img {
 		width: 90%;
 		height: auto;
+	}
+	.overlay {
+		background-color: black;
 	}
 </style>
