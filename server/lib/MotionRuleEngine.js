@@ -109,17 +109,17 @@ class MotionRuleEngine
 
 	processFrame(data, allClusters)
 	{
+		if(this.recorder.isManuallyRecording()) {
+			// No need to execute motion rules if we are manually recording
+			return;
+		}
+		
 		this.cost = {
 			ts : Date.now()
 		};
 
 		this._resetReasons();
 		this.cost.reset = Date.now() - this.cost.ts;
-
-		if(this.recorder.isManuallyRecording()) {
-			// No need to execute motion rules if we are manually recording
-			return;
-		}
 
 		this.cost.ts = Date.now();
 		const cs = this.mp.getActiveClusters();
