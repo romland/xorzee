@@ -40,10 +40,10 @@ class MotionRuleEngine
 			logger.debug("MotionRuleEngine got start event");
 		});
 
+		// Stop recording is not always triggered by us, we do however want to know.
 		this.recorder.subscribeEvent("stop", (data) => {
-			logger.debug("MotionRuleEngine got stop event");
+			logger.debug("MotionRuleEngine got stop event, resetting reasons and setting lastRecordingStopped = now");
 			this._resetReasons();
-			logger.info("Resetting reasons as we were stopped.");
 			this.lastRecordingStopped = Date.now();
 		});
 	}
