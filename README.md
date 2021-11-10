@@ -13,7 +13,7 @@ A low-latency, HD video streamer and motion detector. The goal is that it must r
 - [ ] ...store meta-data of amount of activity in period (graph)
 - [ ] ...modern web-client in Svelte
 
-Pronounced "x or z".
+Simply pronounced "x or z".
 
 [1] The original one, released in 2015. If it can run on that, it will run on any other Raspberry Pi.
 
@@ -26,7 +26,7 @@ quality live stream without bringing the device to its knees. So, here we are. :
 
 
 ## Supported cameras
-Raspberry Pi cameras (or compatible) only. Due to dependency on motion vectors, USB cameras are not supported.
+Due to dependency on motion vectors, USB cameras are not supported. So, Raspberry Pi cameras (or compatible) only.
 
 
 ## Development notes
@@ -34,8 +34,9 @@ Raspberry Pi cameras (or compatible) only. Due to dependency on motion vectors, 
 
 
 ## Credits to other folks
+- Notable mention of Samir Das for the fantastic [jMuxer](https://github.com/samirkumardas/jmuxer) for mp4 boxing
 - H.264 NAL unit handling credit goes to https://github.com/131/h264-live-player
-- ...and naturally to everyone contributing to packages in package.json
+- ...and naturally to everyone else contributing to packages in package.json
 
 
 ### Projects (partially or fully) in the same vein
@@ -69,6 +70,4 @@ Raspberry Pi cameras (or compatible) only. Due to dependency on motion vectors, 
 
 
 ## Some related keywords
-...so that the project can be found.
-
-Not RTSP, not broadway.js, h264, live streaming, detect movement, record videos, play videos
+Not RTSP, not broadway.js, h264, live streaming, detect movement, record videos, play videos, html5 video, mp4, hls

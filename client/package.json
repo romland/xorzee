@@ -5,12 +5,15 @@
     "build": "rollup -c",
     "dev": "rollup -c -w",
     "start": "sirv public --host 0.0.0.0",
-    "validate": "svelte-check"
+    "validate": "svelte-check",
+	"prepare": "npm run smui-theme-dark",
+	"smui-theme-dark": "smui-theme compile public/smui-dark.css -i src/theme/dark"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^16.0.0",
     "@rollup/plugin-node-resolve": "^10.0.0",
     "@rollup/plugin-typescript": "^6.0.0",
+    "@smui/button": "^5.0.0-beta.8",
     "@tsconfig/svelte": "^1.0.0",
     "rollup": "^2.3.4",
     "rollup-plugin-css-only": "^3.1.0",
@@ -18,6 +21,7 @@
     "rollup-plugin-polyfill-node": "^0.7.0",
     "rollup-plugin-svelte": "^7.0.0",
     "rollup-plugin-terser": "^7.0.0",
+    "smui-theme": "^5.0.0-beta.8",
     "svelte": "^3.0.0",
     "svelte-check": "^1.0.0",
     "svelte-preprocess": "^4.0.0",
