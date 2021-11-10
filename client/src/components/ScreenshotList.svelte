@@ -9,6 +9,17 @@
 
 	import JMuxer from 'jmuxer/src/jmuxer.js';	// don't go with default .min.js
 
+	import Card, {
+		Content,
+		PrimaryAction,
+		Actions,
+		ActionButtons,
+		ActionIcons,
+	} from '@smui/card';
+	import Button, { Label } from '@smui/button';
+	import IconButton, { Icon } from '@smui/icon-button';
+	import LayoutGrid, { Cell } from '@smui/layout-grid';
+
 	export let showButton = true;
 	export let server = "";
 	export let dir = "";
@@ -97,25 +108,46 @@ an item:
 				<div class="cards">
 					<Loading></Loading>
 
-					{#each items as item}
-						<div class="card">
-							<div class="content">
-								<!-- svelte-ignore a11y-media-has-caption -->
-								<video width="90%" controls autoplay id={item.video}></video>
-								<img alt="" src="{baseUrl}{item.screenshot}" />
-								<p>
-									<span on:click={() => {play(item)}}>play test</span>
-								</p>
-							</div>
-							
-							<footer>
-								{utcToDateTime(item.started)}
-								Length: {secToTime(Math.round((item.stopped-item.started)/1000))}
-								Size: {formatBytes(item.size, 0)}
-								<a download href="{baseUrl}{item.video}">Download</a>
-							</footer>
-						</div>
-					{/each}
+					<LayoutGrid>
+						{#each items as item}
+							<Cell>
+								<div class="demo-cell">
+									<Card>
+										<Content>
+											<video controls autoplay id={item.video}></video>
+											<img style="width: 33%;" alt="" src="{baseUrl}{item.screenshot}" />
+												
+										</Content>
+										<Actions>
+											<IconButton
+												toggle
+												aria-label="Add to favorites"
+												title="Add to favorites"
+											>
+												<Icon class="material-icons" on>favorite</Icon>
+												<Icon class="material-icons">favorite_border</Icon>
+											</IconButton>
+											<IconButton
+												class="material-icons"
+												title="Share">share</IconButton
+											>
+											<IconButton
+												class="material-icons"
+												title="More options">more_vert</IconButton
+											>
+											<!--
+											{utcToDateTime(item.started)}
+											Length: {secToTime(Math.round((item.stopped-item.started)/1000))}
+											Size: {formatBytes(item.size, 0)}
+											<a download href="{baseUrl}{item.video}">Download</a>
+											-->
+			
+										</Actions>
+									</Card>
+								</div>
+							</Cell>
+						{/each}
+					</LayoutGrid>
 				</div>
 			</div>
 		</div>
@@ -126,7 +158,7 @@ an item:
 
 
 <style>
-
+/*
 	.cards {
 		display: grid;
 		grid-template-columns: repeat(auto-fill,minmax(200px,1fr));
@@ -145,7 +177,15 @@ an item:
 		width: 90%;
 		height: auto;
 	}
+*/
 	.overlay {
-		background-color: black;
 	}
+  .demo-cell {
+    height: 360px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--mdc-theme-secondary, #333);
+    color: var(--mdc-theme-on-secondary, #fff);
+  }	
 </style>

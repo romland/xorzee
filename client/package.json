@@ -6,14 +6,21 @@
     "dev": "rollup -c -w",
     "start": "sirv public --host 0.0.0.0",
     "validate": "svelte-check",
-	"prepare": "npm run smui-theme-dark",
-	"smui-theme-dark": "smui-theme compile public/smui-dark.css -i src/theme/dark"
+    "prepare": "npm run smui-theme-dark",
+    "smui-theme-dark": "smui-theme compile public/smui-dark.css -i src/theme/dark"
   },
   "devDependencies": {
+    "@material/elevation": "^13.0.0",
+    "@material/typography": "^13.0.0",
     "@rollup/plugin-commonjs": "^16.0.0",
     "@rollup/plugin-node-resolve": "^10.0.0",
     "@rollup/plugin-typescript": "^6.0.0",
     "@smui/button": "^5.0.0-beta.8",
+    "@smui/card": "^5.0.0-beta.8",
+    "@smui/common": "^5.0.0-beta.8",
+    "@smui/icon-button": "^5.0.0-beta.8",
+    "@smui/layout-grid": "^5.0.0-beta.8",
+    "@smui/paper": "^5.0.0-beta.8",
     "@tsconfig/svelte": "^1.0.0",
     "rollup": "^2.3.4",
     "rollup-plugin-css-only": "^3.1.0",

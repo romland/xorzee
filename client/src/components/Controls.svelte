@@ -56,9 +56,10 @@
 
 	<OverlayToggler on:message bind:visible={visible} name="✓ Controls" showButton={showButton} position="below">
 		<div>
-<Button color="secondary" variant="unelevated">
-	<Label>Unelevated</Label>
-</Button>			
+			<Button color="secondary" variant="unelevated">
+				<Label>smui test</Label>
+			</Button>
+
 			<button on:click={btnToggleVideoStream}>Toggle video stream</button>
 			<button on:click={btnRecordStart}>Start recording</button>
 			<button on:click={btnRecordStop}>Stop recording</button>
