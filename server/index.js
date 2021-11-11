@@ -118,7 +118,10 @@ const cameraSettings = [
 			settings : conf.get(),
 			settingsMeta : Configuration.getConfigurationMeta(),
 			neighbours : neighbours,
-			lastRecordings : videoListener.getRecorder().getLatestRecordings()
+			lastRecordings : videoListener.getRecorder().getLatestRecordings(),
+			status : {
+				recording : videoListener.getRecorder().isRecording()
+			}
 		};
 	}
 
