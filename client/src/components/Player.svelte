@@ -141,6 +141,21 @@
 		};
 	});
 
+	/**
+	 * Misc. status messages we get from server. One such example is
+	 * that server might be recording when we first connect, so we 
+	 * never actually saw a "start recording" event. Server will pass 
+	 * a 'status' in greeting this purpose. But can be used to pass
+	 * any status at any point.
+	 */
+	function serverStatusUpdate(status)
+	{
+		console.log("Got status", status);
+		if(status.recording !== undefined) {
+			recording = status.recording;
+		}
+	}
+
 	function handleServerMessage(msg)
 	{
 		if(msg.settings) {
@@ -153,6 +168,10 @@
 
 		if(msg.event) {
 			handleServerEvent(msg);
+		}
+
+		if(msg.status) {
+			serverStatusUpdate(msg.status)
 		}
 
 		// This can also be in the root of an object (not just an event)
@@ -276,7 +295,6 @@
 						</Configuration>
 
 						<Controls
-							videoPlayer={videoPlayer}
 							on:message={(e)=>onLayerChange("Controls", e)}
 							bind:showButton={showOverlayButtons}
 							bind:visible={overlay["Controls"]}
@@ -293,7 +311,7 @@
 								player={videoPlayer}>
 							</BroadwayStats>
 						{/if}
-						
+
 						<Button bind:visible={showOverlayButtons} label="Play" on:click={play}></Button>
 					</div>
 
@@ -310,8 +328,7 @@
 							on:message={(e)=>onLayerChange("Events", e)}
 							bind:showButton={showOverlayButtons}
 							bind:this={eventsComponent}
-							bind:visible={overlay["Events"]}
-							bind:settings={settings}>
+							bind:visible={overlay["Events"]}>
 						</Events>
 					</div>
 				{/if}

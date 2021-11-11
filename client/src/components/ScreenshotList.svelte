@@ -177,9 +177,9 @@ an item:
 		width: 90%;
 		height: auto;
 	}
-*/
 	.overlay {
 	}
+*/
   .demo-cell {
     height: 360px;
     display: flex;
