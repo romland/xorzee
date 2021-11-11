@@ -227,21 +227,12 @@ const cameraSettings = [
 	}
 
 
-	function handleMotionEvent(module, eventType, eventData, simulation = false)
+	function handleMotionEvent(module, eventType, eventData)
 	{
 		if(module === "MotionRuleEngine") {
 			let meta;
 
-			if(simulation) {
-				//meta = videoListener.getRecorder().getRecordingMeta();
-				meta = {
-					"SIMULATION" : true,
-					video : "fakevideo.h264"
-				};
-
-			} else {
-				meta = videoListener.getRecorder().getRecordingMeta();
-			}
+			meta = videoListener.getRecorder().getRecordingMeta();
 
 			switch(eventType) {
 				case "start" :

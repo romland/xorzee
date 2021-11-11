@@ -17,7 +17,6 @@ class MotionRuleEngine
 		this.mp = mvrProcessor;
 		this.videoListener = videoListener;
 		this.recorder = videoListener.getRecorder();
-		this.simulateRecord = conf.get("simulateRecord");
 
 		this.reconfigure(conf);
 
@@ -96,7 +95,7 @@ class MotionRuleEngine
 	_sendEvent(type, data)
 	{
 		if(this.eventTriggerCallback) {
-			this.eventTriggerCallback("MotionRuleEngine", type, data, this.simulateRecord);
+			this.eventTriggerCallback("MotionRuleEngine", type, data);
 		}
 	}
 
