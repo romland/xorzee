@@ -64,8 +64,9 @@
 		border-radius: 4px;
 		overflow-y: auto;
 		max-height: 350px;
-
+/*
 		opacity: 0.8;
+*/
 	}
 
 </style>

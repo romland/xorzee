@@ -193,3 +193,13 @@ export function scalePolygon(polygon, currentResolution, targetResolution, round
 
 	return p;
 }
+
+/**
+ * Authorization:
+ * e.g. 'can user delete clip'
+ */
+export function can(user, action, target)
+{
+	// TODO: _nothing_ is done around this on server
+	return true;
+}

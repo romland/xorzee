@@ -26,7 +26,7 @@
 
 	function getMousePosition(e)
 	{
-		// We have to do this every time because the object we are act as overlay on might change.
+		// We do this every time because this object act as an overlay and might change.
 		// Best would be to pass in an event to this component when that changes, but ... later.
 		svgRect = svg.getBoundingClientRect();
 

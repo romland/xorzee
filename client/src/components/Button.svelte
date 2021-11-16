@@ -1,5 +1,6 @@
 <script>
 	import { createEventDispatcher, onMount, onDestroy } from 'svelte';
+	import Button, { Label } from '@smui/button';
 
 	const dispatch = createEventDispatcher();
 
@@ -20,8 +21,15 @@
 	}
 </script>
 
-	<div class:hide={!visible}>
+	<div class:hide={!visible} on:click|preventDefault={clicked}>
+		<!--
 		<button class:active={pressed} type="button" on:click|preventDefault={clicked}>{label}</button>
+		-->
+
+		<Button color={pressed ? "primary" : "secondary"} variant="unelevated">
+			<Label>{label}</Label>
+		</Button>
+
 	</div>
 
 
