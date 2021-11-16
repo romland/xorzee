@@ -285,15 +285,6 @@
 			<div class="containerOverlays" on:dblclick={ () => toggleFullScreen(onRequest, onExit) } bind:this={polydrawContainer}>
 				{#if settings}
 					<div class="topLeft">
-						<Configuration
-							on:message={(e)=>onLayerChange("Configuration", e)}
-							bind:showButton={showOverlayButtons}
-							bind:visible={overlay["Configuration"]}
-							sendMessage={sendMessage}
-							bind:settings={settings}
-							bind:settingsMeta={settingsMeta}>
-						</Configuration>
-
 						<Controls
 							on:message={(e)=>onLayerChange("Controls", e)}
 							bind:showButton={showOverlayButtons}
@@ -302,6 +293,15 @@
 							sendMessage={sendMessage}
 							bind:settings={settings}>
 						</Controls>
+
+						<Configuration
+							on:message={(e)=>onLayerChange("Configuration", e)}
+							bind:showButton={showOverlayButtons}
+							bind:visible={overlay["Configuration"]}
+							sendMessage={sendMessage}
+							bind:settings={settings}
+							bind:settingsMeta={settingsMeta}>
+						</Configuration>
 
 						{#if videoPlayer}
 							<BroadwayStats 
@@ -312,7 +312,9 @@
 							</BroadwayStats>
 						{/if}
 
-						<Button bind:visible={showOverlayButtons} label="Play" on:click={play}></Button>
+						<!-- No longer needed as it will autoplay if no audio
+							<Button bind:visible={showOverlayButtons} label="Play" on:click={play}></Button>
+						-->
 					</div>
 
 					<div class="bottomLeft">

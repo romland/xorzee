@@ -118,8 +118,8 @@ $:	if(playing === true) {
 				<Loading></Loading>
 			{/if}
 			<span class="notes block">
-				{secToTime(Math.round((item.stopped-item.started)/1000))},
-				{formatBytes(item.size, 0)}
+				{secToTime(Math.round((item.stopped-item.started)/1000))}
+				({formatBytes(item.size, 0)})
 			</span>
 		</Content>
 

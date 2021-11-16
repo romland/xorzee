@@ -51,7 +51,7 @@
 
 </script>
 
-	<OverlayToggler on:message bind:visible={visible} name="🗠 Statistics" showButton={showButton} position="below">
+	<OverlayToggler on:message bind:visible={visible} name="" icon="bar_chart" showButton={showButton} position="below">
 		<div>
 			<span>{playerWidth}x{playerHeight}</span>,
 			<span>{lastSecondFrames} fps</span>,

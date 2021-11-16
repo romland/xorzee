@@ -54,16 +54,24 @@
 	}
 </script>
 
-	<OverlayToggler on:message bind:visible={visible} name="✓ Controls" showButton={showButton} position="below">
+	<OverlayToggler on:message bind:visible={visible} name="" icon="more_vert" showButton={showButton} position="below">
 		<div>
-			<Button color="secondary" variant="unelevated">
-				<Label>smui test</Label>
+			<Button on:click={btnToggleVideoStream} color="secondary" variant="unelevated">
+				<Label>Toggle video stream</Label>
 			</Button>
 
-			<button on:click={btnToggleVideoStream}>Toggle video stream</button>
-			<button on:click={btnRecordStart}>Start recording</button>
-			<button on:click={btnRecordStop}>Stop recording</button>
-			<button on:click={() => drawingIgnoreArea = !drawingIgnoreArea}>Toggle adding ignore area</button>
+			<Button on:click={btnRecordStart} color="secondary" variant="unelevated">
+				<Label>Start recording</Label>
+			</Button>
+
+			<Button on:click={btnRecordStop} color="secondary" variant="unelevated">
+				<Label>Stop recording</Label>
+			</Button>
+
+			<Button on:click={() => drawingIgnoreArea = !drawingIgnoreArea} color="secondary" variant="unelevated">
+				<Label>Toggle adding ignore area</Label>
+			</Button>
+
 			<input type="checkbox" on:change={toggleNotifications}/>Notifications
 		</div>
 	</OverlayToggler>

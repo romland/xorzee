@@ -18,7 +18,7 @@
 
 </script>
 
-	<OverlayToggler on:message bind:visible={visible} name="📹 Recordings" showButton={showButton} position="above">
+	<OverlayToggler on:message bind:visible={visible} name="" icon="movie" showButton={showButton} position="above">
 		<div>
 			<div class="overlay wrapper" in:fade out:fade>
 				{#each items as item}
