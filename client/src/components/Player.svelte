@@ -54,6 +54,8 @@
 	let remoteUrl = "";
 
 	let videoContainer;
+	let motionContainer;
+	let crispVideo;
 	let videoFontSize = 30;
 
 	// yeah yeah, rename this... it's for development only
@@ -108,14 +110,15 @@
 				[ (w,h,o) => {
 					// This is called when motionCanvas changes
 					// We need to give container a physical size since everything in it absolute positioned.
-					container.style.height = h;
-					container.style.width = w;
-
-					const surface = o.getBoundingClientRect();
-
-					videoFontSize = Math.min(surface.width / 20, 30);
-					// console.log(videoFontSize, w, h, o);
+					videoContainer.style.height = h;
+					videoContainer.style.width = w;
+					
+					videoFontSize = Math.min(o.getBoundingClientRect().width / 20, 30);
 				}]
+			);
+			addGeographyFollower(
+				motionCanvas,
+				motionContainer
 			);
 
 			motionStreamer.setVideoSize(settings.width, settings.height);
@@ -285,7 +288,7 @@
 		});
 	}
 
-	// ========= zoom related stuff =========
+	// ========= zoom related stuff, TODO: refactor away somehow =========
 	const startDrag = {
 		x: 0,
 		y: 0,
@@ -346,7 +349,7 @@
 
 	function mouseDown(e)
 	{
-		if(e.which !== 1) {
+		if(e.which !== 1 || e.target.tagName === "INPUT") {
 			return;
 		}
 
@@ -362,7 +365,7 @@
 
 	function mouseUp(e)
 	{
-		if(e.which !== 1) {
+		if(e.which !== 1 || e.target.tagName === "INPUT") {
 			return;
 		}
 
@@ -390,19 +393,48 @@
 		const surfaceC = { x : surface.width/2, y : surface.height/2 };
 		const zoomLevel = Math.min((surface.width / rectW), (surface.height / rectH));
 
-		videoElt.style.transform = "translate(" + ((surfaceC.x - rectC.x)*zoomLevel) + "px, " + ((surfaceC.y - rectC.y)*zoomLevel) + "px)  scale(" + zoomLevel + ")";
+
+		if(false) {
+			// works (but without motion canvas sync)
+			videoElt.style.transform = "translate(" + ((surfaceC.x - rectC.x)*zoomLevel) + "px, " + ((surfaceC.y - rectC.y)*zoomLevel) + "px)  scale(" + zoomLevel + ")";
+		} else if(true) {
+
+console.log("surface:", surface, "start", startDrag, rectW, rectH);
+// arr why does this work with bigger rects and not small ones?
+// either way: We need to get motionCanvas into a container which we can hide overflow of,
+// this is not super straight forward tho, as all geographical changes are bound to motionCanvas
+
+			videoElt.style.transform = "translate(" + ((surfaceC.x - rectC.x)*zoomLevel) + "px, " + ((surfaceC.y - rectC.y)*zoomLevel) + "px)  scale(" + zoomLevel + ")";
+			motionCanvas.style.transform = videoElt.style.transform;
+
+		} else {
+			motionCanvas.style.transform = "translate(" + ((surfaceC.x - rectC.x)*zoomLevel) + "px, " + ((surfaceC.y - rectC.y)*zoomLevel) + "px)  scale(" + zoomLevel + ")";
+			updateAllGeography();
+		}
 
 		videoElt.classList.add("liveVideoPlayer");
 
 		zoomed.active = true;
 	}
+
+$:	if(videoPlayer && videoPlayer.canvas) {
+		if(crispVideo === true) {
+			videoPlayer.canvas.classList.add("crispVideo");
+		} else {
+			videoPlayer.canvas.classList.remove("crispVideo");
+		}
+		console.log("videoPlayer classes", videoPlayer.canvas.classList);
+	}
 </script>
 	<Fullscreen let:onRequest let:onExit>
 		<div class="container" bind:this={container}>
 			<!-- If Broadway renderer is used: 'videoCanvas' (can also be a video player) will be inserted above -->
-			<div class="videoContainer" bind:this={videoContainer}>
+			<div class="layerContainer" bind:this={videoContainer}>
 			</div>
-			<canvas bind:this={motionCanvas} class="motionCanvas" style="width: {playerWidth};"/>
+			
+			<div class="layerContainer" bind:this={motionContainer} style="width: {playerWidth};">
+				<canvas bind:this={motionCanvas} class="motionCanvas" style="width: 100%;"/>
+			</div>
 
 			<div
 				class="containerOverlays"
@@ -425,6 +457,7 @@
 							bind:visible={overlay["Controls"]}
 							bind:drawingIgnoreArea={drawingIgnoreArea}
 							sendMessage={sendMessage}
+							bind:crispVideo={crispVideo}
 							bind:settings={settings}>
 						</Controls>
 
@@ -467,9 +500,7 @@
 							bind:visible={overlay["Events"]}>
 						</Events>
 					</div>
-				{/if}
 
-				{#if settings}
 					<PolyDraw
 						bind:drawing={drawingIgnoreArea}
 						bind:width={settings.width}
@@ -526,7 +557,7 @@
 		color: #ff0000;
 	}
 
-	.videoContainer {
+	.layerContainer {
 		overflow:hidden;
 		position:absolute;
 	}

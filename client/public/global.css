@@ -13,12 +13,13 @@ body {
 }
 .liveVideoPlayer {
 	animation: liveZoom 0.4s ease;
+}
+.crispVideo {
 	image-rendering: optimizeSpeed;             /* STOP SMOOTHING, GIVE ME SPEED  */
 	image-rendering: -moz-crisp-edges;          /* Firefox                        */
 	image-rendering: -o-crisp-edges;            /* Opera                          */
 	image-rendering: -webkit-optimize-contrast; /* Chrome (and eventually Safari) */
 	image-rendering: pixelated; /* Chrome */
 	image-rendering: optimize-contrast;         /* CSS3 Proposed                  */
-	-ms-interpolation-mode: nearest-neighbor;   /* IE8+                           */				
-
+	-ms-interpolation-mode: nearest-neighbor;   /* IE8+                           */
 }

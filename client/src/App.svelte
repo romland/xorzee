@@ -162,7 +162,7 @@ $:	if(playerWidthValue) {
 	}
 
 	.player {
-		border-radius: 10px;
+		border-radius: 6px;
 		border: 4px solid #333;
 /*untested:		box-sizing: border-box;
 */

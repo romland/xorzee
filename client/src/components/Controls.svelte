@@ -8,6 +8,7 @@
 	export let settings = null;
 	export let visible = false;
 	export let drawingIgnoreArea = false;
+	export let crispVideo = false;
 
 	function btnRecordStart()
 	{
@@ -73,6 +74,7 @@
 			</Button>
 
 			<input type="checkbox" on:change={toggleNotifications}/>Notifications
+			<input type="checkbox" bind:checked={crispVideo}/>Crisp video
 		</div>
 	</OverlayToggler>
 
