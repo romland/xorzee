@@ -27,9 +27,11 @@ export default class VideoStreamer
 			elt.autoplay = true;
 			elt.muted = true;
 			let styles = {
-				position	: "absolute"
+				width : "100%",
+				transformOrigin : "center center 0px",
+				transform : "translate(0px, 0px) scale(1)"
 			};
-		
+
 			for(let s in styles) {
 				elt.style[s] = styles[s];
 			}

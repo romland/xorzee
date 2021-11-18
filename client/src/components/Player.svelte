@@ -53,6 +53,9 @@
 
 	let remoteUrl = "";
 
+	let videoContainer;
+	let videoFontSize = 30;
+
 	// yeah yeah, rename this... it's for development only
 	function fiddleWithUrl()
 	{
@@ -98,17 +101,23 @@
 			*/
 			videoStreamer = new VideoStreamer(true, 'auto', settings.width, settings.height, 'jmuxer');
 			videoPlayer = videoStreamer.getPlayer();
-			container.prepend(videoPlayer.canvas);
+			videoContainer.prepend(videoPlayer.canvas);
 			addGeographyFollower(
 				motionCanvas,
-				videoPlayer.canvas,
+				videoContainer,
 				[ (w,h,o) => {
 					// This is called when motionCanvas changes
 					// We need to give container a physical size since everything in it absolute positioned.
-					container.style.height = videoPlayer.canvas.style.height;
-					container.style.width = videoPlayer.canvas.style.width;
+					container.style.height = h;
+					container.style.width = w;
+
+					const surface = o.getBoundingClientRect();
+
+					videoFontSize = Math.min(surface.width / 20, 30);
+					// console.log(videoFontSize, w, h, o);
 				}]
 			);
+
 			motionStreamer.setVideoSize(settings.width, settings.height);
 		}
 
@@ -276,13 +285,138 @@
 		});
 	}
 
+	// ========= zoom related stuff =========
+	const startDrag = {
+		x: 0,
+		y: 0,
+		ts: 0
+	};
+	let zoomSvg, zoomRect;
+	const zoomed = {
+		active : false,
+		scale : 1,
+		pos : {
+			x: 0,
+			y: 0
+		}
+	};
+
+	function resetZoom()
+	{
+		zoomed.active = false;
+
+		const videoElt = container.getElementsByTagName("video")[0];
+		if(!videoElt) {
+			console.error("No video element...");
+			return;
+		}
+
+		videoElt.style.transform = "translate(0px, 0px) scale(1)";
+		motionCanvas.style.transform = "translate(0px, 0px) scale(1)";
+		videoElt.classList.remove("liveVideoPlayer");
+	}
+
+	function getMousePos(e)
+	{
+		const rect = polydrawContainer.getBoundingClientRect();
+		return {
+			// Round because we get fuzzy sub-pixel offsets if the element is scaled or zoomed in.
+			x :	Math.round(e.pageX - rect.left),
+			y :	Math.round(e.pageY - rect.top)
+		};
+	}
+
+	function mouseMove(e)
+	{
+		if(startDrag.ts === 0) {
+			return;
+		}
+
+		const pos = getMousePos(e);
+
+		if(pos.x === startDrag.x && pos.y === startDrag.y) {
+			return;
+		}
+
+		zoomSvg.setAttribute("width", pos.x - startDrag.x);
+		zoomSvg.setAttribute("height", pos.y - startDrag.y);
+		zoomSvg.style.left = startDrag.x + "px";
+		zoomSvg.style.top = startDrag.y + "px";
+	}
+
+	function mouseDown(e)
+	{
+		if(e.which !== 1) {
+			return;
+		}
+
+		const pos = getMousePos(e);
+		startDrag.ts = Date.now();
+		startDrag.x = pos.x;
+		startDrag.y = pos.y;
+
+		if(zoomed.active === true) {
+			resetZoom();
+		}
+	}
+
+	function mouseUp(e)
+	{
+		if(e.which !== 1) {
+			return;
+		}
+
+		startDrag.ts = 0;
+		zoomSvg.setAttribute("height", 0);
+		zoomSvg.setAttribute("width", 0);
+
+		const pos = getMousePos(e);
+
+		if(pos.x === startDrag.x && pos.y === startDrag.y) {
+			return;
+		}
+
+		// Not bindable with Svelte as its constructed runtime, to plain old DOM we go...
+		const videoElt = videoContainer.getElementsByTagName("video")[0];
+		if(!videoElt) {
+			console.error("No video element...");
+			return;
+		}
+
+		const surface = videoContainer.getBoundingClientRect();
+		const rectW = pos.x - startDrag.x;
+		const rectH = pos.y - startDrag.y;
+		const rectC = { x : (startDrag.x + (rectW/2)), y : (startDrag.y + (rectH/2)) };
+		const surfaceC = { x : surface.width/2, y : surface.height/2 };
+		const zoomLevel = Math.min((surface.width / rectW), (surface.height / rectH));
+
+		videoElt.style.transform = "translate(" + ((surfaceC.x - rectC.x)*zoomLevel) + "px, " + ((surfaceC.y - rectC.y)*zoomLevel) + "px)  scale(" + zoomLevel + ")";
+
+		videoElt.classList.add("liveVideoPlayer");
+
+		zoomed.active = true;
+	}
 </script>
 	<Fullscreen let:onRequest let:onExit>
 		<div class="container" bind:this={container}>
-			<!-- 'videoCanvas' (can also be a video player) will be inserted above by Broadway, if that is used -->
+			<!-- If Broadway renderer is used: 'videoCanvas' (can also be a video player) will be inserted above -->
+			<div class="videoContainer" bind:this={videoContainer}>
+			</div>
 			<canvas bind:this={motionCanvas} class="motionCanvas" style="width: {playerWidth};"/>
 
-			<div class="containerOverlays" on:dblclick={ () => toggleFullScreen(onRequest, onExit) } bind:this={polydrawContainer}>
+			<div
+				class="containerOverlays"
+				on:dblclick={ () => toggleFullScreen(onRequest, onExit) }
+				bind:this={polydrawContainer}
+				on:mousemove={mouseMove}
+				on:mousedown={mouseDown}
+				on:mouseup={mouseUp}
+			>
+				<!-- zoom rectangle -->
+				<svg style="position: absolute; opacity: 0.6;" bind:this={zoomSvg} width="0" height="0">
+					<rect bind:this={zoomRect} width="100%" height="100%" style="fill:rgb(0,0,255);stroke-width:3;stroke:rgb(0,0,0)" />
+				</svg>
+
 				{#if settings}
 					<div class="topLeft">
 						<Controls
@@ -345,7 +479,7 @@
 					</PolyDraw>
 				{/if}
 
-				<div class="recordingStatus">
+				<div class="recordingStatus" style="font-size: {videoFontSize}px;">
 					{#if recording}
 						<span in:fade out:fade>⬤ REC</span>
 					{/if}
@@ -366,6 +500,8 @@
 
 	.motionCanvas {
 		position: absolute;
+		transform-origin: center center 0px;
+		transform: translate(0px, 0px) scale(1);
 	}
 
 	.topLeft {
@@ -386,7 +522,12 @@
 		position: absolute;
 		top: 0;
 		right: 15px;
-		font-size: 30px;
+/*		font-size: 30px;*/
 		color: #ff0000;
+	}
+
+	.videoContainer {
+		overflow:hidden;
+		position:absolute;
 	}
 </style>

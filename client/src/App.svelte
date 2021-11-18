@@ -164,6 +164,8 @@ $:	if(playerWidthValue) {
 	.player {
 		border-radius: 10px;
 		border: 4px solid #333;
+/*untested:		box-sizing: border-box;
+*/
 		margin: 0.3%;
 	}
 
