@@ -185,7 +185,11 @@ class MotionListener
 					this.motionSender.broadcastMessage(
 						{
 							clusters : this.conf.get("sendClusters") ? clusters : null,
-							history : this.conf.get("sendHistory") ? this.mvrProcessor.getActiveClusters() : null
+							history : this.conf.get("sendHistory") ? this.mvrProcessor.getActiveClusters() : null,
+							frameInfo : {
+								mag: Math.round(this.mvrProcessor.getFrameInfo().totalMagnitude), // total magnitude of frame
+								blocks: this.mvrProcessor.getFrameInfo().candidates // num active vectorsPerLine
+							}
 						}
 					);
 					this.cost.frame.broadcast = Date.now() - this.cost.frame.ts;
