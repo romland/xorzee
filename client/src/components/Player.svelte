@@ -112,7 +112,6 @@
 					// We need to give container a physical size since everything in it absolute positioned.
 					container.style.height = h;
 					container.style.width = w;
-					console.log("sizechange:", w,h,o);
 					
 					videoFontSize = Math.min(o.getBoundingClientRect().width / 20, 30);
 				}]
@@ -309,7 +308,7 @@
 		if(!zoomed.active) {
 			return;
 		}
-		
+
 		zoomed.active = false;
 
 		const videoElt = container.getElementsByTagName("video")[0];
@@ -397,27 +396,9 @@
 		const surfaceC = { x : surface.width/2, y : surface.height/2 };
 		const zoomLevel = Math.min((surface.width / rectW), (surface.height / rectH));
 
-
-		if(false) {
-			// works (but without motion canvas sync)
-			videoElt.style.transform = "translate(" + ((surfaceC.x - rectC.x)*zoomLevel) + "px, " + ((surfaceC.y - rectC.y)*zoomLevel) + "px)  scale(" + zoomLevel + ")";
-		} else if(true) {
-
-console.log("surface:", surface, "start", startDrag, rectW, rectH);
-// arr why does this work with bigger rects and not small ones?
-// either way: We need to get motionCanvas into a container which we can hide overflow of,
-// this is not super straight forward tho, as all geographical changes are bound to motionCanvas
-
-			videoElt.style.transform = "translate(" + ((surfaceC.x - rectC.x)*zoomLevel) + "px, " + ((surfaceC.y - rectC.y)*zoomLevel) + "px)  scale(" + zoomLevel + ")";
-			motionCanvas.style.transform = videoElt.style.transform;
-
-		} else {
-			motionCanvas.style.transform = "translate(" + ((surfaceC.x - rectC.x)*zoomLevel) + "px, " + ((surfaceC.y - rectC.y)*zoomLevel) + "px)  scale(" + zoomLevel + ")";
-			updateAllGeography();
-		}
-
+		videoElt.style.transform = "translate(" + ((surfaceC.x - rectC.x)*zoomLevel) + "px, " + ((surfaceC.y - rectC.y)*zoomLevel) + "px)  scale(" + zoomLevel + ")";
+		motionCanvas.style.transform = videoElt.style.transform;
 		videoElt.classList.add("liveVideoPlayer");
-
 		zoomed.active = true;
 	}
 
