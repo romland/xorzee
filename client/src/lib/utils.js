@@ -33,14 +33,14 @@ export function updateAllGeography()
 	// let froms = Object.keys(connections);
 	for(var i = 0; i < connections.length; i++) {
 		let from = connections[i].from;
-		for(let i = 0; i < connections[i].to.length; i++) {
-			copyGeography(from, connections[i].to[i]);
+		for(let j = 0; j < connections[i].to.length; j++) {
+			copyGeography(from, connections[i].to[j]);
 		}
 
 		let style = window.getComputedStyle(from, null);
-		for(let i = 0; i < connections[i].notify.length; i++) {
+		for(let j = 0; j < connections[i].notify.length; j++) {
 			// size without border padding
-			connections[i].notify[i](style.getPropertyValue("width"), style.getPropertyValue("height"), from);
+			connections[i].notify[j](style.getPropertyValue("width"), style.getPropertyValue("height"), from);
 		}
 	}
 }

@@ -289,12 +289,14 @@
 
 	// Crisp video toggle
 	$:	if(videoPlayer && videoPlayer.canvas) {
-		if(crispVideo === true) {
-			videoPlayer.canvas.classList.add("crispVideo");
-		} else {
-			videoPlayer.canvas.classList.remove("crispVideo");
+			if(crispVideo === true) {
+				videoPlayer.canvas.classList.add("crispVideo");
+				// motionCanvas.classList.add("crispVideo");
+			} else {
+				videoPlayer.canvas.classList.remove("crispVideo");
+				// motionCanvas.classList.remove("crispVideo");
+			}
 		}
-	}
 
 	// ========= zoom related stuff, TODO: refactor away somehow =========
 	const startDrag = {
