@@ -3,6 +3,7 @@
 
 	import Player from "./components/Player.svelte";
 	import { videoPlayers } from './state.js';
+	import IconButton, { Icon } from '@smui/icon-button';
 
 	const DEVELOPING_CLIENT_ON_LOCALHOST = true;
 
@@ -110,13 +111,17 @@ $:	if(playerWidthValue) {
 
 <main>
 	<div>
-		Xorzee {ISODateString(time)}
+		<IconButton toggle aria-label="Toggle controls visibility" title="Toggle controls visibility" on:click={()=> {showOverlayButtons = !showOverlayButtons}}>
+			<Icon class="material-icons">visibility_off</Icon>
+			<Icon class="material-icons" on>visibility</Icon>
+		</IconButton>
+		<span>
+			Xorzee {ISODateString(time)}
+		</span>
 	</div>
 
 	<input type="range" min="10" max="98" bind:value={playerWidthValue}>
-	<div on:click={()=> {showOverlayButtons = !showOverlayButtons}}>
-		Toggle controls
-	</div>
+
 
 	<div class="players">
 		<div class="player">

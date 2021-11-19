@@ -12,7 +12,6 @@
 	import Events from "./Events.svelte";
 	import VideoStreamer from "../lib/videostreamer";
 	import MotionStreamer from "../lib/motionstreamer";
-	import Button from './Button.svelte';
 
 	export let remoteServer = null;			// Set to true if the client (the Svelte app) is not hosted by this server.
 	export let remoteAddress = null;		// This only needs to be set to an address if above is true.

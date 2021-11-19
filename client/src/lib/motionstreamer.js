@@ -66,7 +66,7 @@ export default class MotionStreamer
 	{
 		if(dataType === "string" && data.length > 0) {
 			let parsed = JSON.parse(data);
-	
+		
 			if(parsed.settings) {
 				this.motionRenderer.configure(parsed.settings.width, parsed.settings.height);
 			}
@@ -74,6 +74,11 @@ export default class MotionStreamer
 			if(this.messageHandler && !parsed.clusters) {
 				// Deal with other types of messages (e.g. events)
 				this.messageHandler(parsed);
+			}
+
+			// TODO: Show this somewhere, make it configurable.
+			if(parsed.frameInfo) {
+				// console.log(parsed.frameInfo.mag, parsed.frameInfo.blocks);
 			}
 	
 			if(document.hidden) {
