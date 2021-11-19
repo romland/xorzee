@@ -287,6 +287,15 @@
 		});
 	}
 
+	// Crisp video toggle
+	$:	if(videoPlayer && videoPlayer.canvas) {
+		if(crispVideo === true) {
+			videoPlayer.canvas.classList.add("crispVideo");
+		} else {
+			videoPlayer.canvas.classList.remove("crispVideo");
+		}
+	}
+
 	// ========= zoom related stuff, TODO: refactor away somehow =========
 	const startDrag = {
 		x: 0,
@@ -402,18 +411,14 @@
 		zoomed.active = true;
 	}
 
+	// Reset zoom if player changes size.
+	// It's a bit of a cop out, I'd rather prefer that the zoom is kept, 
+	// but there are a few bugs around that. Comment out these three lines
+	// and just debug if you are up for it.
 $:	if(container && playerWidth) {
 		resetZoom();
 	}
 
-$:	if(videoPlayer && videoPlayer.canvas) {
-		if(crispVideo === true) {
-			videoPlayer.canvas.classList.add("crispVideo");
-		} else {
-			videoPlayer.canvas.classList.remove("crispVideo");
-		}
-		console.log("videoPlayer classes", videoPlayer.canvas.classList);
-	}
 </script>
 	<Fullscreen let:onRequest let:onExit>
 		<div class="container" bind:this={container}>
