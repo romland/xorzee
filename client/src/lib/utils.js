@@ -19,7 +19,8 @@ export function copyGeography(from, to)
 		// left		: (vsRect.left + window.pageXOffset) + "px",
 		// top			: (vsRect.top + window.pageYOffset) + "px",
 		width		: vsRect.width - totBorderSize + "px",
-		height		: vsRect.height - totBorderSize + "px"
+		height		: vsRect.height - totBorderSize + "px",
+		// transform	: from.style.transform
 	};
 
 	for(let s in styles) {
@@ -32,14 +33,14 @@ export function updateAllGeography()
 	// let froms = Object.keys(connections);
 	for(var i = 0; i < connections.length; i++) {
 		let from = connections[i].from;
-		for(let i = 0; i < connections[i].to.length; i++) {
-			copyGeography(from, connections[i].to[i]);
+		for(let j = 0; j < connections[i].to.length; j++) {
+			copyGeography(from, connections[i].to[j]);
 		}
 
 		let style = window.getComputedStyle(from, null);
-		for(let i = 0; i < connections[i].notify.length; i++) {
+		for(let j = 0; j < connections[i].notify.length; j++) {
 			// size without border padding
-			connections[i].notify[i](style.getPropertyValue("width"), style.getPropertyValue("height"), from);
+			connections[i].notify[j](style.getPropertyValue("width"), style.getPropertyValue("height"), from);
 		}
 	}
 }
@@ -70,38 +71,6 @@ export function addGeographyFollower(from, to, notify)
 
 		con.notify.push(...notify);
 	}
-}
-
-
-export function pad(num)
-{
-	var norm = Math.floor(Math.abs(num));
-	return (norm < 10 ? '0' : '') + norm;
-}
-
-
-export function utcToDateTime(utc, verbose = true)
-{
-	// const timeZoneoffset = (-d.getTimezoneOffset()/60);
-	if(!utc) {
-		return translate("Unknown");
-	}
-
-	const d = new Date(utc);
-	const t = d.toLocaleTimeString('nl-NL');
-
-	return `${d.toLocaleDateString()} ${t.substr(0, 5)}` + (verbose ? `:${pad(d.getSeconds())}` : '');
-}
-
-
-function getConnection(ob)
-{
-	for(let i = 0; i < connections.length; i++) {
-		if(ob === connections[i].from) {
-			return connections[i];
-		}
-	}
-	return null;
 }
 
 /**
@@ -192,4 +161,47 @@ export function scalePolygon(polygon, currentResolution, targetResolution, round
 	}
 
 	return p;
+}
+
+
+export function pad(num)
+{
+	var norm = Math.floor(Math.abs(num));
+	return (norm < 10 ? '0' : '') + norm;
+}
+
+
+export function utcToDateTime(utc, verbose = true)
+{
+	// const timeZoneoffset = (-d.getTimezoneOffset()/60);
+	if(!utc) {
+		return translate("Unknown");
+	}
+
+	const d = new Date(utc);
+	const t = d.toLocaleTimeString('nl-NL');
+
+	return `${d.toLocaleDateString()} ${t.substr(0, 5)}` + (verbose ? `:${pad(d.getSeconds())}` : '');
+}
+
+
+function getConnection(ob)
+{
+	for(let i = 0; i < connections.length; i++) {
+		if(ob === connections[i].from) {
+			return connections[i];
+		}
+	}
+	return null;
+}
+
+
+/**
+ * Authorization:
+ * e.g. 'can user delete clip'
+ */
+export function can(user, action, target)
+{
+	// TODO: _nothing_ is done around this on server
+	return true;
 }

@@ -94,12 +94,12 @@
 	{
 		if(!d) return "";
 
-		return d.getUTCFullYear()+'-'
-			+ pad(d.getUTCMonth()+1)+'-'
-			+ pad(d.getUTCDate())+' '
-			+ pad(d.getUTCHours())+':'
-			+ pad(d.getUTCMinutes())+':'
-			+ pad(d.getUTCSeconds());
+		return d.getFullYear()+'-'
+			+ pad(d.getMonth()+1)+'-'
+			+ pad(d.getDate())+' '
+			+ pad(d.getHours())+':'
+			+ pad(d.getMinutes())+':'
+			+ pad(d.getSeconds());
 	}
 
 $:	if(playerWidthValue) {
@@ -162,8 +162,10 @@ $:	if(playerWidthValue) {
 	}
 
 	.player {
-		border-radius: 10px;
+		border-radius: 6px;
 		border: 4px solid #333;
+/*untested:		box-sizing: border-box;
+*/
 		margin: 0.3%;
 	}
 

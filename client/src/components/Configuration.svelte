@@ -25,7 +25,7 @@
 	}
 </script>
 
-	<OverlayToggler on:message bind:visible={visible} name="⚙ Settings" showButton={showButton} position="below">
+	<OverlayToggler on:message bind:visible={visible} name="" icon="settings" showButton={showButton} position="below">
 		<div style="background-color: black;">
 			<button on:click={save}>Save</button>
 			<ConfigurationBlock	bind:settings={settings} bind:configurable={settingsMeta}></ConfigurationBlock>

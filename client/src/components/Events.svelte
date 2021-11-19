@@ -20,7 +20,7 @@
 	}
 </script>
 
-	<OverlayToggler on:message bind:visible={visible} name="☀ Events" showButton={showButton} position="above">
+	<OverlayToggler on:message bind:visible={visible} name="" icon="event" showButton={showButton} position="above">
 		<div>
 			Recent events
 			{#each eventCache as e}

@@ -3,7 +3,7 @@
 	import { scale, fade, fly } from "svelte/transition";
 	import Button from './Button.svelte';
 
-	export let name, visible, showButton, position = "below";
+	export let name, visible, showButton, position = "below", icon;
 
 	let label, content, contentPos;
 
@@ -43,20 +43,19 @@
 
 {#if showButton}
 	<div bind:this={label} >
-		<Button label={name} style="square" bind:pressed={visible} on:click={open}></Button>
+		<Button label={name} icon={icon} style="square" bind:pressed={visible} on:click={open}></Button>
 	</div>
+{/if}
 
 	<div bind:this={content} style={contentPos} class="outer" out:fade>
 		{#if visible}
-			<div class="content" in:fade out:scale>
+			<div class="content" in:fade="{{ duration: 200 }}" out:scale="{{duration: 200}}">
 				<slot></slot>
 			</div>
 		{/if}
 	</div>
-{/if}
 
 <style>
-
 	.content {
 		width: 60vw;
 		height: auto;
@@ -64,8 +63,9 @@
 		border-radius: 4px;
 		overflow-y: auto;
 		max-height: 350px;
-
+/*
 		opacity: 0.8;
+*/
 	}
 
 </style>
