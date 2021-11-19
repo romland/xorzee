@@ -110,8 +110,9 @@
 				[ (w,h,o) => {
 					// This is called when motionCanvas changes
 					// We need to give container a physical size since everything in it absolute positioned.
-					videoContainer.style.height = h;
-					videoContainer.style.width = w;
+					container.style.height = h;
+					container.style.width = w;
+					console.log("sizechange:", w,h,o);
 					
 					videoFontSize = Math.min(o.getBoundingClientRect().width / 20, 30);
 				}]
@@ -242,14 +243,13 @@
 		}
 
 		if(fullScreenState) {
+			// coming back from full screen
 			exitFullscreen();
-
-			motionCanvas.style.width = playerWidth;
+			motionContainer.style.width = playerWidth;
 			updateAllGeography();
 		} else {
-			
 			requestFullscreen();
-			motionCanvas.style.width = "100%";
+			motionContainer.style.width = "100%";
 			updateAllGeography()
 		}
 
@@ -306,6 +306,10 @@
 
 	function resetZoom()
 	{
+		if(!zoomed.active) {
+			return;
+		}
+		
 		zoomed.active = false;
 
 		const videoElt = container.getElementsByTagName("video")[0];
@@ -386,7 +390,7 @@
 			return;
 		}
 
-		const surface = videoContainer.getBoundingClientRect();
+		const surface = container.getBoundingClientRect();
 		const rectW = pos.x - startDrag.x;
 		const rectH = pos.y - startDrag.y;
 		const rectC = { x : (startDrag.x + (rectW/2)), y : (startDrag.y + (rectH/2)) };
@@ -415,6 +419,10 @@ console.log("surface:", surface, "start", startDrag, rectW, rectH);
 		videoElt.classList.add("liveVideoPlayer");
 
 		zoomed.active = true;
+	}
+
+$:	if(container && playerWidth) {
+		resetZoom();
 	}
 
 $:	if(videoPlayer && videoPlayer.canvas) {
