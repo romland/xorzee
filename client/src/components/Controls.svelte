@@ -9,6 +9,7 @@
 	  Text,
 	  PrimaryText,
 	  SecondaryText,
+	  Graphic,
 	} from '@smui/list';
 	import IconButton, { Icon } from '@smui/icon-button';
 
@@ -69,92 +70,101 @@
 	}
 </script>
 
-<div
-	class={Object.keys(anchorClasses).join(' ')}
-	use:Anchor={{
-		addClass: (className) => {
-			if (!anchorClasses[className]) {
-				anchorClasses[className] = true;
-			}
-		},
-		removeClass: (className) => {
-			if (anchorClasses[className]) {
-				delete anchorClasses[className];
-				anchorClasses = anchorClasses;
-			}
-		},
-	}}
-	bind:this={anchor}
->
-	<IconButton aria-label="Camera controls" title="Camera controls" on:click={() => menu.setOpen(true)}>
-		<Icon class="material-icons">more_vert</Icon>
-	</IconButton>
-	<Menu
-		bind:this={menu}
-		anchor={false}
-		bind:anchorElement={anchor}
-		anchorCorner="BOTTOM_LEFT"
-		style="z-index: 150;"
+	<div
+		class={Object.keys(anchorClasses).join(' ')}
+		use:Anchor={{
+			addClass: (className) => {
+				if (!anchorClasses[className]) {
+					anchorClasses[className] = true;
+				}
+			},
+			removeClass: (className) => {
+				if (anchorClasses[className]) {
+					delete anchorClasses[className];
+					anchorClasses = anchorClasses;
+				}
+			},
+		}}
+		bind:this={anchor}
 	>
-		<List twoLine>
-			<Item on:SMUI:action={btnToggleVideoStream}>
-				<Text>
-					<PrimaryText>
-						{settings.streamVideo ? "Pause" : "Resume"} video stream
-					</PrimaryText>
-					<SecondaryText>Toggle whether to stream video.</SecondaryText>
-				</Text>
-			</Item>
+	{#if showButton}
+		<IconButton aria-label="Camera controls" title="Camera controls" on:click={() => menu.setOpen(true)}>
+			<Icon class="material-icons">more_vert</Icon>
+		</IconButton>
+	{/if}
+		<Menu
+			bind:this={menu}
+			anchor={false}
+			bind:anchorElement={anchor}
+			anchorCorner="BOTTOM_LEFT"
+			style="z-index: 150;"
+		>
+			<List twoLine>
+				<Item on:SMUI:action={btnToggleVideoStream}>
+					<Graphic class="material-icons">pause</Graphic>
+					<Text>
+						<PrimaryText>
+							{settings.streamVideo ? "Pause" : "Resume"} video stream
+						</PrimaryText>
+						<SecondaryText>Toggle whether to stream video.</SecondaryText>
+					</Text>
+				</Item>
 
-			<Item on:SMUI:action={btnRecordStart}>
-				<Text>
-					<PrimaryText>
-						Start recording
-					</PrimaryText>
-					<SecondaryText>Start recording.</SecondaryText>
-				</Text>
-			</Item>
+				<Item on:SMUI:action={btnRecordStart}>
+					<Graphic class="material-icons">fiber_manual_record</Graphic>
+					<Text>
+						<PrimaryText>
+							Record
+						</PrimaryText>
+						<SecondaryText>Start recording.</SecondaryText>
+					</Text>
+				</Item>
 
-			<Item on:SMUI:action={btnRecordStop}>
-				<Text>
-					<PrimaryText>
-						Stop recording
-					</PrimaryText>
-					<SecondaryText>Stop recording.</SecondaryText>
-				</Text>
-			</Item>
+				<Item on:SMUI:action={btnRecordStop}>
+					<Graphic class="material-icons">stop</Graphic>
+					<Text>
+						<PrimaryText>
+							Stop
+						</PrimaryText>
+						<SecondaryText>Stop recording.</SecondaryText>
+					</Text>
+				</Item>
 
-			<Item on:SMUI:action={() => drawingIgnoreArea = !drawingIgnoreArea }>
-				<Text>
-					<PrimaryText>
-						Configure ignore area
-					</PrimaryText>
-					<SecondaryText>Toggle overlay to configure ignored area.</SecondaryText>
-				</Text>
-			</Item>
+				<Item on:SMUI:action={() => drawingIgnoreArea = !drawingIgnoreArea }>
+					<Graphic class="material-icons">edit</Graphic>
+					<Text>
+						<PrimaryText>
+							Configure ignore area
+						</PrimaryText>
+						<SecondaryText>Toggle overlay to configure ignored area.</SecondaryText>
+					</Text>
+				</Item>
 
-			<Separator/>
+				<Separator/>
 
-			<Item on:SMUI:action={toggleNotifications}>
-				<Text>
-					<PrimaryText>
-						<input type="checkbox" on:change={toggleNotifications}/>Notifications
-					</PrimaryText>
-					<SecondaryText>xxx.</SecondaryText>
-				</Text>
-			</Item>
+				<Item on:SMUI:action={toggleNotifications}>
+					<Graphic class="material-icons">notifications</Graphic>
+					<Text>
+						<PrimaryText>
+							<input type="checkbox" on:change={toggleNotifications}/>Notifications
+						</PrimaryText>
+						<SecondaryText>xxx.</SecondaryText>
+					</Text>
+				</Item>
 
-			<Item on:SMUI:action={() => console.log("foo") }>
-				<Text>
-					<PrimaryText>
-						<input type="checkbox" bind:checked={crispVideo}/>Crisp video
-					</PrimaryText>
-					<SecondaryText>Toggle whether to not use anti-aliased video.</SecondaryText>
-				</Text>
-			</Item>
-		</List>
-	</Menu>
-</div>
+				<Item on:SMUI:action={() => console.log("foo") }>
+					<Graphic class="material-icons">lens_blur</Graphic>
+					<Text>
+						<PrimaryText>
+							<input type="checkbox" bind:checked={crispVideo}/>Crisp video
+						</PrimaryText>
+						<SecondaryText>Toggle whether to not use anti-aliased video.</SecondaryText>
+					</Text>
+				</Item>
+			</List>
+		</Menu>
+	</div>
+
 <!--
 	<OverlayToggler on:message bind:visible={visible} name="" icon="more_vert" showButton={showButton} position="below">
 		<div>
