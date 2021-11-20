@@ -1,9 +1,32 @@
-<script lang="ts">
+<script>
 	import { onMount, onDestroy } from 'svelte';
 
 	import Player from "./components/Player.svelte";
 	import { videoPlayers } from './state.js';
 	import IconButton, { Icon } from '@smui/icon-button';
+
+	import Menu from '@smui/menu';
+	import { Anchor } from '@smui/menu-surface';
+	import List, {
+	  Item,
+	  Separator,
+	  Text,
+	  PrimaryText,
+	  SecondaryText,
+	} from '@smui/list';
+	import Button from '@smui/button';
+	import TopAppBar, {
+		Row,
+		Section,
+		Title,
+		AutoAdjust
+	} from '@smui/top-app-bar';
+	
+	let topAppBar;
+   
+	let menu;
+	let anchor;
+	let anchorClasses = {};
 
 	const DEVELOPING_CLIENT_ON_LOCALHOST = true;
 
@@ -106,54 +129,108 @@
 $:	if(playerWidthValue) {
 		playerWidth = playerWidthValue + "%";
 	}
-
 </script>
 
-<main>
-	<div>
-		<IconButton toggle aria-label="Toggle controls visibility" title="Toggle controls visibility" on:click={()=> {showOverlayButtons = !showOverlayButtons}}>
-			<Icon class="material-icons">visibility_off</Icon>
-			<Icon class="material-icons" on>visibility</Icon>
-		</IconButton>
-		<span>
-			Xorzee {ISODateString(time)}
-		</span>
-	</div>
+<TopAppBar bind:this={topAppBar} variant="short" collapsed>
+	<Row>
+		<Section>
+			<div
+				class={Object.keys(anchorClasses).join(' ')}
+				use:Anchor={{
+					addClass: (className) => {
+						if (!anchorClasses[className]) {
+							anchorClasses[className] = true;
+						}
+					},
+					removeClass: (className) => {
+						if (anchorClasses[className]) {
+							delete anchorClasses[className];
+							anchorClasses = anchorClasses;
+						}
+					},
+				}}
+				bind:this={anchor}
+			>
+				<IconButton aria-label="Global options" title="Global options" on:click={() => menu.setOpen(true)}>
+					<Icon class="material-icons">menu</Icon>
+				</IconButton>
+				<Menu
+					bind:this={menu}
+					anchor={false}
+					bind:anchorElement={anchor}
+					anchorCorner="BOTTOM_LEFT"
+					style="z-index: 150;"
+				>
+					<List twoLine>
+						<Item on:SMUI:action={() => console.log("foo") }>
+							<Text>
+								<PrimaryText>
+									<input type="range" min="10" max="98" bind:value={playerWidthValue}>
+								</PrimaryText>
+								<SecondaryText>Drag to change player size.</SecondaryText>
+							</Text>
+						</Item>
 
-	<input type="range" min="10" max="98" bind:value={playerWidthValue}>
+						<Item on:SMUI:action={() => showOverlayButtons = !showOverlayButtons }>
+							<Text>
+								<PrimaryText>
+									{#if showOverlayButtons}
+										Hide controls
+									{:else}
+										Show controls
+									{/if}
+								</PrimaryText>
+								<SecondaryText>Visibility of controls.</SecondaryText>
+							</Text>
+						</Item>
+					</List>
+				</Menu>
+			</div>
+			<Title>Xorzee</Title>
+		</Section>
 
+		<Section align="end" toolbar>
+			<div class="title mdc-top-app-bar__action-item">
+				Xorzee
+			</div>
+		</Section>
+	</Row>
+</TopAppBar>
 
-	<div class="players">
-		<div class="player">
-			<!-- our primary server, the other ones we should NOT get neighbour events from -->
-			<Player
-				on:playAll={playAll}
-				on:neighbourChange={neighbourChange}
-				{remoteServer}
-				{remoteAddress}
-				{motionStreamPort}
-				{showOverlayButtons}
-				bind:playerWidth={playerWidth}
-			></Player>
+<AutoAdjust {topAppBar}>
+	<main>
+		<div class="players">
+			<div class="player">
+				<!-- our primary server, the other ones we should NOT get neighbour events from -->
+				<Player
+					on:playAll={playAll}
+					on:neighbourChange={neighbourChange}
+					{remoteServer}
+					{remoteAddress}
+					{motionStreamPort}
+					{showOverlayButtons}
+					bind:playerWidth={playerWidth}
+				></Player>
+			</div>
+
+			<!-- Each of our neighbours on the network -->
+			{#each neighbours as neighbour}
+				{#if isValidAddress(neighbour.address)}
+					<div class="player">
+						<Player
+							on:playAll={playAll}
+							remoteServer={true}
+							remoteAddress={neighbour.address}
+							motionStreamPort={neighbour.port}
+							{showOverlayButtons}
+							bind:playerWidth={playerWidth}
+						></Player>
+					</div>
+				{/if}
+			{/each}
 		</div>
-
-		<!-- Each of our neighbours on the network -->
-		{#each neighbours as neighbour}
-			{#if isValidAddress(neighbour.address)}
-				<div class="player">
-					<Player
-						on:playAll={playAll}
-						remoteServer={true}
-						remoteAddress={neighbour.address}
-						motionStreamPort={neighbour.port}
-						{showOverlayButtons}
-						bind:playerWidth={playerWidth}
-					></Player>
-				</div>
-			{/if}
-		{/each}
-	</div>
-</main>
+	</main>
+</AutoAdjust>
 
 <style>
 	main {
@@ -174,4 +251,17 @@ $:	if(playerWidthValue) {
 		margin: 0.3%;
 	}
 
+	.title {
+		margin-top: -2px;
+	}
+
+	/* Hide everything above this component. */
+	:global(app),
+	:global(body),
+	:global(html) {
+		display: block !important;
+		height: auto !important;
+		width: auto !important;
+		position: static !important;
+	}
 </style>

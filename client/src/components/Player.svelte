@@ -521,7 +521,6 @@ $:	if(container && playerWidth) {
 	
 	.containerOverlays {
 		position: absolute;
-		z-index: 10;
 	}
 
 	.motionCanvas {

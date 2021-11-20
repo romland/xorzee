@@ -13,7 +13,7 @@ A low-latency, HD video streamer and motion detector. The goal is that it must r
 - [ ] ...store meta-data of amount of activity in period (graph)
 - [ ] ...modern web-client in Svelte
 
-Simply pronounced "x or z".
+Pronounced "x or z".
 
 [1] The original one, released in 2015. If it can run on that, it will run on any other Raspberry Pi.
 
