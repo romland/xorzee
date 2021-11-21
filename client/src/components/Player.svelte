@@ -378,13 +378,16 @@
 
 	function mouseUp(e)
 	{
-		if(e.which !== 1 || e.target.tagName === "INPUT") {
+		zoomSvg.setAttribute("height", 0);
+		zoomSvg.setAttribute("width", 0);
+
+		if((Date.now() - startDrag.ts) < 250 || e.which !== 1 || e.target.tagName === "INPUT") {
+			startDrag.ts = 0;
+			console.log("Zoom ignored");
 			return;
 		}
 
 		startDrag.ts = 0;
-		zoomSvg.setAttribute("height", 0);
-		zoomSvg.setAttribute("width", 0);
 
 		const pos = getMousePos(e);
 
