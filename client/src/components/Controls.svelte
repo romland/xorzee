@@ -148,7 +148,7 @@
 						<PrimaryText>
 							<input type="checkbox" on:change={toggleNotifications}/>Notifications
 						</PrimaryText>
-						<SecondaryText>xxx.</SecondaryText>
+						<SecondaryText>Show Xorzee notifications outside browser.</SecondaryText>
 					</Text>
 				</Item>
 

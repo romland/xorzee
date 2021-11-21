@@ -131,7 +131,7 @@ $:	if(playerWidthValue) {
 	}
 </script>
 
-<TopAppBar bind:this={topAppBar} variant="short" collapsed>
+<TopAppBar bind:this={topAppBar} variant="short" collapsed dense>
 	<Row>
 		<Section>
 			<div
