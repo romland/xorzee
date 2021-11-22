@@ -20,6 +20,7 @@
 	export let visible = false;
 	export let drawingIgnoreArea = false;
 	export let crispVideo = false;
+	export let toggleLayer;
 
 	let menu;
 	let anchor;
@@ -140,6 +141,16 @@
 					</Text>
 				</Item>
 
+				<Item on:SMUI:action={() => toggleLayer("StreamStats") }>
+					<Graphic class="material-icons">bar_chart</Graphic>
+					<Text>
+						<PrimaryText>
+							Statistics
+						</PrimaryText>
+						<SecondaryText>Toggle video stream statistics.</SecondaryText>
+					</Text>
+				</Item>
+
 				<Separator/>
 
 				<Item on:SMUI:action={toggleNotifications}>
@@ -161,6 +172,7 @@
 						<SecondaryText>Toggle whether to not use anti-aliased video.</SecondaryText>
 					</Text>
 				</Item>
+
 			</List>
 		</Menu>
 	</div>

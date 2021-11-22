@@ -3,7 +3,7 @@
 	import { fade } from 'svelte/transition';
 
 	import { updateAllGeography, followGeography, addGeographyFollower } from "../lib/utils.js";
-	import BroadwayStats, { onNALunit } from "./BroadwayStats.svelte";
+	import StreamStats, { onNALunit } from "./StreamStats.svelte";
 	import Fullscreen from "./Fullscreen.svelte";
 	import PolyDraw from "./PolyDraw.svelte";
 	import ScreenshotList from "./ScreenshotList.svelte";
@@ -26,7 +26,7 @@
 	let overlay = {
 		"Configuration" : false,
 		"ScreenshotList" : false,
-		"BroadwayStats" : false,
+		"StreamStats" : false,
 		"Controls" : false,
 	};
 
@@ -270,12 +270,21 @@
 
 	function onLayerChange(componentName, e)
 	{
+		console.log("onLayerChange", componentName);
 		for(let k in overlay) {
 			if(k === componentName) {
 				continue;
 			}
 			overlay[k] = false;
 		}
+	}
+
+	function toggleLayer(layerName)
+	{
+		if(overlay[layerName] === false) {
+			onLayerChange(layerName, null);
+		}
+		overlay[layerName] = !overlay[layerName];
 	}
 
 	// for when autoplay does not trigger :/
@@ -451,6 +460,7 @@ $:	if(container && playerWidth) {
 					<div class="topLeft">
 						<Controls
 							on:message={(e)=>onLayerChange("Controls", e)}
+							toggleLayer={toggleLayer}
 							bind:showButton={showOverlayButtons}
 							bind:visible={overlay["Controls"]}
 							bind:drawingIgnoreArea={drawingIgnoreArea}
@@ -469,12 +479,12 @@ $:	if(container && playerWidth) {
 						</Configuration>
 
 						{#if videoPlayer}
-							<BroadwayStats 
-								on:message={(e)=>onLayerChange("BroadwayStats", e)} 
+							<StreamStats 
+								on:message={(e)=>onLayerChange("StreamStats", e)} 
 								bind:showButton={showOverlayButtons} 
-								bind:visible={overlay["BroadwayStats"]} 
+								bind:visible={overlay["StreamStats"]} 
 								player={videoPlayer}>
-							</BroadwayStats>
+							</StreamStats>
 						{/if}
 
 						<!-- No longer needed as it will autoplay if no audio
