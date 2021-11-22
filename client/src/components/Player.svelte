@@ -243,12 +243,16 @@
 		if(fullScreenState) {
 			// coming back from full screen
 			exitFullscreen();
-			motionContainer.style.width = playerWidth;
-			updateAllGeography();
+
+			// TODO: Arbitrary number. It takes a little while before we have exited...
+			setTimeout(() => {
+				motionContainer.style.width = playerWidth;
+				updateAllGeography();
+			}, 300);
 		} else {
 			requestFullscreen();
-			motionContainer.style.width = "100%";
-			updateAllGeography()
+			motionContainer.style.width = screen.width + "px";
+			updateAllGeography();
 		}
 
 		fullScreenState = !fullScreenState;
