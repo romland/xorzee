@@ -135,7 +135,7 @@
 					<Graphic class="material-icons">edit</Graphic>
 					<Text>
 						<PrimaryText>
-							Configure ignore area
+							Ignore area
 						</PrimaryText>
 						<SecondaryText>Toggle overlay to configure ignored area.</SecondaryText>
 					</Text>
@@ -169,7 +169,7 @@
 						<PrimaryText>
 							<input type="checkbox" bind:checked={crispVideo}/>Crisp video
 						</PrimaryText>
-						<SecondaryText>Toggle whether to not use anti-aliased video.</SecondaryText>
+						<SecondaryText>Toggle whether to not anti-alias video.</SecondaryText>
 					</Text>
 				</Item>
 
