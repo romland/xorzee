@@ -248,7 +248,7 @@
 			setTimeout(() => {
 				motionContainer.style.width = playerWidth;
 				updateAllGeography();
-			}, 300);
+			}, 500);
 		} else {
 			requestFullscreen();
 			motionContainer.style.width = screen.width + "px";
