@@ -12,6 +12,8 @@
 	  Graphic,
 	} from '@smui/list';
 	import IconButton, { Icon } from '@smui/icon-button';
+	import Switch from '@smui/switch';
+	import FormField from '@smui/form-field';
 
 	// export let videoPlayer;
 	export let showButton = true;
@@ -59,9 +61,9 @@
 		);
 	}
 
-	function toggleNotifications()
+	function toggleNotifications(ev)
 	{
-		if(this.checked) {
+		if(ev.target.checked) {
 			Notification.requestPermission().then(function(result) {
 				console.log(result);
 			});
@@ -153,11 +155,14 @@
 
 				<Separator/>
 
-				<Item on:SMUI:action={toggleNotifications}>
+				<Item>
 					<Graphic class="material-icons">notifications</Graphic>
 					<Text>
 						<PrimaryText>
-							<input type="checkbox" on:change={toggleNotifications}/>Notifications
+							<FormField>
+								<Switch on:change={(e)=>toggleNotifications(e)}/>
+								<span slot="label">Notifications</span>
+							</FormField>
 						</PrimaryText>
 						<SecondaryText>Show Xorzee notifications outside browser.</SecondaryText>
 					</Text>
@@ -167,7 +172,10 @@
 					<Graphic class="material-icons">lens_blur</Graphic>
 					<Text>
 						<PrimaryText>
-							<input type="checkbox" bind:checked={crispVideo}/>Crisp video
+							<FormField>
+								<Switch bind:checked={crispVideo}/>
+								<span slot="label">Crisp video</span>
+							</FormField>
 						</PrimaryText>
 						<SecondaryText>Toggle whether to not anti-alias video.</SecondaryText>
 					</Text>
