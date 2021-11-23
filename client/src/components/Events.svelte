@@ -9,7 +9,7 @@
 
 	export function newEvent(e)
 	{
-		// console.log("Events component got", e);
+		console.log("Events component got", e);
 
 		if(eventCache.length >= 100) {
 			eventCache.shift();
@@ -20,7 +20,7 @@
 	}
 </script>
 
-	<OverlayToggler on:message bind:visible={visible} name="" icon="event" showButton={showButton} position="above">
+	<OverlayToggler on:message bind:visible={visible} name="" icon="event" showButton={showButton} position="below">
 		<div>
 			Recent events
 			{#each eventCache as e}

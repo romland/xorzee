@@ -6,6 +6,8 @@
 	import { fade } from 'svelte/transition';
 	import Screenshot from "./Screenshot.svelte";
 
+	import Paper, { Title, Subtitle, Content } from '@smui/paper';
+
 	export let showButton = true;
 	export let items = [];
 	export let visible = false;
@@ -18,14 +20,27 @@
 
 </script>
 
-	<OverlayToggler on:message bind:visible={visible} name="" icon="movie" showButton={showButton} position="above">
+	<OverlayToggler on:message bind:visible={visible} name="" icon="movie" showButton={showButton} position="below">
 		<div>
 			<div class="overlay wrapper" in:fade out:fade>
-				{#each items as item}
-					<div class="box">
-						<Screenshot item={item} {server} {dir}></Screenshot>
-					</div>
-				{/each}
+
+				<Paper class="paper-demo">
+					<Title>
+						Paper
+					</Title>
+					<Subtitle>
+						This is a sheet of paper.
+					</Subtitle>
+					<Content>
+						{#each items as item}
+							<div class="box">
+								<Screenshot item={item} {server} {dir}></Screenshot>
+							</div>
+						{/each}
+					</Content>
+				</Paper>
+
+
 			</div>
 		</div>
 	</OverlayToggler>
