@@ -6,8 +6,10 @@
   let component;
   const dispatch = createEventDispatcher();
   onMount(() => {
-    screenfull.on("change", () => dispatch("change"));
-    screenfull.on("error", () => dispatch("error"));
+    screenfull.on("change", (e) => {
+		dispatch("change", { current : screenfull.isFullscreen });
+	});
+    screenfull.on("error", () => { dispatch("error"); });
   });
   const onToggle = () => {
     screenfull.toggle(component.nextElementSibling);
@@ -23,6 +25,5 @@
     screenfull.off("error", null);
   });
 </script>
-
 <div style="width:0; height:0" bind:this={component} />
 <slot {onToggle} {onRequest} {onExit} />

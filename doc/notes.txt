@@ -1,157 +1,21 @@
 Installation so far:
-    apt-get install ffmpeg
-    git pull
-    npm install
+    $ sudo apt-get install ffmpeg
+    $ git pull
+	$ cd server
+    $ npm install
+	$ cd ../client
+	$ npm install
+	$ npm run build (OR npm run dev if developing)
 
 =======
+To run:
+$ cd server
+$ node index.js
 
-Run (in server):
-
-node index.js
-
-Go to http://raspi-ip:8080/
-
-======
-
-TODO, thoughts:
-    - Want to be able to record clips at any given point,
-      but ffmpeg takes too long to pick up the stream...
-        - Thouhgt: Perhaps always buffer a bunch of frames? Costly on memory tho :(
-    - screenshot: should be solved if we can generate h264's
-    - option to only stream when there is movement
-    - perhaps abuse Bonjour protocol to advertise activity on a camera to all other cameras?
-    - can I tell my TV that it can stream this (using Bonjour)? (likely need to throw it in a container tho :/)
-    - when recording, indicate on client with the old fashioned blinking: "o REC" (in red) in top left corner
+Go to http://yourip:8080/
 
 
-    - want discoverability of devices on the network (zeroconf/bonjour)
-        - https://www.npmjs.com/package/bonjour (7M)
-        - https://www.npmjs.com/package/zeroconf (7 heh)
-        - avahi-daemon installed by default
-            however, do not get a browser installed by default, so use a nodejs module for that?
-            sudo apt-get install avahi-utils
-
-        - best would be to interface with vahai without further installation... how?
-            NOT:
-            - https://github.com/idjem/avahi-browse  (depends on avahi-browse / avahi-utils)
-            - npm i node-avahi-browse (also depend on avahi-browse)
-
-        - instead of installing avahi-utils:
-            sudo apt-get install libavahi-compat-libdnssd-dev
-                (see https://www.npmjs.com/package/homebridge/v/0.4.40 )
-
-        - I suppose going for the D-BUS API ( https://www.avahi.org/doxygen/html/ ) is the best option.
-          Write my own or is there an existing implementatioN?
-            - Waddaya know: https://www.npmjs.com/package/dbus-native
-            - oh and: https://github.com/machinekoder/node-avahi-dbus
-            ...
-            - which seems to be synchronous? Perhaps go to the new/improved:
-                https://github.com/dbusjs/node-dbus-next/issues/55
-                (this is more work, though!)
-
---- bonjour service ---
-$ sudo vi xorzee.service
-<?xml version="1.0" standalone='no'?><!--*-nxml-*-->
-<!DOCTYPE service-group SYSTEM "avahi-service.dtd">
-
-<service-group>
-
-  <name replace-wildcards="yes">%h</name>
-
-  <service>
-    <type>_xorzee._tcp</type>
-    <port>8080</port>
-  </service>
-
-</service-group>
-
----- prettier logging
-in terminal:
-LOG_LEVEL=debug node index.js | ./node_modules/.bin/pino-pretty
-
------------
-    // sreenshot:
-    // ffmpeg -y -hide_banner -i out.h264 -ss 0 -frames:v 1 out.jpg
-    // ffmpeg -y -hide_banner -i out.h264 -frames:v 1 -f image2 out.png
-
------------
-/*
-    Googling:
-        h264 parser
-        ffmpeg reduce probe size
-        AVC parser nodejs
-        h264bitstream
-
-    Links:
-        https://stackoverflow.com/questions/11330764/ffmpeg-cant-decode-h264-stream-frame-data
-
-    On buffering:
-        https://github.com/cislrpi/binary-ring-buffer
-
-
-*/
-
---------------
-        // https://gist.github.com/steven2358/ba153c642fe2bb1e47485962df07c730
-        // Extract a frame each second: ffmpeg -i input.mp4 -vf fps=1 thumb%04d.jpg -hide_banner
---------------
-    if (conf.get('udpport')) {
-        const udpServer = dgram.createSocket('udp4');
-
-        udpServer.on('listening', () => {
-            var address = udpServer.address();
-            console.log(
-                `UDP server listening on ${address.address}:${address.port}`
-            );
-        });
-
-        const NALSplitter = new Split(NALSeparator);
-
-        NALSplitter.on('data', (data) => {
-            if (wsServer && wsServer.clients.length > 0) {
-                broadcast(data);
-            }
-        }).on('error', (e) => {
-            console.log('splitter error ' + e);
-            process.exit(0);
-        })
-
-        udpServer.on('message', (msg, rinfo) => {
-            NALSplitter.write(msg);
-        });
-
-        udpServer.bind(conf.get('udpport'));
-
-    }
-----------
-        // raspivid -ih -stm -hf -vf -n -v -w 1920 -t 0 -fps 24 -ih -b 1700000 -pf baseline -o - | nc localhost 8000
-----------
-#!/bin/bash
-
-# UDP mode, with extra options for my halogen lighting. Don't worry about it...
-#raspivid -w 848 -h 480 -t 0 -fps 25 -ih -b 700000 -pf baseline -mm average -ISO 800 -awb off -awbg 1.0,2.5 -ex fixedfps -ev 0 -co 50 -br 65 -o - |\
-#socat - udp-sendto:localhost:8000,shut-none
-
-# TCP mode, minimal setup
-#raspivid -w 848 -h 480 -t 0 -fps 25 -ih -b 700000 -pf baseline -o - | nc localhost 8000
-
-# GStreamer kinda works, but the OMX encoder doesn't use inline headers.
-# Our server however saves the SPS/PPS headers in TCP mode and sends them to every new client.
-#modprobe bcm2835-v4l2
-#gst-launch-1.0 v4l2src ! video/x-raw,width=848,height=480,framerate=25/1 ! omxh264enc control-rate=2 target-bitrate=700000 ! video/x-h264,width=848,height=480,framera
-te=25/1,stream-format=byte-stream,profile=baseline ! tcpclientsink host=localhost port=8000
-
-# Test stream for swarm mode
-# You can duplicate the actual raspivid stream on the server with socat and tee
-
-#gst-launch-1.0 videotestsrc ! video/x-raw,width=848,height=480,framerate=25/1 ! x264enc bitrate=700 ! video/x-h264,width=848,height=480,framerate=25/1,stream-format=b
-yte-stream,profile=baseline ! tee name=t\
-# t. ! queue ! tcpclientsink host=172.18.0.3 port=8000 \
-# t. ! queue ! tcpclientsink host=172.18.0.4 port=8000 \
-# t. ! queue ! tcpclientsink host=172.18.0.5 port=8000 \
-# t. ! queue ! tcpclientsink host=172.18.0.6 port=8000
-
-# TODO socat and tee example
+TODO:
 
 ------------------------
 Docker file example
@@ -202,51 +66,3 @@ RestartSec=3
 
 [Install]
 WantedBy=multi-user.target
--------------
-
-/*
-Idea for alternative clustering:
-
-keep track of last row's candidates
-
-         merge
-          \/
-
- 1       2  3    4     5
-11   6  22 33   444     5
-11       ***      44                <- * say it belongs to 2 AND 3
-11       * *      44                <- * ditto
-111     ** ********  77 8           <- * belongs to 2, 3, AND 4
-
-
-...then one pass backwards to group up the groups (i.e. all 'row-clusters' with
-   id 2, 3 and 4 should go into one new cluster
-
-how to deal with diagonals? does that change anything?:
-
-     1 2
-    1   2
-
-for each vector:
-    check left, left-above, above, right-above
-    store all four in a fixed size array (this could theoretically be nested arrays up to <lines> long) ~68?
-
-
-    1 2 3   4
-     1  3   4
-
-
-    [ [ 0, 1, 2, 3 ] ... ]
-
-This likely has a name, good knows what it is...
-*/
-----------
-instead of dbscan, ideas:
-
-// Connected Component Labeling - Implementation
-        // https://stackoverflow.com/questions/14465297/connected-component-labeling-implementation
-// union pairs
-// blob finding
-// dfs
-// flood fill
-

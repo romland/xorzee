@@ -3,7 +3,7 @@
 	import { fade } from 'svelte/transition';
 
 	import { updateAllGeography, followGeography, addGeographyFollower } from "../lib/utils.js";
-	import BroadwayStats, { onNALunit } from "./BroadwayStats.svelte";
+	import StreamStats, { onNALunit } from "./StreamStats.svelte";
 	import Fullscreen from "./Fullscreen.svelte";
 	import PolyDraw from "./PolyDraw.svelte";
 	import ScreenshotList from "./ScreenshotList.svelte";
@@ -12,7 +12,6 @@
 	import Events from "./Events.svelte";
 	import VideoStreamer from "../lib/videostreamer";
 	import MotionStreamer from "../lib/motionstreamer";
-	import Button from './Button.svelte';
 
 	export let remoteServer = null;			// Set to true if the client (the Svelte app) is not hosted by this server.
 	export let remoteAddress = null;		// This only needs to be set to an address if above is true.
@@ -27,7 +26,7 @@
 	let overlay = {
 		"Configuration" : false,
 		"ScreenshotList" : false,
-		"BroadwayStats" : false,
+		"StreamStats" : false,
 		"Controls" : false,
 	};
 
@@ -234,6 +233,21 @@
 		motionStreamer.sendMessage(message);
 	}
 
+	/**
+	 * Since we cannot detect when someone pressed escape
+	 * while in full-screen, do this to attempt to restore
+	 * ourselves to a good situation.
+	 */
+	function onFullScreenChange(ev)
+	{
+		if(ev.detail.current === false && (motionContainer.style.width === screen.width + "px")) {
+			console.log("Got out of fullscreen. Fixing...");
+			fullScreenState = false;
+			motionContainer.style.width = playerWidth;
+			updateAllGeography();
+		}
+	}
+
 	// This works because it acts on the element that is 'primary' when using followGeography()
 	function toggleFullScreen(requestFullscreen, exitFullscreen)
 	{
@@ -242,14 +256,12 @@
 		}
 
 		if(fullScreenState) {
-			// coming back from full screen
+			// coming back from full screen (note that onFullScreenChnage event will restore size of window.
 			exitFullscreen();
-			motionContainer.style.width = playerWidth;
-			updateAllGeography();
 		} else {
 			requestFullscreen();
-			motionContainer.style.width = "100%";
-			updateAllGeography()
+			motionContainer.style.width = screen.width + "px";
+			updateAllGeography();
 		}
 
 		fullScreenState = !fullScreenState;
@@ -271,12 +283,21 @@
 
 	function onLayerChange(componentName, e)
 	{
+		console.log("onLayerChange", componentName);
 		for(let k in overlay) {
 			if(k === componentName) {
 				continue;
 			}
 			overlay[k] = false;
 		}
+	}
+
+	function toggleLayer(layerName)
+	{
+		if(overlay[layerName] === false) {
+			onLayerChange(layerName, null);
+		}
+		overlay[layerName] = !overlay[layerName];
 	}
 
 	// for when autoplay does not trigger :/
@@ -379,13 +400,16 @@
 
 	function mouseUp(e)
 	{
-		if(e.which !== 1 || e.target.tagName === "INPUT") {
+		zoomSvg.setAttribute("height", 0);
+		zoomSvg.setAttribute("width", 0);
+
+		if((Date.now() - startDrag.ts) < 250 || e.which !== 1 || e.target.tagName === "INPUT") {
+			startDrag.ts = 0;
+			console.log("Zoom ignored");
 			return;
 		}
 
 		startDrag.ts = 0;
-		zoomSvg.setAttribute("height", 0);
-		zoomSvg.setAttribute("width", 0);
 
 		const pos = getMousePos(e);
 
@@ -422,7 +446,7 @@ $:	if(container && playerWidth) {
 	}
 
 </script>
-	<Fullscreen let:onRequest let:onExit>
+	<Fullscreen let:onRequest let:onExit on:change={(ev)=>onFullScreenChange(ev)}>
 		<div class="container" bind:this={container}>
 			<!-- If Broadway renderer is used: 'videoCanvas' (can also be a video player) will be inserted above -->
 			<div class="layerContainer" bind:this={videoContainer}>
@@ -449,6 +473,7 @@ $:	if(container && playerWidth) {
 					<div class="topLeft">
 						<Controls
 							on:message={(e)=>onLayerChange("Controls", e)}
+							toggleLayer={toggleLayer}
 							bind:showButton={showOverlayButtons}
 							bind:visible={overlay["Controls"]}
 							bind:drawingIgnoreArea={drawingIgnoreArea}
@@ -466,21 +491,6 @@ $:	if(container && playerWidth) {
 							bind:settingsMeta={settingsMeta}>
 						</Configuration>
 
-						{#if videoPlayer}
-							<BroadwayStats 
-								on:message={(e)=>onLayerChange("BroadwayStats", e)} 
-								bind:showButton={showOverlayButtons} 
-								bind:visible={overlay["BroadwayStats"]} 
-								player={videoPlayer}>
-							</BroadwayStats>
-						{/if}
-
-						<!-- No longer needed as it will autoplay if no audio
-							<Button bind:visible={showOverlayButtons} label="Play" on:click={play}></Button>
-						-->
-					</div>
-
-					<div class="bottomLeft">
 						<ScreenshotList 
 							on:message={(e)=>onLayerChange("ScreenshotList", e)}
 							bind:showButton={showOverlayButtons}
@@ -495,6 +505,21 @@ $:	if(container && playerWidth) {
 							bind:this={eventsComponent}
 							bind:visible={overlay["Events"]}>
 						</Events>
+
+						<!-- No longer needed as it will autoplay if no audio
+							<Button bind:visible={showOverlayButtons} label="Play" on:click={play}></Button>
+						-->
+					</div>
+
+					<div class="bottomLeft">
+						{#if videoPlayer}
+							<StreamStats 
+								on:message={(e)=>onLayerChange("StreamStats", e)} 
+								bind:showButton={showOverlayButtons} 
+								bind:visible={overlay["StreamStats"]} 
+								player={videoPlayer}>
+							</StreamStats>
+						{/if}
 					</div>
 
 					<PolyDraw
@@ -522,7 +547,6 @@ $:	if(container && playerWidth) {
 	
 	.containerOverlays {
 		position: absolute;
-		z-index: 10;
 	}
 
 	.motionCanvas {

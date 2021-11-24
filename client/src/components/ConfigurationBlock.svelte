@@ -1,4 +1,9 @@
 <script>
+	import Textfield from '@smui/textfield';
+	import HelperText from '@smui/textfield/helper-text';
+	import IconButton, { Icon } from '@smui/icon-button';
+	import { slide } from 'svelte/transition';
+
 	export let configurable;
 	export let settings;
 	export let parents = [];
@@ -50,20 +55,48 @@ $:	if(settings && settings.streamOverlay && settings.streamOverlay.enabled !== u
 	<ul>
 		<li>
 			<div>
-				{#if parentSettings && configurable.ui === "textbox"}
-					<h3>{configurable.label}</h3>
+				{#if parentSettings && (configurable.ui === "textbox" || configurable.ui === "password")}
 					{#if configurable.type === "int"}
-						<input
-							type="number"
+						<Textfield 
 							min={configurable.range[0]}
 							max={configurable.range[1]} 
-							bind:value={parentSettings[configurable.name]}
-						/>
+							type="number" bind:value={parentSettings[configurable.name]} label="{configurable.label}"
+						>
+							<HelperText persistent slot="helper">
+								{#if configurable.doc}
+									<span>
+										{configurable.doc}
+									</span>
+								{/if}
+
+								{#if configurable["default"] !== undefined}
+									<span class="defaults">
+										Default: {configurable["default"]}
+									</span>
+								{/if}
+							</HelperText>
+						</Textfield>
+
 					{:else}
-						<input
-							type="text"
+						<Textfield 
+							type="{(configurable.ui !== "password") ? "text" : configurable.ui}"
 							bind:value={parentSettings[configurable.name]}
-						/>
+							label="{configurable.label}"
+						>
+							<HelperText persistent slot="helper">
+								{#if configurable.doc}
+									<span>
+										{configurable.doc}
+									</span>
+								{/if}
+
+								{#if configurable["default"] !== undefined}
+									<span class="defaults">
+										Default: {configurable["default"]}
+									</span>
+								{/if}
+							</HelperText>
+						</Textfield>
 					{/if}
 
 				{:else if parentSettings && configurable.ui === "checkbox"}
@@ -72,36 +105,23 @@ $:	if(settings && settings.streamOverlay && settings.streamOverlay.enabled !== u
 						{configurable.label}
 					</h3>
 
-				{:else if parentSettings && configurable.ui === "password"}
-					<h3>{configurable.label}</h3>
-					<input type="password" bind:value={parentSettings[configurable.name]}/>
-
 				{:else if !configurable.ui}
-					<h3 class="expandable" on:click={() => { expanded = !expanded; } }>{configurable.label}</h3>
+					<h3 class="expandable" on:click={() => { expanded = !expanded; } }>
+						<Icon class="material-icons">{expanded ? "expand_less" : "expand_more"}</Icon>
+						{configurable.label}
+					</h3>
 
 				{/if}
 
 				<div class="content" class:expanded={expanded}>
-					{#if configurable.doc}
-						{#if category}
-							<ul>
-								<li>
-									<span>
-										{configurable.doc}
-									</span>
-								</li>
-							</ul>
-						{:else}
-							<span>
-								{configurable.doc}
-							</span>
-
-							{#if configurable["default"] !== undefined}
-								<span class="defaults">
-									Default: {configurable["default"]}
+					{#if configurable.doc && category}
+						<ul>
+							<li>
+								<span class="categoryDoc">
+									{configurable.doc}
 								</span>
-							{/if}
-						{/if}
+							</li>
+						</ul>
 					{/if}
 
 					{#if configurable.children}
@@ -123,6 +143,9 @@ $:	if(settings && settings.streamOverlay && settings.streamOverlay.enabled !== u
 	ul {
 		list-style-type: none;
 	}
+	li {
+		padding-bottom: 20px;
+	}
 	.content {
 		display: none;
 	}
@@ -136,11 +159,13 @@ $:	if(settings && settings.streamOverlay && settings.streamOverlay.enabled !== u
 		color: blue;
 	}
 
-	span {
-		font-size: smaller;
-	}
-
 	.defaults {
 		display: block;
 	}
+
+	.categoryDoc {
+		font-size: smaller;
+	}
+
+
 </style>
