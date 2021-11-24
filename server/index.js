@@ -241,6 +241,10 @@ const cameraSettings = [
 				case "start" :
 					logger.debug("handleMotionEvent(): %s, %s", module, eventType);
 
+					if(!videoListener.getRecorder().dryRun()) {
+						videoScreenshotter.snapshotDispmanx(meta.screenshot);
+					}
+
 					motionSignaller.activity(Signals.START_RECORDING);
 
 					motionSender.broadcastMessage(
@@ -389,6 +393,11 @@ const cameraSettings = [
 		switch(cmd) {
 			case "start" :
 				fn = videoListener.getRecorder().start(videoListener.getHeaders(), true);
+
+				if(!videoListener.getRecorder().dryRun()) {
+					videoScreenshotter.snapshotDispmanx(fn + ".png");
+				}
+
 				motionSender.broadcastMessage(
 					{
 						"event" : "startRecording",
@@ -413,6 +422,7 @@ const cameraSettings = [
 					}
 				);
 
+/*
 				videoScreenshotter.start(fn);
 				motionSender.broadcastMessage(
 					{
@@ -420,7 +430,7 @@ const cameraSettings = [
 						"filename" : fn + ".jpg",
 					}
 				);
-
+*/
 				motionSender.broadcastMessage(
 					{
 						"event" : "lastRecordings",

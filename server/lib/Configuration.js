@@ -636,13 +636,13 @@ class Configuration
 									'default'	: defaults.outputMotionCost,
 								},
 								{
-									name		: "outputMotionCostThreshold",
+									name		: "motionCostThreshold",
 									label		: "Output motion cost threshold",
 									type		: "int",
 									range		: [0, 10000],
 									ui			: "textbox",
 									doc			: `Output cost when things were costly. Set this really high (1000+ milliseconds) to never see it.`,
-									'default'	: defaults.outputMotionCostThreshold,
+									'default'	: defaults.motionCostThreshold,
 								},
 							]
 						} // cluster performance

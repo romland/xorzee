@@ -223,7 +223,7 @@ class Recorder
 	{
 		if(this.recording) {
 			if(manualOverride && !this.manuallyRecording && this.simulateRecord) {
-				// if it's dry-run, quickly just stop it if it's running
+				// if it's dry-run, quickly just stop it if it's running, and continue...
 				this.stop();
 			} else {
 				logger.error("Already recording...");
@@ -313,7 +313,7 @@ class Recorder
 			host		: "todo-hostname",
 			camera		: this.conf.get("name"),
 			started		: this.lastNotification,
-			screenshot	: this.recordingToId + ".jpg",
+			screenshot	: this.recordingToId + ".png",
 			video		: this.recordingToId + ".h264",
 			width		: this.conf.get("width"),
 			height		: this.conf.get("height"),
