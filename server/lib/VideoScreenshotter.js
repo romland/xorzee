@@ -44,7 +44,8 @@ class VideoScreenshotter
 	 * e.g. /usr/bin/ffmpeg -y -hide_banner -ss 00:00:10 -i 1637632174790.h264 -frames:v 1 -f image2 snapshot.jpg
 	 * gives: 1637632174790.h264: could not seek to position 10.000
 	 * 
-	 * TODO: Will need to find some way to take snapshots.
+	 * TODO: Will need to find some way to take snapshots. (see snapshotDispmanx -- which replaces this, but 
+	 * keeping it around for posterity for now)
 	 */
 	start(fileName)
 	{

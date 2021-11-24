@@ -422,15 +422,6 @@ const cameraSettings = [
 					}
 				);
 
-/*
-				videoScreenshotter.start(fn);
-				motionSender.broadcastMessage(
-					{
-						"event" : "screenshot",
-						"filename" : fn + ".jpg",
-					}
-				);
-*/
 				motionSender.broadcastMessage(
 					{
 						"event" : "lastRecordings",
