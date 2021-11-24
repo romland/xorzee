@@ -499,6 +499,7 @@ $:	if(container && playerWidth) {
 							bind:dir={settings.recordPathWww}
 							bind:items={lastRecordings}>
 						</ScreenshotList>
+
 						<Events
 							on:message={(e)=>onLayerChange("Events", e)}
 							bind:showButton={showOverlayButtons}

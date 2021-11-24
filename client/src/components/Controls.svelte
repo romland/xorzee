@@ -114,7 +114,7 @@
 				</Item>
 
 				<Item on:SMUI:action={btnRecordStart}>
-					<Graphic class="material-icons">fiber_manual_record</Graphic>
+					<Graphic class="material-icons" style="color: #ff0000">fiber_manual_record</Graphic>
 					<Text>
 						<PrimaryText>
 							Record

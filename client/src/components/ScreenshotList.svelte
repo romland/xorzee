@@ -21,40 +21,30 @@
 </script>
 
 	<OverlayToggler on:message bind:visible={visible} name="" icon="movie" showButton={showButton} position="below">
-		<div>
-			<div class="overlay wrapper" in:fade out:fade>
 
-				<Paper class="paper-demo">
-					<Title>
-						Paper
-					</Title>
-					<Subtitle>
-						This is a sheet of paper.
-					</Subtitle>
-					<Content>
-						{#each items as item}
-							<div class="box">
-								<Screenshot item={item} {server} {dir}></Screenshot>
-							</div>
-						{/each}
-					</Content>
-				</Paper>
+		<Paper>
+			<Title>
+				Recorded clips
+			</Title>
 
+			<Subtitle>
+				By default, the last twenty are listed.
+			</Subtitle>
 
-			</div>
-		</div>
+			<Content class="recwrap">
+				{#each items as item}
+					<div class="box">
+						<Screenshot item={item} {server} {dir}></Screenshot>
+					</div>
+				{/each}
+			</Content>
+		</Paper>
+
 	</OverlayToggler>
 
 
 <style>
-	.wrapper {
-		display: grid;
-		grid-template-columns: 33% 33% 33%;
-		grid-gap: 10px;
-	}
-
 	.box {
-		/*background-color: #444;*/
 		border-radius: 5px;
 		padding: 20px;
 	}

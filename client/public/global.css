@@ -23,3 +23,10 @@ body {
 	image-rendering: optimize-contrast;         /* CSS3 Proposed                  */
 	-ms-interpolation-mode: nearest-neighbor;   /* IE8+                           */
 }
+
+/* Wrapper for clips in 'list of recordings' */
+.recwrap {
+	display: grid;
+	grid-template-columns: 33% 33% 33%;
+	grid-gap: 10px;
+}
