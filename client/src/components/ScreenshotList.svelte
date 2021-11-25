@@ -5,6 +5,7 @@
 	import OverlayToggler from "./OverlayToggler.svelte";
 	import { fade } from 'svelte/transition';
 	import Screenshot from "./Screenshot.svelte";
+	import IconButton, { Icon } from '@smui/icon-button';
 
 	import Paper, { Title, Subtitle, Content } from '@smui/paper';
 
@@ -21,6 +22,10 @@
 </script>
 
 	<OverlayToggler on:message bind:visible={visible} name="" icon="movie" showButton={showButton} position="below">
+
+		<IconButton class="material-icons" title="Close" style="position: absolute; top: 15px; right: 35px;" on:click={()=>{visible = false}}>
+			close
+		</IconButton>
 
 		<Paper>
 			<Title>

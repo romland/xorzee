@@ -20,9 +20,10 @@ Pronounced "x or z".
 
 ## Why?
 Motion is truly excellent software and I've (well, our cat) depended on it for years. At some point
-I wanted to add more cameras and bumped into Motioneye, which looks great. I wanted a different UI,
-auto-discovery, and I knew the motion detection could be heaps cheaper. Primarily though, a higher 
-quality live stream without bringing the device to its knees. So, here we are. :-)
+I wanted to add more cameras and bumped into Motioneye, which looks great. It's just ... I wanted a 
+different UI, auto-discovery of cameras, and I knew the motion detection could be heaps cheaper. 
+Primarily though, a higher quality live stream without bringing the device to its knees. So, here I am,
+hacking away in some of the spare hours of the day. :-)
 
 
 ## Supported cameras
