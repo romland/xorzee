@@ -17,7 +17,6 @@ class DbScan
 		this.minPoints = 4;
 		this.distance = this.getEuclideanDistance;
 		this.data = [];
-		this.clusters = [];
 		this.results = [];
 	}
 
@@ -55,8 +54,8 @@ class DbScan
 
 	run()
 	{
+		let nextId = 0;
 		this.results = new Uint16Array(this.data.length).fill(0xffff);
-		this.clusters = [];
 
 		let neighbours;
 
@@ -69,8 +68,8 @@ class DbScan
 			neighbours = this.getRegionNeighbours(i);
 
 			if(neighbours.length >= this.minPoints) {
-				this.clusters.push([]);					// Empty new cluster
-				this.expand(i, neighbours, this.clusters.length);
+				nextId++					// Empty new cluster
+				this.expand(i, neighbours, nextId);
 			}
 		}
 
@@ -79,7 +78,6 @@ class DbScan
 
 	expand(pointId, neighbours, clusterId)
 	{
-		this.clusters[clusterId - 1].push(pointId);		// Add point to cluster
 		this.results[pointId] = clusterId;				// Assign cluster id
 
 		let currNeighbours, currPointId;
@@ -99,7 +97,6 @@ class DbScan
 			if(this.results[currPointId] < 1) {
 				// Not assigned to a cluster but visited (= 0)
 				this.results[currPointId] = clusterId;
-				this.clusters[clusterId - 1].push(currPointId);
 			}
 		}
 	}
