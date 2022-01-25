@@ -26,6 +26,11 @@ class MotionSender
 		});
 	}
 
+	broadcastMessageStr(str)
+	{
+		this.broadcastRaw(str, str.length, false);
+	}
+
 	broadcastMessage(ob)
 	{
 		let str = JSON.stringify(ob);

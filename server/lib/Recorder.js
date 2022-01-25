@@ -132,6 +132,11 @@ class Recorder
 
 	stop()
 	{
+		if(!this.recording) {
+			logger.info("Not recording.");
+			return;
+		}
+
 		this.recording = false;
 
 		if(this.dryRun() === false) {

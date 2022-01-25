@@ -495,8 +495,8 @@ class MvrProcessor
 				reductionFactor = Math.floor(candidates.length / targetCandidates);
 				let reducedCandidates = [];
 				for(let i = 0; i < candidates.length; i += reductionFactor) {
-					candidates[i].orgX = candidates[i].x;
-					candidates[i].orgY = candidates[i].y;
+					candidates[i].org_x = candidates[i].x;
+					candidates[i].org_y = candidates[i].y;
 					candidates[i].x = (candidates[i].x / reductionFactor);
 					candidates[i].y = (candidates[i].y / reductionFactor);
 					reducedCandidates.push(candidates[i]);
@@ -507,7 +507,6 @@ class MvrProcessor
 			//console.timeEnd("reducing");
 			this.stats.costLastFrame.reducing = Date.now() - then;
 			this.stats.cost.reducing += this.stats.costLastFrame.reducing;
-
 
 			//console.time("clustering");
 			then = Date.now();
@@ -557,23 +556,23 @@ class MvrProcessor
 						points : [],
 						dir : 0,
 						mag : 0,
-						box : [ 1000, 0, 0, 1000 ] // clockwise from top
+						bbox : [ 1000, 0, 0, 1000 ] // clockwise from top
 					};
 				}
 				cluster = clusters[id];
 
 				if(reduced) {
-					candidates[i].x = candidates[i].orgX;
-					candidates[i].y = candidates[i].orgY;
+					candidates[i].x = candidates[i].org_x;
+					candidates[i].y = candidates[i].org_y;
 				}
 
 				cluster.points.push(candidates[i]);
 
 				// Bounding box
-				if(candidates[i].y < cluster.box[0]) cluster.box[0] = candidates[i].y;
-				if(candidates[i].x > cluster.box[1]) cluster.box[1] = candidates[i].x;
-				if(candidates[i].y > cluster.box[2]) cluster.box[2] = candidates[i].y;
-				if(candidates[i].x < cluster.box[3]) cluster.box[3] = candidates[i].x;
+				if(candidates[i].y < cluster.bbox[0]) cluster.bbox[0] = candidates[i].y;
+				if(candidates[i].x > cluster.bbox[1]) cluster.bbox[1] = candidates[i].x;
+				if(candidates[i].y > cluster.bbox[2]) cluster.bbox[2] = candidates[i].y;
+				if(candidates[i].x < cluster.bbox[3]) cluster.bbox[3] = candidates[i].x;
 
 				cluster.dir += candidates[i].dir;
 				cluster.mag += candidates[i].mag;
@@ -584,7 +583,6 @@ class MvrProcessor
 			}
 			//console.timeEnd("boundingbox");
 			// ================ /clustering
-
 
 			// ================ remove clusters within others
 			//console.time("insidereduction");
@@ -644,7 +642,7 @@ class MvrProcessor
 			// Do I want to update the history box? Let's see...
 			// Do it only if we are more dense (and often bigger) than the one stored...
 //			if(cluster.points.length > overlapping.size) {
-				overlapping.box = [...cluster.box];
+				overlapping.bbox = [...cluster.bbox];
 				overlapping.size = cluster.points.length;
 
 				overlapping.points = [...cluster.points];
@@ -658,7 +656,7 @@ class MvrProcessor
 				age : 0,
 				active : now,
 				birth : now,
-				box : [...cluster.box],
+				bbox : [...cluster.bbox],
 				size : cluster.points.length,
 
 				points : [...cluster.points],
@@ -696,11 +694,11 @@ class MvrProcessor
 
 	overlaps(c1, c2)
 	{
-		if (c1.box[1] < c2.box[3]) return false;
-		if (c2.box[1] < c1.box[3]) return false;
+		if (c1.bbox[1] < c2.bbox[3]) return false;
+		if (c2.bbox[1] < c1.bbox[3]) return false;
 
-		if (c1.box[2] < c2.box[0]) return false;
-		if (c2.box[2] < c1.box[0]) return false;
+		if (c1.bbox[2] < c2.bbox[0]) return false;
+		if (c2.bbox[2] < c1.bbox[0]) return false;
 
 		return true;
 	}
@@ -713,10 +711,10 @@ class MvrProcessor
 			if(i === ignoreIndex) {
 				continue;
 			}
-			if(rect.box[0] >= rectSet[i].box[0] 		// > top
-				&& rect.box[2] <= rectSet[i].box[2] 	// < bottom
-				&& rect.box[3] >= rectSet[i].box[3]		// > left
-				&& rect.box[1] <= rectSet[i].box[1])	// < right
+			if(rect.bbox[0] >= rectSet[i].bbox[0] 		// > top
+				&& rect.bbox[2] <= rectSet[i].bbox[2] 	// < bottom
+				&& rect.bbox[3] >= rectSet[i].bbox[3]		// > left
+				&& rect.bbox[1] <= rectSet[i].bbox[1])	// < right
 			{
 				return true;
 			}

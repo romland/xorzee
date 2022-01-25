@@ -10,12 +10,12 @@ const { BufferListStream } = require('bl'); // XXX: It's a bit silly to include 
 const mvrproc = require("./MvrProcessor");
 const MvrProcessor = mvrproc.default;
 const MvrFilterFlags = mvrproc.MvrFilterFlags;
+const cp = require('child_process');
 
 const net = require('net');
 //const dgram = require('dgram');
 
 const MotionRuleEngine = require("./MotionRuleEngine").default;
-
 
 const pino = require('pino');
 const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
@@ -26,6 +26,10 @@ class MotionListener
 	{
 		this.conf = conf;
 		this.motionSender = motionSender;
+
+		if(!this.motionSender) {
+			throw Err("motionSender is mandatory");
+		}
 
 		this.startupIgnoreTime = this.conf.get("startupIgnore");
 
@@ -87,6 +91,87 @@ class MotionListener
 
 
 	start()
+	{
+		return this._startRust();
+		// return this._startNode();
+	}
+
+	/**
+	 * Uses Rust MVR processor
+	 */
+	/*
+	BIG FAT TODOS:
+	-	we need to (json)parse data here to determine whether we have activity or not :)
+		need to call:
+			this.motionRuleEngine.processFrame(frameData, clusters);
+
+	-	there are things in the node version that needs to be ported to Rust,
+		such as "ignore loner", ignore-area (etc)
+
+	-	start/stopping (this is very connected to camera)
+	
+	*/
+	_startRust()
+	{
+		logger.debug('STARTING MVR');
+		let mvrArgs = "/home/pi/socket";
+
+        this.mvrProcess = cp.spawn('/bin/sh', [
+            '-c',
+			mvrArgs
+        ]);
+
+		let partial = "";
+        this.mvrProcess.stdout.setEncoding('utf8');
+        this.mvrProcess.stdout.on('data', (data) => {
+
+			// TOOD: This can be rewritten to be more efficient.
+			// What it does: Checks incoming data for a \n and only pass on
+			// full 'messages' to clients (broadcastMessageStr)
+			let nl = -1;
+			partial += data;
+		
+			if((nl = partial.indexOf("\n")) === -1) {
+				return;
+			}
+		
+			let lastNl = partial.lastIndexOf("\n");
+			let lines = partial.substr(0, lastNl).split("\n");
+			if(lastNl === (partial.length - 1)) {
+				partial = "";
+			} else {
+				partial = partial.substr(lastNl+1);
+			}
+		
+			for(let i = 0; i < lines.length; i++) {
+				this.motionSender.broadcastMessageStr(lines[i]);
+			}
+		
+        });
+
+        this.mvrProcess.stderr.setEncoding('utf8');
+        this.mvrProcess.stderr.on('data', function(data) {
+            logger.debug('mvr-stderr: %s', data);
+        });
+
+        this.mvrProcess.on('close', function(code) {
+            logger.warn('mvr closed: %s', code);
+			throw Error("MVR closed -- see above");
+        });
+
+		logger.debug("Started mvr with PID %d", this.mvrProcess.pid);
+
+		if(!this.mvrProcess.pid) {
+			logger.warn("Could probably not start camera; something already using it?");
+		}
+
+	}
+
+
+	/**
+	 * Uses JavaScript MVR processor
+	 */
+	_startNode()
 	{
         const tcpServer = net.createServer((socket) => {
             logger.debug('Motion streamer connected');
