@@ -101,20 +101,22 @@ class MotionListener
 	 */
 	/*
 	BIG FAT TODOS:
-	-	we need to (json)parse data here to determine whether we have activity or not :)
-		need to call:
-			this.motionRuleEngine.processFrame(frameData, clusters);
-
 	-	there are things in the node version that needs to be ported to Rust,
-		such as "ignore loner", ignore-area (etc)
+		such as "ignore loner", ignore-area (etc?)
 
 	-	start/stopping (this is very connected to camera)
-	
+		- even though it's not _always_ necessary, it's easiest to restart
+		  mvr-processor every time camera restarts (then we can tag along
+		  camera's code for resolution reconfiguration etc)
+
+	-	should reduce the size of the JSON that comes from 'mvr', a lot of the stuff in there is not used
+		The parsing does not come for free.
 	*/
 	_startRust()
 	{
-		logger.debug('STARTING MVR');
-		let mvrArgs = "/home/pi/socket";
+		logger.info("Using Rust MVR processor");
+
+		let mvrArgs = "/home/pi/mvr";
 
         this.mvrProcess = cp.spawn('/bin/sh', [
             '-c',
@@ -134,7 +136,7 @@ class MotionListener
 			if((nl = partial.indexOf("\n")) === -1) {
 				return;
 			}
-		
+
 			let lastNl = partial.lastIndexOf("\n");
 			let lines = partial.substr(0, lastNl).split("\n");
 			if(lastNl === (partial.length - 1)) {
@@ -144,6 +146,24 @@ class MotionListener
 			}
 		
 			for(let i = 0; i < lines.length; i++) {
+				// motionRuleEngine depend on the following to exist in MvrProcessor:
+				//	this.mvrProcessor.getActiveClusters()
+				//		history from JSON (mvrProcessor.history)
+				//	this.mvrProcessor.getFrameInfo()
+				//		frameInfo from JSON (mvrProcessor.frameInfo)
+				// TODO: In the medium-term I will ditch the Node version
+				//       and this hack of setting these varaibles in MvrProcessor
+				//		 will be integrated in whatever replaces it.
+				let ob = JSON.parse(lines[i]);
+				if(!ob.frameInfo) {
+					continue;
+				}
+
+				// console.log(ob);
+				this.mvrProcessor.history = ob.history;
+				this.mvrProcessor.frameInfo = ob.frameInfo;
+				this.motionRuleEngine.processFrame();
+				
 				this.motionSender.broadcastMessageStr(lines[i]);
 			}
 		
@@ -173,6 +193,8 @@ class MotionListener
 	 */
 	_startNode()
 	{
+		logger.info("Using Node MVR processor");
+
         const tcpServer = net.createServer((socket) => {
             logger.debug('Motion streamer connected');
 
@@ -273,7 +295,7 @@ class MotionListener
 							history : this.conf.get("sendHistory") ? this.mvrProcessor.getActiveClusters() : null,
 							frameInfo : {
 								mag: Math.round(this.mvrProcessor.getFrameInfo().totalMagnitude), // total magnitude of frame
-								blocks: this.mvrProcessor.getFrameInfo().candidates // num active vectorsPerLine
+								candidates: this.mvrProcessor.getFrameInfo().candidates // num active vectorsPerLine
 							}
 						}
 					);

@@ -14,7 +14,7 @@ class MotionRuleEngine
 		this.conf = conf;
 
 		this.eventTriggerCallback = eventTriggerCallback;
-		this.mp = mvrProcessor;
+		this.mvrProcessor = mvrProcessor;
 		this.videoListener = videoListener;
 		this.recorder = videoListener.getRecorder();
 
@@ -106,7 +106,7 @@ class MotionRuleEngine
 	}
 
 
-	processFrame(data, allClusters)
+	processFrame()
 	{
 		if(this.recorder.isManuallyRecording()) {
 			// No need to execute motion rules if we are manually recording
@@ -121,7 +121,7 @@ class MotionRuleEngine
 		this.cost.reset = Date.now() - this.cost.ts;
 
 		this.cost.ts = Date.now();
-		const cs = this.mp.getActiveClusters();
+		const cs = this.mvrProcessor.getActiveClusters();
 		this.cost.getActive = Date.now() - this.cost.ts;
 
 		this.cost.ts = Date.now();
@@ -130,7 +130,7 @@ class MotionRuleEngine
 
 		if(active) {
 			this.cost.ts = Date.now();
-			const fi = this.mp.getFrameInfo();
+			const fi = this.mvrProcessor.getFrameInfo();
 			this._sendEvent("activity", fi);
 			this.cost.sendActivity = Date.now() - this.cost.ts;
 		}
@@ -261,7 +261,7 @@ class MotionRuleEngine
 			return false;
 		}
 
-		let fi = this.mp.getFrameInfo();
+		let fi = this.mvrProcessor.getFrameInfo();
 
 		// nullFrame
 		if(fi.nullFrame) {
@@ -315,7 +315,7 @@ class MotionRuleEngine
 	 */
 	isStaticFrame(cs)
 	{
-		let fi = this.mp.getFrameInfo();
+		let fi = this.mvrProcessor.getFrameInfo();
 
 		// nullFrame: Don't stop recording on them
 		// 04nov2021: Why? I think I might want to...
