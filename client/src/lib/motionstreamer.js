@@ -78,7 +78,7 @@ export default class MotionStreamer
 
 			// TODO: Show this somewhere, make it configurable.
 			if(parsed.frameInfo) {
-				// console.log(parsed.frameInfo.mag, parsed.frameInfo.blocks);
+				// console.log(parsed.frameInfo.mag, parsed.frameInfo.candidates);
 			}
 	
 			if(document.hidden) {
