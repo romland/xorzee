@@ -89,6 +89,8 @@ export class MotionRenderer
 		this.context.font = '8px Titillium Web';
 		this.context.fillStyle = "#ffffffff";
 
+		// console.log("clusters", clusters.length);
+
 		for(let i = 0; i < clusters.length; i++) {
 			if(clusters[i].within) {
 				continue;
@@ -101,9 +103,9 @@ export class MotionRenderer
 			outline(this.context, this.reverseCvRatio, clusters[i].points);
 /*
 			this.context.fillText(
-				clusters[i].id + ': '  + Math.round(clusters[i].dir),
-				this.rs(clusters[i].box[3]),
-				this.rs(clusters[i].box[0]) - 2
+				(clusters[i].id || "n/a") + ' | dir '  + Math.round(clusters[i].dir) + " | pts " + clusters[i].points.length,
+				this.rs(clusters[i].bbox[3]),
+				this.rs(clusters[i].bbox[0]) - 2
 			);
 */
 		}
@@ -195,16 +197,16 @@ export class MotionRenderer
 
 			this.context.beginPath();
 
-			c.box[0] = this.rs(c.box[0] - 0);	// top
-			c.box[1] = this.rs(c.box[1] - 0);	// right
-			c.box[2] = this.rs(c.box[2] - 0);	// bottom
-			c.box[3] = this.rs(c.box[3] - 0);	// left
+			c.bbox[0] = this.rs(c.bbox[0] - 0);	// top
+			c.bbox[1] = this.rs(c.bbox[1] - 0);	// right
+			c.bbox[2] = this.rs(c.bbox[2] - 0);	// bottom
+			c.bbox[3] = this.rs(c.bbox[3] - 0);	// left
 
 			this.context.rect(
-				c.box[3],						// left / x
-				c.box[0],						// top / y
-				c.box[1] - c.box[3],			// width
-				c.box[2] - c.box[0]				// height
+				c.bbox[3],						// left / x
+				c.bbox[0],						// top / y
+				c.bbox[1] - c.bbox[3],			// width
+				c.bbox[2] - c.bbox[0]				// height
 			);
 			this.context.stroke();
 
@@ -214,8 +216,8 @@ export class MotionRenderer
 //			this.context.strokeStyle = "#ffff00ff";
 			this.context.fillText(
 				'' + c.id + ", " + c.birth,
-				c.box[3],
-				c.box[0] - 2
+				c.bbox[3],
+				c.bbox[0] - 2
 			);
 		}
 	}
