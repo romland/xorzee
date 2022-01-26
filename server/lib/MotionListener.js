@@ -98,6 +98,8 @@ class MotionListener
 
 	/**
 	 * Uses Rust MVR processor
+	 * 
+	 * This is currently one big hack to get it to fit in.
 	 */
 	/*
 	BIG FAT TODOS:
@@ -110,18 +112,15 @@ class MotionListener
 		  camera's code for resolution reconfiguration etc)
 
 	-	should reduce the size of the JSON that comes from 'mvr', a lot of the stuff in there is not used
-		The parsing does not come for free.
+		The parsing does not come for free. Top says it goes from around 10% util to 15% (so a 50% increase for nodejs!)
 	*/
 	_startRust()
 	{
 		logger.info("Using Rust MVR processor");
 
-		let mvrArgs = "/home/pi/mvr";
-
-        this.mvrProcess = cp.spawn('/bin/sh', [
-            '-c',
-			mvrArgs
-        ]);
+		let mvr = "/home/pi/mvr";
+		let mvrArgs = [];
+		this.mvrProcess = cp.spawn(mvr, mvrArgs);
 
 		let partial = "";
         this.mvrProcess.stdout.setEncoding('utf8');
@@ -154,6 +153,7 @@ class MotionListener
 				// TODO: In the medium-term I will ditch the Node version
 				//       and this hack of setting these varaibles in MvrProcessor
 				//		 will be integrated in whatever replaces it.
+				
 				let ob = JSON.parse(lines[i]);
 				if(!ob.frameInfo) {
 					continue;
