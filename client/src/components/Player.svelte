@@ -99,8 +99,9 @@
 			* Alternatives:
 			*	jmuxer:		Video latency of about 1 second in Firefox (motion is live). Chrome/Edge are live-ish.
 			*	broadway:	Truly live, expensive to render for client
+			*	serverjmuxer: jmuxer, but let it be done on server
 			*/
-			videoStreamer = new VideoStreamer(true, 'auto', settings.width, settings.height, 'jmuxer');
+			videoStreamer = new VideoStreamer(true, 'auto', settings.width, settings.height, (settings.serverSideMuxing ? 'serverjmuxer' : 'jmuxer'));
 			videoPlayer = videoStreamer.getPlayer();
 			videoContainer.prepend(videoPlayer.canvas);
 			addGeographyFollower(

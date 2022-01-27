@@ -18,8 +18,11 @@ export default class VideoStreamer
 		this.playerType = playerType;
 		this.webSocket = null;
 
-		// alternatives: broadway, jmuxer
-		if(playerType === "jmuxer") {
+		// alternatives: broadway, jmuxer, serverjmuxer
+		if(playerType === "serverjmuxer") {
+			throw Error("TODO: serverjmuxer!");
+
+		} else if(playerType === "jmuxer") {
 			let elt = document.createElement(`video`);
 			this.videoEltId = "videoElt" + Date.now();
 			elt.id = this.videoEltId;
@@ -65,7 +68,9 @@ export default class VideoStreamer
 
 	start(wsUri, port, reconnectInterval = 2000, onNALunit = null, frameRate = null)
 	{
-		if(this.playerType === "jmuxer") {
+		if(this.playerType === "serverjmuxer") {
+			throw Error("TODO: server-side muxing");
+		} else if(this.playerType === "jmuxer") {
 			let firefoxAgent = navigator.userAgent.indexOf("Firefox") > -1; 
 
 			this.player.jmuxer = new JMuxer({
