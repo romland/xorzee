@@ -267,6 +267,14 @@ class Configuration
 							doc			: `Stream only _video_ when there is 'valid' activity (experimental!). You will want to set 'minActiveBlocks' to 20 or so, depending on lighting conditions (there's always some noise).`,
 							'default'	: defaults.onlyActivity,
 						},
+						{
+							name		: "serverSideMuxing",
+							label		: "Mux on the Pi (instead of in browser)",
+							type		: "bool",
+							ui			: "checkbox",
+							doc			: `NOT YET IMPLEMENTED. If you have spare cycles on the Raspberry Pi, you can choose to offload some work to it instead of having it happen on every client (recommended if you can).`,
+							'default'	: defaults.serverSideMuxing,
+						},
 					]
 				}, // video streaming
 				/*{
@@ -702,6 +710,7 @@ class Configuration
 			onlyActivity	: false,								// Stream only _video_ when there is 'valid' activity (experimental!)
 																	// You will want to set 'minActiveBlocks' to 20 or so, depending on
 																	// lighting conditions (there's always some noise).
+			serverSideMuxing: false,
 
 			// Ignore
 			ignoreArea		: [],									// If setting manually, remember resolution should be 1920x1088.

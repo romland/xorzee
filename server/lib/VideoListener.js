@@ -22,6 +22,12 @@ class VideoListener
 		this.conf = conf;
 		this.videoSender = videoSender;
 		this.recorder = this.setupRecorder(recorderNotifyCb);
+
+		if(this.conf.get("serverSideMuxing") === true) {
+			this.serverSideMuxing = true;
+		} else {
+			this.serverSideMuxing = false;
+		}
 	}
 
 
@@ -46,8 +52,78 @@ class VideoListener
 		return this.recorder;
 	}
 
-
 	start()
+	{
+		if(this.serverSideMuxing) {
+			this.startServerMuxing();
+		} else {
+			this.startClientMuxing();
+		}
+	}
+
+
+	startServerMuxing()
+	{
+		const { Readable } = require('stream');		
+		const JMuxer = require('jmuxer');
+		const jmuxer = new JMuxer({
+			mode: 'video',
+			fps: this.conf.get("frameRate"),
+			debug: true
+		});
+		const mp4Reader = new Readable({
+			objectMode: true,
+			read(size) {
+			}
+		});
+
+        const tcpServer = net.createServer((socket) => {
+            logger.debug('Video streamer connected');
+            socket.on('end', () => {
+                logger.debug('Video streamer disconnected');
+            })
+
+			socket.on('data', (data) => {
+				// if (this.headers.length < 3) {
+				// 	this.headers.push(data);
+				// }
+
+                mp4Reader.push({
+					video: data
+				});
+
+				if(this.conf.get("mayRecord")) {
+					this.recorder.buffer(data);
+				}
+
+				if(this.recorder.isRecording()) {
+					this.recorder.append(data);
+				}
+			}).on('error', (e) => {
+				logger.error('splitter error %s', e);
+				process.exit(0);
+			});
+
+			mp4Reader.pipe(jmuxer.createStream()).on("data", (data) => {
+				if(this.videoSender.getClientCount() > 0) {
+					this.videoSender.broadcast(data);
+				}
+			});
+
+		});
+
+		tcpServer.listen(this.conf.get('videoPort'));
+
+		// this.videoSender.setHeaders(this.headers);
+
+		let address = tcpServer.address();
+		if(address) {
+			logger.debug(`Video TCP server listening on ${address.address}:${address.port}`);
+		}
+	}
+
+
+	startClientMuxing()
 	{
         const tcpServer = net.createServer((socket) => {
             logger.debug('Video streamer connected');

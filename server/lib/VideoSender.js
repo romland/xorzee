@@ -23,6 +23,12 @@ class VideoSender
 		if(!conf.get("streamVideo")) {
 			logger.info("Video streaming is disabled by configuration");
 		}
+
+		if(this.conf.get("serverSideMuxing") === true) {
+			this.serverSideMuxing = true;
+		} else {
+			this.serverSideMuxing = false;
+		}
 	}
 
 	getClientCount()
@@ -74,10 +80,6 @@ class VideoSender
 				logger.debug('Video client disconnected. Viewers: %d', this.wsServer.clients.size);
 			});
 
-			if(!this.headers) {
-				throw new Error("VideoListener must have set headers in VideoSender at some point before we get connection");
-			}
-
 			if(this.wsServer.clients.size >= this.conf.get('wsClientLimit')) {
 				logger.info('Video client rejected, limit of %d reached', this.conf.get('wsClientLimit'));
 				ws.close();
@@ -86,11 +88,17 @@ class VideoSender
 
 			logger.info('Video client connected. Viewers: %d', this.wsServer.clients.size)
 
-			for (let i in this.headers) {
-				ws.send(this.headers[i]);
+			if(!this.serverSideMuxing) {
+				// We always want to send a little (few seconds) when a new client connects
+				if(!this.headers) {
+					throw new Error("VideoListener must have set headers in VideoSender at some point before we get connection");
+				}
+
+				for (let i in this.headers) {
+					ws.send(this.headers[i]);
+				}
 			}
 
-			// We always want to send a little (few seconds) when a new client connects
 			if(this.conf.get("onlyActivity")) {
 				this.setActive();
 			}
