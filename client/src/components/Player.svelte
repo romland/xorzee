@@ -12,6 +12,7 @@
 	import Events from "./Events.svelte";
 	import VideoStreamer from "../lib/videostreamer";
 	import MotionStreamer from "../lib/motionstreamer";
+	import Button from './Button.svelte';
 
 	export let remoteServer = null;			// Set to true if the client (the Svelte app) is not hosted by this server.
 	export let remoteAddress = null;		// This only needs to be set to an address if above is true.
@@ -482,6 +483,8 @@ $:	if(container && playerWidth) {
 							bind:crispVideo={crispVideo}
 							bind:settings={settings}>
 						</Controls>
+
+						<Button label={""} icon={"open_in_full"} style="square" on:click={ () => toggleFullScreen(onRequest, onExit) }></Button>
 
 						<Configuration
 							on:message={(e)=>onLayerChange("Configuration", e)}
