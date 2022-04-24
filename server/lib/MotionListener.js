@@ -118,7 +118,7 @@ class MotionListener
 	{
 		logger.info("Using Rust MVR processor");
 
-		let mvr = "/home/pi/mvr";
+		let mvr = "./bin/mvr";
 		let mvrArgs = [];
 		this.mvrProcess = cp.spawn(mvr, mvrArgs);
 
