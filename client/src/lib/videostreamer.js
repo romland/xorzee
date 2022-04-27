@@ -20,7 +20,32 @@ export default class VideoStreamer
 
 		// alternatives: broadway, jmuxer, serverjmuxer
 		if(playerType === "serverjmuxer") {
-			throw Error("TODO: serverjmuxer!");
+			console.log("TODO: serverjmuxer!");
+
+			let elt = document.createElement(`video`);
+			this.videoEltId = "videoElt" + Date.now();
+			elt.id = this.videoEltId;
+			elt.controls = false;
+			elt.autoplay = true;
+			elt.muted = true;
+			let styles = {
+				width : "100%",
+				transformOrigin : "center center 0px",
+				transform : "translate(0px, 0px) scale(1)"
+			};
+
+			for(let s in styles) {
+				elt.style[s] = styles[s];
+			}
+		
+			this.player = {
+				playerType	: playerType,
+				canvas		: elt,
+				data : {
+					video : null,
+				}
+			};
+
 
 		} else if(playerType === "jmuxer") {
 			let elt = document.createElement(`video`);
@@ -68,25 +93,27 @@ export default class VideoStreamer
 
 	start(wsUri, port, reconnectInterval = 2000, onNALunit = null, frameRate = null)
 	{
-		if(this.playerType === "serverjmuxer") {
-			throw Error("TODO: server-side muxing");
-		} else if(this.playerType === "jmuxer") {
+		if(this.playerType === "jmuxer" || this.playerType === "serverjmuxer") {
 			let firefoxAgent = navigator.userAgent.indexOf("Firefox") > -1; 
 
-			this.player.jmuxer = new JMuxer({
-				node	: this.videoEltId,
-				mode	: 'video',
-				flushingTime : 1,
-				clearBuffer : true,
-				// debug	: true,
-				// duration: 1000 / frameRate,
-				// TODO: This is pretty messed up, but it does give me better 'live' feel in various browsers.
-				fps		: frameRate + (firefoxAgent ? 0.5 : 2),
-				// fps		: frameRate,
-			 });
+			if(this.playerType === "jmuxer") {
+				this.player.jmuxer = new JMuxer({
+					node	: this.videoEltId,
+					mode	: 'video',
+					flushingTime : 1,
+					clearBuffer : true,
+					// debug	: true,
+					// duration: 1000 / frameRate,
+					// TODO: This is pretty messed up, but it does give me better 'live' feel in various browsers.
+					fps		: frameRate + (firefoxAgent ? 0.5 : 2),
+					// fps		: frameRate,
+				});
+			} else {
+				// serverside muxing -- do I need to do anything here?
+			}
 
 			// this is the shit that makes FF stutter -- but it keeps it close to live :(
-			 setInterval(() => {
+			setInterval(() => {
 				if(this.player.canvas.currentTime < (this.player.canvas.duration - 0.5)) {
 					if(!firefoxAgent) {
 						console.log("CATCHING UO TO LIVE. BEFORE: currentTime", this.player.canvas.currentTime, "duration", this.player.canvas.duration, "seekable", this.player.canvas.seekable.start(0), "-", this.player.canvas.seekable.end(0))
@@ -110,38 +137,88 @@ export default class VideoStreamer
 		this.webSocket = new WebSocket(wsUri + port);
 		this.webSocket.binaryType = 'arraybuffer';
 
-		this.webSocket.onopen = (e) => {
-			console.log('Connected video stream...');
-			that.webSocket.onmessage = (msg) => {
-				if(document.hidden) {
+		if(this.playerType === "serverjmuxer") {
+			var chunks = [];
+			var mse = new (MediaSource || WebKitMediaSource)();
+			var sourceBuffer;
+			
+			this.player.canvas.src = URL.createObjectURL(mse);
+			// video.controls = false;
+			mse.addEventListener('sourceopen', onMediaSourceOpen);
+
+			function onMediaSourceOpen() {
+				sourceBuffer = mse.addSourceBuffer('video/mp4; codecs="avc1.4d401f"');
+				sourceBuffer.addEventListener('updateend', addMoreBuffer);
+				this.player.canvas.play();
+			}
+
+			function addMoreBuffer() {
+				if (sourceBuffer.updating || !chunks.length) {
 					return;
 				}
-
-				if(this.playerType === "jmuxer") {
-					// Jmuxer
-					var tmp = new Uint8Array(4+msg.data.byteLength);
-					tmp.set(NAL_SEPARATOR, 0);
-					tmp.set(new Uint8Array(msg.data), 4);
-
-					this.player.data.video = tmp;
-					this.player.jmuxer.feed(this.player.data);
-				} else {
-					// XXX Broadway -- wtf: why make Uint array here and get a buffer back and then go uint array again
-					that.player.decode(new Uint8Array(that.addSeparator(msg.data)));
-				}
-
-				if(onNALunit) {
-					onNALunit(msg.data.byteLength);
+				try {
+					sourceBuffer.appendBuffer(chunks.shift());
+				} catch(ex) {
+					console.error(ex.message, ex);
+					console.log("error, killed websocket");
+					ws.close();
 				}
 			}
-		}
+
+			this.webSocket.onopen = (e) => {
+				console.log('Connected video stream...');
+				that.webSocket.onmessage = (msg) => {
+					if(document.hidden) {
+						return;
+					}
 	
+					chunks.push(new Uint8Array(event.data));
+					addMoreBuffer();
+				
+					if(onNALunit) {
+						onNALunit(msg.data.byteLength);
+					}
+				}
+			}			
+		} else {
+			this.webSocket.onopen = (e) => {
+				console.log('Connected video stream...');
+				that.webSocket.onmessage = (msg) => {
+					if(document.hidden) {
+						return;
+					}
+	
+					if(this.playerType === "jmuxer") {
+						// Jmuxer
+						var tmp = new Uint8Array(4+msg.data.byteLength);
+						tmp.set(NAL_SEPARATOR, 0);
+						tmp.set(new Uint8Array(msg.data), 4);
+	
+						this.player.data.video = tmp;
+						this.player.jmuxer.feed(this.player.data);
+					} else if(this.playerType === "broadway") {
+						// XXX Broadway -- wtf: why make Uint array here and get a buffer back and then go uint array again
+						that.player.decode(new Uint8Array(that.addSeparator(msg.data)));
+	
+					} else {
+						throw "Unknown playerType " + this.playerType;
+					}
+	
+					if(onNALunit) {
+						onNALunit(msg.data.byteLength);
+					}
+				}
+			}
+	
+		}
+
+
 		this.webSocket.onclose = (e) => {
 			console.log('Disconnected video stream...');
 			that.webSocket = null;
 			if (reconnectInterval > 0) {
 				setTimeout(() => {
-					that.setupWebSocket(wsUri, port, reconnectInterval, onNALunit);
+					that._setupWebSocket(wsUri, port, reconnectInterval, onNALunit);
 				}, reconnectInterval);
 			}
 		}

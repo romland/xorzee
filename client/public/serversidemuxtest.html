@@ -6,17 +6,23 @@
     <meta name="keywords" content="h264 player, mp4 player, mse, mp4 muxing, jmuxer, aac player">
     <title>JMuxer stream demo</title>
 </head>
-<body>
-<p><b>Prerequisite command:</b> `node stream.js`</p>
+<body style="background-color: black; color: #ddd;">
+<p><b>Prerequisite command:</b> `node stream.js` (p19dev: /home/pi/jmuxer/example/ -- ../node_modules/nodemon/bin/nodemon.js stream.js)</p>
 <div id="container" style="margin: 0 auto; text-align: center;">
-    <video style="border: 1px solid #333; max-width: 500px;" controls muted autoplay poster="images/loader-thumb.jpg" id="player"></video>
+    <video style="border: 1px solid #333; max-width: 500px;" controls muted autoplay id="player"></video>
 </div>
 <script>
 var chunks = [];
 var video = document.getElementById('player');
 var mse = new (MediaSource || WebKitMediaSource)();
 var sourceBuffer;
+
+var messageCount = 0;
+var socketURL = 'ws://192.168.178.102:8081';
+var ws = new WebSocket(socketURL);
+
 video.src = URL.createObjectURL(mse);
+// video.controls = false;
 mse.addEventListener('sourceopen', onMediaSourceOpen);
 function onMediaSourceOpen() {
     sourceBuffer = mse.addSourceBuffer('video/mp4; codecs="avc1.4d401f"');
@@ -28,18 +34,36 @@ function addMoreBuffer() {
     if (sourceBuffer.updating || !chunks.length) {
         return;
     }
-    sourceBuffer.appendBuffer(chunks.shift());
+	try {
+	    sourceBuffer.appendBuffer(chunks.shift());
+	} catch(ex) {
+		console.error(ex.message, ex);
+		console.log("error, killed websocket");
+		ws.close();
+	}
 }
 
-window.onload = function() {
-    var socketURL = 'ws://192.168.178.101:8081';
 
-     var ws = new WebSocket(socketURL);
+window.onload = function() {
+
      ws.binaryType = 'arraybuffer';
      ws.addEventListener('message',function(event) {
+		if(messageCount === 0) {
+			console.log("FIRST MESSAGE DATA:", event.data, new Uint8Array(event.data));
+		}
+
+		if(messageCount === 1) {
+			console.log("SECOND MESSAGE DATA:", event.data, new Uint8Array(event.data));
+		}
+
         chunks.push(new Uint8Array(event.data));
         addMoreBuffer();
+		messageCount++;
      });
+
+	 setInterval(() => {
+		video.currentTime = video.seekable.end(0);
+	 }, 1000);
 
      ws.addEventListener('error', function(e) {
         console.log('Socket Error');
