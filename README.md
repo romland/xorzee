@@ -27,11 +27,11 @@ hacking away in some of the spare hours of the day. :-)
 
 
 ## Supported cameras
-Due to dependency on motion vectors, USB cameras are not supported. So, Raspberry Pi cameras (or compatible) only.
+Raspberry Pi camera boards (or compatible, with sensors IMX219, OV5647 or IMX477) only. USB cameras are not supported.
 
 
 ## Development notes
-[Frontend](https://github.com/romland/xorzee/tree/main/client) is written in Svelte, [backend](https://github.com/romland/xorzee/tree/main/server) is in Node.
+Performance critical parts are written in Rust. [Frontend](https://github.com/romland/xorzee/tree/main/client) is written in Svelte, the glue of the [backend](https://github.com/romland/xorzee/tree/main/server) is in node-js.
 
 
 ## Credits to other folks
