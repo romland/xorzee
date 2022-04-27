@@ -271,32 +271,30 @@ class Recorder
 
 		this.recordingToId = Date.now();
 
-        logger.info((this.dryRun() ? "[SIMULATED] " : "") + "Starting recording to %s/%s.h264 ...", this.conf.get("recordPath"), this.recordingToId);
+        logger.info((this.dryRun() ? "[SIMULATED] " : "") + "Starting recording to %s/%s.%s ...", this.conf.get("recordPath"), this.recordingToId, (this.serverSideMuxing ? "mp4" : "h264"));
 
 		if(this.dryRun() === false) {
 			if(this.serverSideMuxing) {
-				this.recordToStream = fs.createWriteStream(this.recordingToId + ".mp4", { flags : "a" });
-
-				// TODO: Do I need to wait for on("open" ...?
-				//   https://stackoverflow.com/questions/12906694/fs-createwritestream-does-not-immediately-create-file
-				this.recordToStream.on("open", () => {
-					logger.debug("RECORD STREAM OPEN -- TODO: DO I GET A RACE TO APPENDING HEADERS BELOW?");
-				});
+				this.recordToStream = fs.createWriteStream(`${this.conf.get("recordPath")}/${this.recordingToId}.mp4`, { flags : "a" });
 
 				this.recordToStream.on("error", (err) => {
 					throw "FAILED TO WRITE RECORDING. TODO: Handle this more gracefully";
 				});
 
-				for (let i in headers) {
-					logger.debug("Pass header to recording %o", headers[i]);
-					this.recordToStream.write(headers[i]);
-				}
+				// TODO: Do I need to wait for on("open" ...?
+				//   https://stackoverflow.com/questions/12906694/fs-createwritestream-does-not-immediately-create-file
+				this.recordToStream.on("open", () => {
+					for (let i in headers) {
+						logger.debug("Pass header to recording %o", i);
+						this.recordToStream.write(headers[i]);
+					}
+	
+					const buff = this.recordBuffer.read(this.conf.get("recordBufferSize"));
+					logger.debug(`Passing %d bytes to recording...`, buff.length);
+					this.recordToStream.write(buff);
 
-				const buff = this.recordBuffer.read(this.conf.get("recordBufferSize"));
-				logger.debug(`Passing %d bytes to recording...`, buff.length);
-				this.recordToStream.write(buff);
-
-				logger.debug("Done passing headers/buffer to recording...");
+					logger.debug("Done passing headers/buffer to recording...");
+				});
 
 			} else {
 				this.ffmpegProc = cp.spawn('/usr/bin/ffmpeg', [
