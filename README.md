@@ -3,19 +3,20 @@ A low-latency, HD video streamer and motion detector. The goal is that it must r
 
 - [x] ...HD stream meaning: 1920x1080 @ ~30 frames per second _to web-browser_
 - [x] ...low-latency meaning: a delay of no higher than 150 milliseconds
-- [x] ...while _not_ using Android's h264 decoder (Broadway)
+- [x] ...wrapping h264 stream to MP4 serverside (optional)
+- [x] ...write recorded video clips as mp4 real-time (optional)
+- [x] ...without depending on ffmpeg (if using serverside MP4)
 - [x] ...able to stream live camera feed directly to dozens of web-clients simultaneously and without intermediaries
 - [x] ...stream always or stream on activity
 - [x] ...configurable sensitivity of motion detection
 - [x] ...save motion-sequences (preview shot and video) to disk
 - [x] ...a client should automatically discover all cameras on the network (and show a stream)
 - [x] ...ability to signal external programs on activity (or end of), e.g. audio, mail, telegram, ...
-- [ ] ...store meta-data of amount of activity in period (graph)
-- [ ] ...modern web-client in Svelte
+- [x] ...modern web-client in Svelte
 
 Pronounced "x or z".
 
-[1] The original one, released in 2015. If it can run on that, it will run on any other Raspberry Pi.
+[1] The original one, released in 2015. If it can run on that, it will run on any other Pi with ease.
 
 
 ## Why?
@@ -33,16 +34,18 @@ Raspberry Pi camera boards (or compatible, with sensors IMX219, OV5647 or IMX477
 ## Development notes
 Performance critical parts are written in Rust. [Frontend](https://github.com/romland/xorzee/tree/main/client) is written in Svelte, the glue of the [backend](https://github.com/romland/xorzee/tree/main/server) is in node-js.
 
+## TODO
+- [ ] ...store meta-data of amount of activity in period (graph)
+
 
 ## Credits to other folks
 - Notable mention of Samir Das for the fantastic [jMuxer](https://github.com/samirkumardas/jmuxer) for mp4 boxing
-- H.264 NAL unit handling credit goes to https://github.com/131/h264-live-player
 - ...and naturally to everyone else contributing to packages in package.json
 
 
 ### Projects (partially or fully) in the same vein
 - _Motion_  
-  The excellent project that made me start this project. Primarily motion detection.  
+  The excellent project that made me start this project. Primarily motion detection, less focus on streaming.
   https://github.com/Motion-Project/motion
 - _Motion (MMAL)_  
   http://wiki.raspberrytorte.com/index.php?title=Motion_MMAL  
