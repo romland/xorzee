@@ -1,4 +1,5 @@
 "use strict";
+const os = require("os");
 const fs = require("fs");
 const path = require("path");
 const pino = require('pino');
@@ -26,6 +27,12 @@ class Recorder
 		this.manuallyRecording = false;
 
 		this.latestRecordings = this._getLatestRecordings(conf.get("recordHistory"));
+
+		this.serverSideMuxing = this.conf.get("serverSideMuxing");
+		if(this.serverSideMuxing) {
+			this.recordToStream = null;
+		}
+
 
 		this.subscriptions = {
 			"start" : [],
@@ -107,7 +114,9 @@ class Recorder
 
 	buffer(data)
 	{
-		this.recordBuffer.write(NALSeparator);
+		if(!this.serverSideMuxing) {
+			this.recordBuffer.write(NALSeparator);
+		}
 		this.recordBuffer.write(data);
 	}
 
@@ -140,12 +149,16 @@ class Recorder
 		this.recording = false;
 
 		if(this.dryRun() === false) {
-			if(this.ffmpegProc) {
-				this.ffmpegProc.stdin.end();
+			if(this.serverSideMuxing) {
+				this.recordToStream.end();
 			} else {
-				this.lastNotification = null;
-				this.recordLen = 0;
-				return null;
+				if(this.ffmpegProc) {
+					this.ffmpegProc.stdin.end();
+				} else {
+					this.lastNotification = null;
+					this.recordLen = 0;
+					return null;
+				}
 			}
 		}
 
@@ -182,11 +195,19 @@ class Recorder
 	append(data)
 	{
 		if(this.dryRun() === false) {
-			this.ffmpegProc.stdin.write(NALSeparator);
-			this.ffmpegProc.stdin.write(data);
+			if(this.serverSideMuxing) {
+				this.recordToStream.write(data);
+			} else {
+				this.ffmpegProc.stdin.write(NALSeparator);
+				this.ffmpegProc.stdin.write(data);
+			}
 		}
-		
-		this.recordLen += NALSeparator.length + data.length;
+
+		if(this.serverSideMuxing) {
+			this.recordLen += NALSeparator.length + data.length;
+		} else {
+			this.recordLen += data.length;
+		}
 
 		if((this.lastNotification + 10000) < Date.now()) {
 			this.notifyCb(this.recordingToId, this.recordLen);
@@ -253,60 +274,90 @@ class Recorder
         logger.info((this.dryRun() ? "[SIMULATED] " : "") + "Starting recording to %s/%s.h264 ...", this.conf.get("recordPath"), this.recordingToId);
 
 		if(this.dryRun() === false) {
-			this.ffmpegProc = cp.spawn('/usr/bin/ffmpeg', [
-				'-hide_banner',
-				'-y',
+			if(this.serverSideMuxing) {
+				this.recordToStream = fs.createWriteStream(this.recordingToId + ".mp4", { flags : "a" });
 
-				// https://ffmpeg.org/ffmpeg-formats.html
-				'-analyzeduration', '2M',       // It defaults to 5,000,000 microseconds = 5 seconds.
-				'-probesize', '5M',
-				'-framerate', this.conf.get("frameRate"),
-				'-f', 'h264',
-				'-i', '-',
-				'-codec', 'copy',
-				`${this.conf.get("recordPath")}/${this.recordingToId}.h264`
-			]);
+				// TODO: Do I need to wait for on("open" ...?
+				//   https://stackoverflow.com/questions/12906694/fs-createwritestream-does-not-immediately-create-file
+				this.recordToStream.on("open", () => {
+					logger.debug("RECORD STREAM OPEN -- TODO: DO I GET A RACE TO APPENDING HEADERS BELOW?");
+				});
 
-			this.ffmpegProc.stdout.setEncoding('utf8');
-			this.ffmpegProc.stdout.on('data', function(data) {
-				logger.debug('Recorder stdout %s', data);
-			});
+				this.recordToStream.on("error", (err) => {
+					throw "FAILED TO WRITE RECORDING. TODO: Handle this more gracefully";
+				});
 
-			this.ffmpegProc.stderr.setEncoding('utf8');
-			this.ffmpegProc.stderr.on('data', function(data) {
-				logger.debug('Recorder stderr %s', data);
-			});
+				for (let i in headers) {
+					logger.debug("Pass header to recording %o", headers[i]);
+					this.recordToStream.write(headers[i]);
+				}
 
-			this.ffmpegProc.on('close', function(code) {
-				logger.debug('Recorder closing, code: %d', code);
-			});
+				const buff = this.recordBuffer.read(this.conf.get("recordBufferSize"));
+				logger.debug(`Passing %d bytes to recording...`, buff.length);
+				this.recordToStream.write(buff);
+
+				logger.debug("Done passing headers/buffer to recording...");
+
+			} else {
+				this.ffmpegProc = cp.spawn('/usr/bin/ffmpeg', [
+					'-hide_banner',
+					'-y',
+
+					// https://ffmpeg.org/ffmpeg-formats.html
+					'-analyzeduration', '2M',       // It defaults to 5,000,000 microseconds = 5 seconds.
+					'-probesize', '5M',
+					'-framerate', this.conf.get("frameRate"),
+					'-f', 'h264',
+					'-i', '-',
+					'-codec', 'copy',
+					`${this.conf.get("recordPath")}/${this.recordingToId}.h264`
+				]);
+
+				this.ffmpegProc.stdout.setEncoding('utf8');
+				this.ffmpegProc.stdout.on('data', function(data) {
+					logger.debug('Recorder stdout %s', data);
+				});
+
+				this.ffmpegProc.stderr.setEncoding('utf8');
+				this.ffmpegProc.stderr.on('data', function(data) {
+					logger.debug('Recorder stderr %s', data);
+				});
+
+				this.ffmpegProc.on('close', function(code) {
+					logger.debug('Recorder closing, code: %d', code);
+				});
 
 
-			// XXX:
-			// This has the chance of sending duplicate data as we will
-			// have it in the recordBuffer for a while too. How bad is
-			// that? The whole passing arbitrary data to ffmpeg is not
-			// working great anyway -- so wth, seeing it as prototype
-			// for now.
-			for (let i in headers) {
-				logger.debug("Send header to recorder %o", headers[i]);
-				this.ffmpegProc.stdin.write(NALSeparator);
-				this.ffmpegProc.stdin.write(headers[i]);
-				this.recordLen += NALSeparator.length + headers[i].length;
+				// XXX:
+				// This has the chance of sending duplicate data as we will
+				// have it in the recordBuffer for a while too. How bad is
+				// that? The whole passing arbitrary data to ffmpeg is not
+				// working great anyway -- so wth, seeing it as prototype
+				// for now.
+				for (let i in headers) {
+					logger.debug("Send header to recorder %o", headers[i]);
+					this.ffmpegProc.stdin.write(NALSeparator);
+					this.ffmpegProc.stdin.write(headers[i]);
+					this.recordLen += NALSeparator.length + headers[i].length;
+				}
+
+				// Pass buffer of recorded data of the past in first...
+				let buff = this.recordBuffer.read(this.conf.get("recordBufferSize"));
+				logger.debug(`Passing %d bytes to ffmpeg...`, buff.length);
+
+				this.ffmpegProc.stdin.write(buff);
+				this.recordLen += buff.length;
+
+				logger.debug("Done passing buffer...");
 			}
-
-			// Pass buffer of recorded data of the past in first...
-			let buff = this.recordBuffer.read(this.conf.get("recordBufferSize"));
-			logger.debug(`Passing %d bytes to ffmpeg...`, buff.length);
-
-			this.ffmpegProc.stdin.write(buff);
-			this.recordLen += buff.length;
-
-			logger.debug("Done passing buffer...");
 		} else {
 			// Properly calculate recordLen even though we are simulating
 			for (let i in headers) {
-				this.recordLen += NALSeparator.length + headers[i].length;
+				if(this.serverSideMuxing) {
+					this.recordLen += headers[i].length;
+				} else {
+					this.recordLen += NALSeparator.length + headers[i].length;
+				}
 			}
 		}
 
@@ -315,11 +366,11 @@ class Recorder
 		this.lastNotification = Date.now();
 
 		this.recordingMeta = {
-			host		: "todo-hostname",
+			host		: os.hostname(),
 			camera		: this.conf.get("name"),
 			started		: this.lastNotification,
 			screenshot	: this.recordingToId + ".png",
-			video		: this.recordingToId + ".h264",
+			video		: this.recordingToId + (this.serverSideMuxing ? ".mp4" : ".h264"),
 			width		: this.conf.get("width"),
 			height		: this.conf.get("height"),
 			framerate	: this.conf.get("frameRate"),

@@ -104,7 +104,7 @@ class MotionListener
 	/*
 	BIG FAT TODOS:
 	-	there are things in the node version that needs to be ported to Rust,
-		such as "ignore loner", ignore-area (etc?)
+		such as ignore-area (etc?)
 
 	-	start/stopping (this is very connected to camera)
 		- even though it's not _always_ necessary, it's easiest to restart

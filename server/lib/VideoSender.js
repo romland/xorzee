@@ -62,6 +62,11 @@ class VideoSender
 		this.headers = h;
 	}
 
+	addHeader(h)
+	{
+		this.headers.push(h);
+	}
+
 
 	setActive()
 	{
@@ -88,15 +93,13 @@ class VideoSender
 
 			logger.info('Video client connected. Viewers: %d', this.wsServer.clients.size)
 
-			if(!this.serverSideMuxing) {
-				// We always want to send a little (few seconds) when a new client connects
-				if(!this.headers) {
-					throw new Error("VideoListener must have set headers in VideoSender at some point before we get connection");
-				}
+			// We always want to send a little (few seconds) when a new client connects
+			if(!this.headers) {
+				throw new Error("VideoListener must have set headers in VideoSender at some point before we get connection");
+			}
 
-				for (let i in this.headers) {
-					ws.send(this.headers[i]);
-				}
+			for (let i in this.headers) {
+				ws.send(this.headers[i]);
 			}
 
 			if(this.conf.get("onlyActivity")) {
