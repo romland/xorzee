@@ -23,6 +23,7 @@
 
 
 	let imageError = false;
+	let videoElt = null;
 
 	var jmuxer;
 
@@ -32,31 +33,36 @@
             jmuxer.destroy();
         }
 
-        jmuxer = new JMuxer({
-            node: item.video,
-            mode: 'video',
-            flushingTime: 1,
-            fps: item.framerate,
-            clearBuffer: false,
-            // debug: true
-        });
+		if(item.video.endsWith(".mp4")) {
+			videoElt.src  = baseUrl + item.video;
+			videoElt.play();
+		} else {
+			jmuxer = new JMuxer({
+				node: item.video,
+				mode: 'video',
+				flushingTime: 1,
+				fps: item.framerate,
+				clearBuffer: false,
+				// debug: true
+			});
 
-		var oReq = new XMLHttpRequest();
-		oReq.open("GET", `${baseUrl}${item.video}`, true);
-		oReq.responseType = "arraybuffer";
-		console.log("Fetch:", `${baseUrl}${item.video}`);
+			var oReq = new XMLHttpRequest();
+			oReq.open("GET", `${baseUrl}${item.video}`, true);
+			oReq.responseType = "arraybuffer";
+			console.log("Fetch:", `${baseUrl}${item.video}`);
 
-		oReq.onload = function (oEvent) {
-			var arrayBuffer = oReq.response; // Note: not oReq.responseText
-			if (arrayBuffer) {
-				jmuxer.feed({
-					video: new Uint8Array(arrayBuffer),
-					// duration: (item.stopped - item.started)
-				});
-			}
-		};
+			oReq.onload = function (oEvent) {
+				var arrayBuffer = oReq.response; // Note: not oReq.responseText
+				if (arrayBuffer) {
+					jmuxer.feed({
+						video: new Uint8Array(arrayBuffer),
+						// duration: (item.stopped - item.started)
+					});
+				}
+			};
 
-		oReq.send(null);
+			oReq.send(null);
+		}
 	}
 
 	function secToTime(seconds)
@@ -105,7 +111,7 @@ $:	if(playing === true) {
 				{utcToDateTime(item.started)}
 			</span>
 
-			<video style="width: 100%;" class:hidden={playing === false} controls autoplay id={item.video}></video>
+			<video bind:this={videoElt} style="width: 100%;" class:hidden={playing === false} controls autoplay id={item.video}></video>
 			<img 
 				class:hidden={playing === true} 
 				on:click={()=>{ playing = true; }}
