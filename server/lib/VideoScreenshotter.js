@@ -11,12 +11,20 @@ class VideoScreenshotter
 		this.conf = conf;
 	}
 
-	snapshotDispmanx(fileName)
+	snapshotDispmanx(fileName, overridePath = null)
 	{
+		let path;
+
+		if(overridePath) {
+			path = overridePath;
+		} else {
+			path = this.conf.get("recordPath");
+		}
+
         logger.info(`Taking snapshot of dispmanx layer as %s`, fileName);
 
         const spawn = cp.spawn('/usr/bin/raspi2png', [
-            '--pngname', `${this.conf.get("recordPath")}/${fileName}`,
+            '--pngname', `${path}/${fileName}`,
 			// '--height', '640',
 			'--width', '720',
 			'--compression', '1',

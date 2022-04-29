@@ -7,6 +7,7 @@ const conf = require('nconf');
 const Util = require("./lib/util");
 const Hjson = require('hjson');
 const Camera = require("./lib/Camera").default;
+const Timelapse = require("./lib/Timelapse").default;
 const WebServer = require("./lib/WebServer").default;
 const VideoSender = require("./lib/VideoSender").default;
 const VideoListener = require("./lib/VideoListener").default;
@@ -34,10 +35,12 @@ const cameraSettings = [
 ];
 
 	var camera;
+	var timelapse;
 	var webServer;
 	var videoSender;
-	var videoListener;
 	var motionSender;
+	var secondTicker;
+	var videoListener;
 	var motionListener;
 	var motionSignaller;
 	var serviceAnnouncer;
@@ -107,6 +110,15 @@ const cameraSettings = [
 		// Camera
 		camera = new Camera(conf);
 		camera.start();
+
+		// Timelapse
+		timelapse = new Timelapse(conf, videoScreenshotter);
+		timelapse.start();
+
+		// Global second ticker
+		secondTicker = setInterval(() => {
+			timelapse.tick();
+		}, 1000);
 	}
 
 
@@ -358,6 +370,10 @@ const cameraSettings = [
 				for(let s in data) {
 					logger.info("Changing setting %s to %s", s, data[s]);
 					conf.set(s, data[s]);
+				}
+
+				if(data.timelapse) {
+					timelapse.reconfigure(conf);
 				}
 
 				if(restartCamera) {

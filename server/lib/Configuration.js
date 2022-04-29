@@ -1,6 +1,7 @@
 const path = require("path");
 const pino = require('pino');
 const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
+const os = require("os");
 
 class Configuration
 {
@@ -21,8 +22,8 @@ class Configuration
 	 * - I wanted the ability to _arbitrarily_ group settings on the client
 	 * 
 	 * JSON schema or something similar could have been an option, but
-	 * arbitrarily grouping settings together turned out to be too much 
-	 * of a hassle.
+	 * arbitrarily grouping settings together using that turned out to be 
+	 * too much of a hassle.
 	 */
 	static getConfigurationMeta()
 	{
@@ -656,7 +657,47 @@ class Configuration
 						} // cluster performance
 		
 					] // advanced motion children
-				} // advanced motion
+				},  // advanced motion
+				{
+					name : "", // the setting is in the root node
+					label : "Timelapse",
+					children: [
+						{
+							name		: "enabledTimelapse",
+							label		: "Enable timelapse",
+							type		: "bool",
+							ui			: "checkbox",
+							doc			: `Enable timelapse`,
+							'default'	: defaults.timelapse.enabled,
+						},
+						{
+							name		: "intervalSeconds",
+							label		: "Interval",
+							type		: "int",
+							range		: [1, 99999999], // a year is 31.5 million seconds; 3 year interval ought to be enough for everyone
+							ui			: "textbox",
+							doc			: `Number of seconds between each snapshot (use a calculator :)`,
+							'default'	: defaults.timelapse.intervalSeconds,
+						},
+						{
+							name		: "overrideIntervalOnStartup",
+							label		: "Snapshot on start-up",
+							type		: "bool",
+							ui			: "checkbox",
+							doc			: `If disabled, on start up of Xorzee, it will wait until next interval to take a snapshot. If enabled, Xorzee will always take a snapshot when application starts.`,
+							'default'	: defaults.timelapse.overrideIntervalOnStartup,
+						},
+						{
+							name		: "fileNamePrefix",
+							label		: "Filename for snapshots",
+							type		: "string",
+							ui			: "textbox",
+							doc			: `The file name will automatically be suffixed with timestamp; YYYY-MM-DD-HH-mm-SS`,
+							'default'	: defaults.timelapse.fileNamePrefix,
+						},
+
+					]
+				} // timelapse
 			] // root node children
 		};
 		
@@ -667,7 +708,7 @@ class Configuration
 	{
 		return {
 			// General
-			name			: "Camera at default location",			// A name of your choice identifying this camera
+			name			: os.hostname(),						// A name of your choice identifying this camera
 			password		: "",									// TODO: be able to password protect stream (need to pass pw on connect)
 
 			// Webserver
@@ -783,6 +824,13 @@ class Configuration
 				*/
 				silent: false,
 				smtpPort: 25,
+			},
+
+			timelapse : {
+				enabledTimelapse : false,
+				intervalSeconds : 60,
+				overrideIntervalOnStartup : false,
+				fileNamePrefix : os.hostname() + "-timelapse"
 			},
 
 			// Discover settings
