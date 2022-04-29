@@ -120,7 +120,7 @@ class Timelapse
 		// Do the thing!
 		this.videoScreenshotter.snapshotDispmanx(tl.fileNamePrefix + suffix + ".png", this.timelapsePath);
 
-		fs.writeFile(this.persistedTimestampPath, this.nextTS, {}, (err) => {
+		fs.writeFile(this.persistedTimestampPath, ""+this.nextTS, {}, (err) => {
 			if(err) {
 				logger.error("Failed to write timelapse timestamp -- this is not good. Full disk or insufficient permissions?");
 			}

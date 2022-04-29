@@ -11,6 +11,7 @@ const mvrproc = require("./MvrProcessor");
 const MvrProcessor = mvrproc.default;
 const MvrFilterFlags = mvrproc.MvrFilterFlags;
 const cp = require('child_process');
+const kill = require('tree-kill');
 
 const net = require('net');
 //const dgram = require('dgram');
@@ -96,6 +97,23 @@ class MotionListener
 		// return this._startNode();
 	}
 
+	stop()
+	{
+		if(!this.mvrProcess) {
+			return;
+		}
+
+		logger.debug("Stopping mvr...");
+
+		this.mvrProcess.stdin.pause();
+		logger.debug("Killing mvr PID %d", this.mvrProcess.pid);
+
+		await kill(this.mvrProcess.pid);
+		this.mvrProcess = null;
+
+		logger.info("Stopped mvr");
+	}
+
 	/**
 	 * Uses Rust MVR processor
 	 * 
@@ -176,7 +194,7 @@ class MotionListener
 
         this.mvrProcess.on('close', function(code) {
             logger.warn('mvr closed: %s', code);
-			throw Error("MVR closed -- see above");
+			throw Error("MVR closed -- see above. This usually means it's closed quickly because an instance was already running");
         });
 
 		logger.debug("Started mvr with PID %d", this.mvrProcess.pid);

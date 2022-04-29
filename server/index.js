@@ -239,6 +239,10 @@ const cameraSettings = [
 		if(motionSignaller) {
 			motionSignaller.stop();
 		}
+
+		if(motionListener) {
+			motionListener.stop();
+		}
 	}
 
 
