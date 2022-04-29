@@ -15,7 +15,7 @@ class VideoScreenshotter
 	{
         logger.info(`Taking snapshot of dispmanx layer as %s`, fileName);
 
-        const spawn = cp.spawn('/home/dev/tmp/streamtest/raspi2png/raspi2png', [
+        const spawn = cp.spawn('/usr/bin/raspi2png', [
             '--pngname', `${this.conf.get("recordPath")}/${fileName}`,
 			// '--height', '640',
 			'--width', '720',
