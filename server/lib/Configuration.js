@@ -828,7 +828,7 @@ class Configuration
 
 			timelapse : {
 				enabledTimelapse : false,
-				intervalSeconds : 60,
+				intervalSeconds : 600,
 				overrideIntervalOnStartup : false,
 				fileNamePrefix : os.hostname() + "-timelapse"
 			},
