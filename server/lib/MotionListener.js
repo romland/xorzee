@@ -53,7 +53,7 @@ class MotionListener
 			}
 		};
 
-		this.stop = false;
+		this.stopFlag = false;
 	}
 
 
@@ -66,14 +66,14 @@ class MotionListener
 	stopSending()
 	{
 		logger.debug("Stop transmitting motion data");
-		this.stop = true;
+		this.stopFlag = true;
 	}
 
 
 	resumeSending()
 	{
 		logger.debug("Resume transmitting motion data");
-		this.stop = false;
+		this.stopFlag = false;
 	}
 
 
@@ -238,7 +238,7 @@ class MotionListener
 					return;
 				}
 
-				if(this.stop) {
+				if(this.stopFlag) {
 					logger.debug("Stopping sending of motion data...");
 
 					if(bl.length > 0) {
