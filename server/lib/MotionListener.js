@@ -97,7 +97,7 @@ class MotionListener
 		// return this._startNode();
 	}
 
-	stop()
+	async stop()
 	{
 		if(!this.mvrProcess) {
 			return;
