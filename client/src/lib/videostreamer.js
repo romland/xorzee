@@ -20,8 +20,6 @@ export default class VideoStreamer
 
 		// alternatives: broadway, jmuxer, serverjmuxer
 		if(playerType === "serverjmuxer") {
-			console.log("TODO: serverjmuxer!");
-
 			let elt = document.createElement(`video`);
 			this.videoEltId = "videoElt" + Date.now();
 			elt.id = this.videoEltId;
@@ -141,19 +139,15 @@ export default class VideoStreamer
 			var chunks = [];
 			var mse = new (MediaSource || WebKitMediaSource)();
 			var sourceBuffer;
-			
-			this.player.canvas.src = URL.createObjectURL(mse);
-			// video.controls = false;
-			mse.addEventListener('sourceopen', onMediaSourceOpen);
 
-			function onMediaSourceOpen() {
+			const onMediaSourceOpen = () => {
 				sourceBuffer = mse.addSourceBuffer('video/mp4; codecs="avc1.4d401f"');
 				sourceBuffer.addEventListener('updateend', addMoreBuffer);
 				this.player.canvas.play();
 			}
 
-			function addMoreBuffer() {
-				if (sourceBuffer.updating || !chunks.length) {
+			const addMoreBuffer = () => {
+				if (!sourceBuffer || sourceBuffer.updating || !chunks.length) {
 					return;
 				}
 				try {
@@ -165,14 +159,18 @@ export default class VideoStreamer
 				}
 			}
 
+			this.player.canvas.src = URL.createObjectURL(mse);
+			// video.controls = false;
+			mse.addEventListener('sourceopen', onMediaSourceOpen);
+
 			this.webSocket.onopen = (e) => {
 				console.log('Connected video stream...');
 				that.webSocket.onmessage = (msg) => {
 					if(document.hidden) {
 						return;
 					}
-	
-					chunks.push(new Uint8Array(event.data));
+
+					chunks.push(new Uint8Array(msg.data));
 					addMoreBuffer();
 				
 					if(onNALunit) {
