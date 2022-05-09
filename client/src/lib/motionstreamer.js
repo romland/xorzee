@@ -15,11 +15,13 @@ export default class MotionStreamer
 		this.webSocket = null;
 		this.motionRenderer = null;
 		this.messageHandler = null;
+		this.motionDataUpdateCallback = null;
 	}
 
-	start(motionCanvas, wsUri, port, reconnectInterval, messageHandlerCallback )
+	start(motionCanvas, wsUri, port, reconnectInterval, messageHandlerCallback, motionDataUpdateCallback )
 	{
 		this.messageHandler = messageHandlerCallback;
+		this.motionDataUpdateCallback = motionDataUpdateCallback;
 
 		if(!this.motionRenderer) {
 			this.motionRenderer = new MotionRenderer(motionCanvas);
@@ -79,6 +81,9 @@ export default class MotionStreamer
 			// TODO: Show this somewhere, make it configurable.
 			if(parsed.frameInfo) {
 				// console.log(parsed.frameInfo.mag, parsed.frameInfo.candidates);
+				if(this.motionDataUpdateCallback) {
+					this.motionDataUpdateCallback(parsed);
+				}
 			}
 	
 			if(document.hidden) {
@@ -86,7 +91,8 @@ export default class MotionStreamer
 			}
 	
 			this.motionRenderer.update(dataType, parsed);
-	
+
+		
 		} else {
 			if(document.hidden) {
 				return;

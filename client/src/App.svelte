@@ -50,8 +50,8 @@
 		// remoteAddress = "192.168.178.194";	// raspi-zero test
 		// remoteAddress = "192.168.178.228";	// The 'desktop' raspi 3b+
 		// remoteAddress = "192.168.178.67";		// the JoyIt fisheye tester (Vidensi) (on my desk)
-		// remoteAddress = "192.168.178.102";		// (was 101) Ethernet: the JoyIt fisheye tester (Vidensi) (on my desk)
-		remoteAddress = "192.168.178.47";		// vidensivision / CM3 / dual camera (Waveshare) (shitty cheap WiFi adapter, so might change!)
+		remoteAddress = "192.168.178.102";		// (was 101) Ethernet: the JoyIt fisheye tester (Vidensi) (on my desk)
+		// remoteAddress = "192.168.178.47";		// vidensivision / CM3 / dual camera (Waveshare) (shitty cheap WiFi adapter, so might change!)
 	}
 
 
@@ -214,6 +214,9 @@ $:	if(playerWidthValue) {
 			</div>
 
 			<!-- Each of our neighbours on the network -->
+{#if true}
+	Neighbours disabled
+{:else}
 			{#each neighbours as neighbour}
 				{#if isValidAddress(neighbour.address)}
 					<div class="player">
@@ -228,6 +231,7 @@ $:	if(playerWidthValue) {
 					</div>
 				{/if}
 			{/each}
+{/if}
 		</div>
 	</main>
 </AutoAdjust>
