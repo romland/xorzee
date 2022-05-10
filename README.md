@@ -3,9 +3,9 @@ A low-latency, HD video streamer and motion detector. The goal is that it must r
 
 - [x] ...HD stream meaning: 1920x1080 @ ~30 frames per second _to web-browser_
 - [x] ...low-latency meaning: a delay of no higher than 150 milliseconds
-- [x] ...wrapping h264 stream to MP4 serverside (optionally raw h264)
-- [x] ...record video as mp4 real-time (optionally raw h264 or mp4 using ffmpeg)
-- [x] ...without depending on ffmpeg (if using serverside MP4)
+- [x] ...wrapping stream to popular audio/video container serverside
+- [x] ...recorded video saved as a popular format real-time
+- [x] ...without depending on ffmpeg
 - [x] ...able to stream live camera feed directly to dozens of web-clients simultaneously and without intermediaries
 - [x] ...stream always or stream on activity
 - [x] ...configurable sensitivity of motion detection
@@ -28,7 +28,7 @@ hacking away in some of the spare hours of the day. :-)
 
 
 ## Supported cameras
-Raspberry Pi camera boards (or compatible, with sensors IMX219, OV5647 or IMX477) only. USB cameras are not supported.
+Camera boards with sensors IMX219, OV5647 or IMX477 only. USB cameras are not supported.
 
 
 ## Development notes
@@ -45,4 +45,4 @@ Performance critical parts are written in Rust. [Frontend](https://github.com/ro
 
 
 ## Some related keywords
-Not RTSP, not broadway.js, h264, live streaming, detect movement, record videos, play videos, html5 video, mp4, hls
+Not RTSP, not broadway.js, live streaming, detect movement, record videos, play videos, html5 video
