@@ -14,7 +14,7 @@ const net = require('net');
 const Split = require('stream-split');
 const Recorder = require("./Recorder").default;
 
-const HEADERCOUNT = 5;
+const HEADERCOUNT = 20;		// 15 is not enough for firefox
 
 class VideoListener
 {

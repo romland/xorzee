@@ -768,17 +768,17 @@ class Configuration
 			simulateRecord	: true,									// If true, dry-run when it comes to recordings (i.e. nothing written to disk)
 
 			startRecordRequirements : {
-				activeTime			: 2000,							// Time that needs to be active to trigger recording
-				minFrameMagnitude	: 0,							// Total magnitude to be beaten to start recording
+				activeTime			: 1000,							// Time that needs to be active to trigger recording
+				minFrameMagnitude	: 1500,							// Total magnitude to be beaten to start recording
 				minActiveBlocks		: 20,							// Total number of 'blocks'/vectors that need to be in play
 				minInterval			: 5000,							// Do not start recording again if we stopped a previous one less than this ago
 			},
 
 			stopRecordRequirements : {
 				stillTime			: 3000,							// How long things must be 'still' before we can stop recording
-				maxFrameMagnitude	: 0,							// A frame is deemed 'active' if it has a total magnitude of this
+				maxFrameMagnitude	: 500,							// A frame is deemed 'active' if it has a total magnitude of this
 				maxRecordTime		: 60000,						// Max length to record (+ what is buffered). Default is one minute.
-				minRecordTime		: 0,							// Min length reo record (- what is buffered)
+				minRecordTime		: 2000,							// Min length reo record (- what is buffered)
 			},
 
 			// Used to trigger external programs, such as sound
