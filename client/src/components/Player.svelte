@@ -13,6 +13,7 @@
 	import VideoStreamer from "../lib/videostreamer";
 	import MotionStreamer from "../lib/motionstreamer";
 	import Button from './Button.svelte';
+	import Sparkline from './Sparkline.svelte';
 
 	export let remoteServer = null;			// Set to true if the client (the Svelte app) is not hosted by this server.
 	export let remoteAddress = null;		// This only needs to be set to an address if above is true.
@@ -57,6 +58,7 @@
 	let motionContainer;
 	let crispVideo;
 	let videoFontSize = 30;
+	let sparkLineData = [];
 
 	// yeah yeah, rename this... it's for development only
 	function fiddleWithUrl()
@@ -146,13 +148,24 @@
 
 	onMount(() => {
 		motionStreamer = new MotionStreamer();
-		motionStreamer.start(motionCanvas, wsUrl, motionStreamPort, reconnectInterval, handleServerMessage);
+		motionStreamer.start(motionCanvas, wsUrl, motionStreamPort, reconnectInterval, handleServerMessage, motionDataUpdated);
 		followGeography(motionCanvas, [ polydrawContainer ]);
 
 		return () => {
 			motionStreamer.stop();
 		};
 	});
+
+	function motionDataUpdated(data)
+	{
+		// TODO: Push some real data in here
+		// sparkLineData.push( Math.sin(Date.now()) * 100 );
+		sparkLineData.push( data );
+		if(sparkLineData.length > 50) {
+			sparkLineData.shift();
+		}
+		sparkLineData = sparkLineData;
+	}
 
 	/**
 	 * Misc. status messages we get from server. One such example is
@@ -470,6 +483,8 @@ $:	if(container && playerWidth) {
 				<svg style="position: absolute; opacity: 0.6;" bind:this={zoomSvg} width="0" height="0">
 					<rect bind:this={zoomRect} width="100%" height="100%" style="fill:rgb(0,0,255);stroke-width:3;stroke:rgb(0,0,0)" />
 				</svg>
+
+				<Sparkline bind:data={sparkLineData}></Sparkline>
 
 				{#if settings}
 					<div class="topLeft">
