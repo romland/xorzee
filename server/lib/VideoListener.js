@@ -45,11 +45,7 @@ class VideoListener
 
 	setupRecorder(recorderNotifyCb)
 	{
-		if(this.conf.get("mayRecord")) {
-			return new Recorder(this.conf, recorderNotifyCb);
-		}
-
-		return null;
+		return new Recorder(this.conf, recorderNotifyCb);
 	}
 
 

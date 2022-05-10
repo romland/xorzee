@@ -294,6 +294,14 @@ class Configuration
 							'default'	: defaults.mayRecord,
 						},
 						{
+							name		: "alwaysScreenshot",
+							label		: "Always snapshot on activity",
+							type		: "bool",
+							ui			: "checkbox",
+							doc			: `Snapshot will be taken even if mayRecord is false and, perhaps SURPRISINGLY, even if 'dryRun' is set to true (this last bit because it's handy in debugging)`,
+							'default'	: defaults.alwaysScreenshot,
+						},
+						{
 							name		: "recordBufferSize",
 							label		: "Record buffer size",
 							type		: "int",
@@ -758,7 +766,8 @@ class Configuration
 																	// Format, a convex hulled polygon [ { x: ?, y: ? }, ... ] (i.e. array of objects with x/y pairs)
 
 			// Recording settings
-			mayRecord		: true,									// If true, will allocate a buffer of the past
+			mayRecord		: false,								// If true, will allocate a buffer of the past
+			alwaysScreenshot: true,									// NOTE: This will be triggered despite mayRecord being false AND, SURPRISINGLY, even if 'dryRun' is set to true
 			recordBufferSize: (3 * 1024 * 1024),					// How much video (in bytes) to buffer for pre-recording
 			recordPath		: path.resolve("../client/public/clips/"),// Where to store recordings
 			recordPathWww	: "/clips/",							// Where a web-client can find clips/etc
