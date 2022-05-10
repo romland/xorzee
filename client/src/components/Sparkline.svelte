@@ -17,7 +17,7 @@ $:	if(data.length) {
 		minValue = Infinity;
 		maxValue = -Infinity;
 		pointData = "";
-		console.log(data);
+		// console.log(data);
 		for(let i = 0; i < data.length; i++) {
 			pointData += `${i*(width/data.length)},${maxHeight - data[i].frameInfo.totalMagnitude} `;
 
