@@ -1,10 +1,9 @@
 # Xorzee
-A low-latency, HD video streamer and motion detector. The goal is that it must run on (the) one core of a Raspberry Pi Zero[1].
+A low-latency, motion detector and HD video streamer. The goal is that it must run on (the) one core of a Raspberry Pi Zero[1].
 
 - [x] ...HD stream meaning: 1920x1080 @ ~30 frames per second _to web-browser_
-- [x] ...low-latency meaning: a delay of no higher than 150 milliseconds
-- [x] ...wrapping stream to popular audio/video container serverside
-- [x] ...recorded video saved as a popular format real-time
+- [x] ...low-latency meaning: a delay of no higher than 150 milliseconds [2]
+- [x] ...recorded video saved as a popular format[3] real-time
 - [x] ...without depending on ffmpeg
 - [x] ...able to stream live camera feed directly to dozens of web-clients simultaneously and without intermediaries
 - [x] ...stream always or stream on activity
@@ -17,14 +16,15 @@ A low-latency, HD video streamer and motion detector. The goal is that it must r
 Pronounced "x or z".
 
 [1] The original one, released in 2015. If it can run on that, it will run on any other Pi with ease.
-
+[2] My use-case is WiFi over a home network
+[3] Due to overzealous organizations I avoid mentioning the format by name
 
 ## Why?
-Motion is truly excellent software and I've (well, our cat) depended on it for years. At some point
-I wanted to add more cameras and bumped into Motioneye, which looks great. It's just ... I wanted a 
-different UI, auto-discovery of cameras, and I knew the motion detection could be heaps cheaper. 
-Primarily though, a higher quality live stream without bringing the device to its knees. So, here I am,
-hacking away in some of the spare hours of the day. :-)
+[Motion](https://motion-project.github.io/) is truly excellent software and I've (well, our cat) depended 
+on it for years. At some point I wanted to add more cameras and bumped into Motioneye, which looks great. 
+It's just ... I wanted a different UI, auto-discovery of sensors on network, and cheap motion detection. 
+Primarily though, a high quality live video stream. So, here I am, hacking away in some of the spare hours 
+of the day. :-)
 
 
 ## Supported cameras
@@ -40,7 +40,7 @@ Performance critical parts are written in Rust. [Frontend](https://github.com/ro
 
 
 ## Credits to other folks
-- Notable mention of Samir Das for the fantastic [jMuxer](https://github.com/samirkumardas/jmuxer) for mp4 boxing
+- Notable mention of Samir Das for the fantastic [jMuxer](https://github.com/samirkumardas/jmuxer) for video boxing
 - ...and naturally to everyone else contributing to packages in package.json
 
 
