@@ -244,6 +244,14 @@ class Recorder
 		this.stop();
 	}
 
+	mayRecord()
+	{
+		if(this.manuallyRecording) {
+			return true;
+		}
+
+		return this.conf.get("mayRecord")
+	}
 
 	start(headers, manualOverride = false)
 	{
@@ -261,17 +269,22 @@ class Recorder
 			throw new Error("Start require headers");
 		}
 
-		this.broadcastEvent("start");
-
 		if(manualOverride === true) {
 			this.manuallyRecording = true;
 		} else {
 			this.manuallyRecording = false;
 		}
 
-		this.recordingToId = Date.now();
+		if(this.mayRecord()) {
+	        logger.info((this.dryRun() ? "[SIMULATED] " : "") + "Starting recording to %s/%s.%s ...", this.conf.get("recordPath"), this.recordingToId, (this.serverSideMuxing ? "mp4" : "h264"));
+		} else {
+			// A log here would be spammy
+			// logger.debug("Would start recording, but mayRecord is false");
+			return null;
+		}
 
-        logger.info((this.dryRun() ? "[SIMULATED] " : "") + "Starting recording to %s/%s.%s ...", this.conf.get("recordPath"), this.recordingToId, (this.serverSideMuxing ? "mp4" : "h264"));
+		this.broadcastEvent("start");
+		this.recordingToId = Date.now();
 
 		if(this.dryRun() === false) {
 			if(this.serverSideMuxing) {

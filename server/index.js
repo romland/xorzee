@@ -48,6 +48,7 @@ const cameraSettings = [
 	var videoScreenshotter;
 
 	var neighbours;
+	var lastSnapshot = 0;
 
 
 	/**
@@ -252,13 +253,29 @@ const cameraSettings = [
 			let meta;
 
 			meta = videoListener.getRecorder().getRecordingMeta();
-
+			
 			switch(eventType) {
 				case "start" :
 					logger.debug("handleMotionEvent(): %s, %s", module, eventType);
 
+					if(conf.get('alwaysScreenshot') === true && videoListener.getRecorder().dryRun() && lastSnapshot + 60000 < Date.now()) {
+						// If we are not allowed to record (mayRecord is false), 'meta' is not available,
+						// generate a filename for a snapshot.
+						videoScreenshotter.snapshotDispmanx("activity-snapshot-" + Date.now() + ".png");
+
+						// This is a forced snapshot and we do not want them to occur every time activity
+						// occurred as motion rules will trigger 'start' on every activity frame if it is
+						// not already recording.
+						lastSnapshot = Date.now();
+					}
+
 					if(!videoListener.getRecorder().dryRun()) {
 						videoScreenshotter.snapshotDispmanx(meta.screenshot);
+					}
+
+					// if no meta, we did not start recording for one reason or another
+					if(meta === null) {
+						return;
 					}
 
 					motionSignaller.activity(Signals.START_RECORDING);
