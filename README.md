@@ -15,9 +15,9 @@ A low-latency, motion detector and HD video streamer. The goal is that it must r
 
 Pronounced "x or z".
 
-[1] The original one, released in 2015. If it can run on that, it will run on any other Pi with ease.
-[2] My use-case is WiFi over a home network
-[3] Due to overzealous organizations I avoid mentioning the format by name
+[1] The original one, released in 2015. If it can run on that, it will run on any other Pi with ease.  
+[2] My use-case is WiFi over a home network  
+[3] Due to overzealous organizations I avoid mentioning the format by name  
 
 ## Why?
 [Motion](https://motion-project.github.io/) is truly excellent software and I've (well, our cat) depended 
