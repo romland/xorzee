@@ -32,7 +32,7 @@ Camera boards with sensors IMX219, OV5647 or IMX477 only. USB cameras are not su
 
 
 ## Development notes
-Performance critical parts are written in Rust. [Frontend](https://github.com/romland/xorzee/tree/main/client) is written in Svelte, the glue of the [backend](https://github.com/romland/xorzee/tree/main/server) is in node-js.
+[Performance critical parts](https://github.com/romland/mvr-processor) are written in Rust. [Frontend](https://github.com/romland/xorzee/tree/main/client) is written in Svelte, the glue of the [backend](https://github.com/romland/xorzee/tree/main/server) is in node-js.
 
 
 ## TODO
