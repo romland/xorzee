@@ -26,3 +26,6 @@
 	https://github.com/pimterry/pi-cam  
 	https://github.com/matijagaspar/ws-avc-player  
 	https://github.com/TeaFlex/PiStreamer  
+- _Shinobi_
+	Looks great. Seem to promise it all and more. Performance is however lacking on these devices. I.e. streaming
+	in combination with timelapse, and then of course similarly with motion detection.

@@ -5,7 +5,7 @@
 	export let height = '5.25rem';
 	export let marginTop = '0px';
 	export let width = 100;
-	export let strokeWidth = 4;
+	export let strokeWidth = 2;
 	export let color = '#4caf50';
 	export let colorDanger = '#f44336';
 
