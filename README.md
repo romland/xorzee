@@ -31,6 +31,12 @@ of the day. :-)
 Camera boards with sensors IMX219, OV5647 or IMX477 only. USB cameras are not supported.
 
 
+## Installation notes
+- For now, Xorzee depend on raspivid being available on your OS (due to extractable motion vectors),
+this means you have to manually get that installed if you use new Raspbian/Raspberry Pi OS. Personally
+I just use older distributions where it comes pre-installed.
+
+
 ## Development notes
 [Performance critical parts](https://github.com/romland/mvr-processor) are written in Rust. [Frontend](https://github.com/romland/xorzee/tree/main/client) is written in Svelte, the glue of the [backend](https://github.com/romland/xorzee/tree/main/server) is in node-js.
 
