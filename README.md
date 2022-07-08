@@ -22,6 +22,13 @@ Pronounced "x or z".
 This Github repository was set to private prior to 08-jul-2022.
 
 
+## Development notes
+[Performance critical parts](https://github.com/romland/mvr-processor) are written in Rust. [Frontend](https://github.com/romland/xorzee/tree/main/client) is written in Svelte, the glue of the [backend](https://github.com/romland/xorzee/tree/main/server) is in node-js.
+
+This project is still under active development (as in, the project is NOT shelved), prepare for a little bit 
+struggling if you are intending to deploy this today (July 2022).
+
+
 ## Why?
 [Motion](https://motion-project.github.io/) is truly excellent software and I've (well, our cat) depended 
 on it for years. At some point I wanted to add more cameras and bumped into Motioneye, which looks great. 
@@ -38,13 +45,6 @@ Camera boards with sensors IMX219, OV5647 or IMX477 only. USB cameras are not su
 - For now, Xorzee depend on raspivid being available on your OS (due to extractable motion vectors),
 this means you have to manually get that installed if you use new Raspbian/Raspberry Pi OS. Personally
 I just use older distributions where it comes pre-installed.
-
-
-## Development notes
-[Performance critical parts](https://github.com/romland/mvr-processor) are written in Rust. [Frontend](https://github.com/romland/xorzee/tree/main/client) is written in Svelte, the glue of the [backend](https://github.com/romland/xorzee/tree/main/server) is in node-js.
-
-This project is still under active development (as in, the project is NOT shelved), prepare for a little bit 
-struggling if you are intending to deploy this today (July 2022).
 
 
 ## TODO
