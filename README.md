@@ -19,14 +19,15 @@ Pronounced "x or z".
 [2] My use-case is WiFi over a home network  
 [3] Due to overzealous organizations I avoid mentioning the format by name  
 
+This Github repository was set to private prior to 08-jul-2022.
+
+
 ## Why?
 [Motion](https://motion-project.github.io/) is truly excellent software and I've (well, our cat) depended 
 on it for years. At some point I wanted to add more cameras and bumped into Motioneye, which looks great. 
 It's just ... I wanted a different UI, auto-discovery of sensors on network, and cheap motion detection. 
 Primarily though, a high quality live video stream. So, here I am, hacking away in some of the spare hours 
 of the day. :-)
-
-This Github repository was made public on 08-jul-2022.
 
 
 ## Supported sensors
