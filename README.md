@@ -26,8 +26,7 @@ It's just ... I wanted a different UI, auto-discovery of sensors on network, and
 Primarily though, a high quality live video stream. So, here I am, hacking away in some of the spare hours 
 of the day. :-)
 
-
-## Supported cameras
+## Supported sensors
 Camera boards with sensors IMX219, OV5647 or IMX477 only. USB cameras are not supported.
 
 
@@ -39,6 +38,9 @@ I just use older distributions where it comes pre-installed.
 
 ## Development notes
 [Performance critical parts](https://github.com/romland/mvr-processor) are written in Rust. [Frontend](https://github.com/romland/xorzee/tree/main/client) is written in Svelte, the glue of the [backend](https://github.com/romland/xorzee/tree/main/server) is in node-js.
+
+This is still under active development, prepare for a little bit struggling if you are intending to deploy
+this today (July 2022).
 
 
 ## TODO
