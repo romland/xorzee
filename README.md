@@ -1,5 +1,5 @@
 # Xorzee
-A low-latency, motion detector and HD video streamer. The goal is that it must run on (the) one core of a Raspberry Pi Zero[1].
+A low-latency motion detector and HD video streamer. The goal is that it must run on (the) one core of a Raspberry Pi Zero[1].
 
 - [x] ...HD stream meaning: 1920x1080 @ ~30 frames per second _to web-browser_
 - [x] ...low-latency meaning: a delay of no higher than 150 milliseconds [2]
