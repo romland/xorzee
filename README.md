@@ -26,6 +26,9 @@ It's just ... I wanted a different UI, auto-discovery of sensors on network, and
 Primarily though, a high quality live video stream. So, here I am, hacking away in some of the spare hours 
 of the day. :-)
 
+This Github repository was made public on 08-jul-2022.
+
+
 ## Supported sensors
 Camera boards with sensors IMX219, OV5647 or IMX477 only. USB cameras are not supported.
 
@@ -39,12 +42,12 @@ I just use older distributions where it comes pre-installed.
 ## Development notes
 [Performance critical parts](https://github.com/romland/mvr-processor) are written in Rust. [Frontend](https://github.com/romland/xorzee/tree/main/client) is written in Svelte, the glue of the [backend](https://github.com/romland/xorzee/tree/main/server) is in node-js.
 
-This is still under active development, prepare for a little bit struggling if you are intending to deploy
-this today (July 2022).
+This project is still under active development (as in, the project is NOT shelved), prepare for a little bit 
+struggling if you are intending to deploy this today (July 2022).
 
 
 ## TODO
-- [ ] ...store meta-data of amount of activity in period (graph)
+- [ ] ...store meta-data of amount of activity in a period
 
 
 ## Credits to other folks
