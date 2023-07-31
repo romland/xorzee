@@ -19,14 +19,14 @@ Pronounced "x or z".
 [2] My use-case is WiFi over a home network  
 [3] Due to overzealous organizations I avoid mentioning the format by name  
 
-This Github repository was set to private prior to 08-jul-2022.
+This Github repository was set to private prior to 31-jul-2023.
 
 
 ## Development notes
 [Performance critical parts](https://github.com/romland/mvr-processor) are written in Rust. [Frontend](https://github.com/romland/xorzee/tree/main/client) is written in Svelte, the glue of the [backend](https://github.com/romland/xorzee/tree/main/server) is in node-js.
 
-This project is still under active development (as in, the project is NOT shelved), prepare for a little bit 
-struggling if you are intending to deploy this today (July 2022).
+This project is still under active development (as in, the project is NOT shelved), prepare for a bit of
+struggling if you are intending to deploy this today (July 2023).
 
 
 ## Why?
@@ -48,7 +48,13 @@ I just use older distributions where it comes pre-installed.
 
 
 ## TODO
-- [ ] ...store meta-data of amount of activity in a period
+- [ ] make sure recorded clips are playable (this is a bug from server-side muxing)
+- [ ] clean up server-side muxing (there's residue from the hack to get this to work)
+- [ ] rewrite motion-rule handling (it has issues with knowing when to stop)
+- [ ] store meta-data of amount of activity in a period
+
+## Long-term TODO
+- [ ] make camera 'driver' a node-module or so (at least make it so that it can be easily used on newer Raspberry Pi OS)
 
 
 ## Credits to other folks
