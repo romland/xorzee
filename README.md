@@ -48,7 +48,7 @@ I just use older distributions where it comes pre-installed.
 
 
 ## TODO
-- [ ] make sure recorded clips are playable (this is a bug from server-side muxing)
+- [ ] make sure recorded clips are playable (this is a bug from server-side muxing). I _think_ this is due to missing keyframes 
 - [ ] clean up server-side muxing (there's residue from the hack to get this to work)
 - [ ] rewrite motion-rule handling (it has issues with knowing when to stop)
 - [ ] store meta-data of amount of activity in a period
