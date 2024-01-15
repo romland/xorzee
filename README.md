@@ -3,7 +3,7 @@ A low-latency motion detector and HD video streamer. The goal is that it must ru
 
 - [x] ...HD stream meaning: 1920x1080 @ ~30 frames per second _to web-browser_
 - [x] ...low-latency meaning: a delay of no higher than 150 milliseconds [2]
-- [x] ...recorded video saved as a popular format[3] real-time
+- [x] ...recorded video saved as mp4 real-time
 - [x] ...without depending on ffmpeg
 - [x] ...able to stream live camera feed directly to dozens of web-clients simultaneously and without intermediaries
 - [x] ...stream always or stream on activity
@@ -17,9 +17,8 @@ Pronounced "x or z".
 
 [1] The original one, released in 2015. If it can run on that, it will run on any other Pi with ease.  
 [2] My use-case is WiFi over a home network  
-[3] Due to overzealous organizations I avoid mentioning the format by name  
 
-This Github repository was set to private prior to 31-jul-2023.
+This Github repository was set to public on 15-jan-2024.
 
 
 ## Development notes
