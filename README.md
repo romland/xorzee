@@ -20,9 +20,8 @@ Pronounced "x or z".
 
 This Github repository was set to public on 15-jan-2024.
 
-[![Xorzee with four Raspis]
-(https://img.youtube.com/vi/V8OVn5oBhsY/maxresdefault.jpg)]
-(https://www.youtube.com/watch?v=V8OVn5oBhsY)
+### Example on Youtube
+[![Xorzee with four Raspis](https://img.youtube.com/vi/V8OVn5oBhsY/maxresdefault.jpg)](https://www.youtube.com/watch?v=V8OVn5oBhsY)
 _Video of four Raspi's -- one is acting as a "server" that found its other three friends_
 
 ## Development notes
