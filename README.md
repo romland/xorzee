@@ -22,7 +22,7 @@ This Github repository was set to public on 15-jan-2024.
 
 ### Example on Youtube
 [![Xorzee with four Raspis](https://img.youtube.com/vi/V8OVn5oBhsY/maxresdefault.jpg)](https://www.youtube.com/watch?v=V8OVn5oBhsY)
-_Four Raspi's; one of them is acting as a "server" (they are all servers) that found its other three friends_
+_Four Raspi's; one of them is acting as a "server" that found its other three friends on the network_
 
 ## Development notes
 [Performance critical parts](https://github.com/romland/mvr-processor) are written in Rust. [Frontend](https://github.com/romland/xorzee/tree/main/client) is written in Svelte, the glue of the [backend](https://github.com/romland/xorzee/tree/main/server) is in node-js.
