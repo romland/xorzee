@@ -3,9 +3,9 @@ A low-latency motion detector and HD video streamer. The goal is that it must ru
 
 - [x] ...HD stream meaning: 1920x1080 @ ~30 frames per second _to web-browser_
 - [x] ...low-latency meaning: a delay of no higher than 150 milliseconds [2]
-- [x] ...recorded video saved as mp4 real-time
-- [x] ...without depending on ffmpeg
-- [x] ...able to stream live camera feed directly to dozens of web-clients simultaneously and without intermediaries
+- [x] ...recorded video saved as mp4 real-time (motion detected)
+- [x] ...without ffmpeg dependency
+- [x] ...able to stream live camera feed directly to dozens of web-clients simultaneously and without intermediaries (servers)
 - [x] ...stream always or stream on activity
 - [x] ...configurable sensitivity of motion detection
 - [x] ...save motion-sequences (preview shot and video) to disk
